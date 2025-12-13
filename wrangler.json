@@ -2,8 +2,7 @@
   "name": "gegenisht-app",
   "compatibility_date": "2024-11-12",
   "assets": {
-    "directory": "./dist",
-    "binding": "ASSETS"
+    "directory": "./dist"
   },
   "observability": {
     "enabled": true
