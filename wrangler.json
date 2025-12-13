@@ -1,7 +1,9 @@
 {
   "name": "gegenisht-app",
+  "main": "worker.js",
   "compatibility_date": "2024-11-12",
   "assets": {
-    "directory": "./dist"
+    "directory": "./dist",
+    "binding": "ASSETS"
   }
 }
