@@ -1,7 +1,16 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { DictionaryEntry, QuizQuestion, CrosswordData, AlphabetData, GlossaryTerm } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Helper to initialize AI safely
+const getAI = () => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    console.error("API Key is missing. Please check your environment variables.");
+    // We return a dummy object or throw a handled error to prevent app crash on load
+    throw new Error("API Key missing");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 const dictionarySchema: Schema = {
   type: Type.OBJECT,
@@ -130,6 +139,7 @@ const glossarySchema: Schema = {
 
 export const fetchWordDefinition = async (query: string): Promise<DictionaryEntry> => {
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Provide a detailed dictionary entry for the Geg language word or phrase related to: "${query}". 
@@ -156,6 +166,7 @@ export const fetchWordDefinition = async (query: string): Promise<DictionaryEntr
 
 export const fetchWordOfTheDay = async (): Promise<DictionaryEntry> => {
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Choose a unique, interesting, and culturally significant word from the Geg language. 
@@ -179,6 +190,7 @@ export const fetchWordOfTheDay = async (): Promise<DictionaryEntry> => {
 
 export const fetchDailyQuiz = async (): Promise<QuizQuestion> => {
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Create a multiple-choice question to test knowledge of Geg language vocabulary or grammar, potentially contrasting it with the 1972 Standard.
@@ -201,6 +213,7 @@ export const fetchDailyQuiz = async (): Promise<QuizQuestion> => {
 
 export const fetchEtymologyImage = async (word: string, etymology: string): Promise<string | null> => {
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
       contents: {
@@ -233,6 +246,7 @@ export const fetchEtymologyImage = async (word: string, etymology: string): Prom
 
 export const fetchCrosswordPuzzle = async (): Promise<CrosswordData> => {
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Generate a mini crossword puzzle (max 10x10) with exactly 5-6 words related to Geg culture, geography, or language.
@@ -257,6 +271,7 @@ export const fetchCrosswordPuzzle = async (): Promise<CrosswordData> => {
 
 export const fetchAlphabetWord = async (letter: string): Promise<AlphabetData> => {
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Provide a simple, child-friendly word in the Geg language starting with the letter "${letter}".
@@ -279,6 +294,7 @@ export const fetchAlphabetWord = async (letter: string): Promise<AlphabetData> =
 
 export const fetchKidIllustration = async (prompt: string): Promise<string | null> => {
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
       contents: {
@@ -311,6 +327,7 @@ export const fetchKidIllustration = async (prompt: string): Promise<string | nul
 
 export const fetchGlossaryTerms = async (letter: string): Promise<GlossaryTerm[]> => {
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Generate a list of 12 distinct, authentic, and culturally significant words specifically in the Geg Albanian dialect (Northern Albania/Kosovo) that start with the letter "${letter}". 

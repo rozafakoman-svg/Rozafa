@@ -1,7 +1,13 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    // Serve assets from the ASSETS binding
+    
+    // Explicitly serve index.html for root path
+    if (url.pathname === "/") {
+       return env.ASSETS.fetch(new Request(new URL("/index.html", request.url), request));
+    }
+
+    // Serve other assets from the ASSETS binding
     if (env.ASSETS) {
       let response = await env.ASSETS.fetch(request);
       
