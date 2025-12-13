@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Language } from '../App';
 import { Product } from '../types';
-import { ShoppingBag, Star, CheckCircle, Loader2, Package, Sparkles, Crown, Megaphone, ShoppingCart, Filter, Heart, X, Search, ArrowRight } from './Icons';
+import { ShoppingBag, Star, CheckCircle, Loader2, Package, Sparkles, Crown, Megaphone, ShoppingCart, Filter, Heart, X, Search, ArrowRight, Trash2, CreditCard } from './Icons';
 
 interface ShopPageProps {
   lang: Language;
+  cartItems: string[];
+  onAddToCart: (id: string) => void;
+  onRemoveFromCart: (id: string) => void;
 }
 
 const MOCK_PRODUCTS: (Product & { rating: number, reviews: number })[] = [
@@ -94,21 +97,25 @@ const MOCK_PRODUCTS: (Product & { rating: number, reviews: number })[] = [
   }
 ];
 
-const ShopPage: React.FC<ShopPageProps> = ({ lang }) => {
+const ShopPage: React.FC<ShopPageProps> = ({ lang, cartItems, onAddToCart, onRemoveFromCart }) => {
   const isGeg = lang === 'geg';
   const [activeCategory, setActiveCategory] = useState<'all' | 'apparel' | 'souvenir' | 'digital' | 'corporate'>('all');
-  const [cart, setCart] = useState<string[]>([]);
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const filteredProducts = activeCategory === 'all' 
     ? MOCK_PRODUCTS 
     : MOCK_PRODUCTS.filter(p => p.category === activeCategory);
 
-  const handleAddToCart = (product: Product) => {
+  // Derive cart contents
+  const cartProducts = cartItems.map(id => MOCK_PRODUCTS.find(p => p.id === id)).filter(Boolean) as Product[];
+  const totalPrice = cartProducts.reduce((sum, p) => sum + p.price, 0);
+
+  const handleAddToCartClick = (product: Product) => {
     setAddingToCart(product.id);
     setTimeout(() => {
-        setCart([...cart, product.id]);
+        onAddToCart(product.id);
         setAddingToCart(null);
         setNotification(isGeg ? `U shtue në shportë: ${product.nameGeg}` : `Added to cart: ${product.name}`);
         setTimeout(() => setNotification(null), 3000);
@@ -149,15 +156,86 @@ const ShopPage: React.FC<ShopPageProps> = ({ lang }) => {
 
       {/* Floating Cart Button */}
       <div className="fixed bottom-6 right-6 z-40">
-          <button className="w-16 h-16 bg-emerald-600 text-white rounded-full shadow-xl flex items-center justify-center relative hover:scale-110 hover:bg-emerald-500 transition-all group">
+          <button 
+            onClick={() => setIsCartOpen(true)}
+            className="w-16 h-16 bg-emerald-600 text-white rounded-full shadow-xl flex items-center justify-center relative hover:scale-110 hover:bg-emerald-500 transition-all group"
+          >
               <ShoppingCart className="w-7 h-7" />
-              {cart.length > 0 && (
+              {cartItems.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-white animate-bounce">
-                      {cart.length}
+                      {cartItems.length}
                   </span>
               )}
           </button>
       </div>
+
+      {/* Cart Modal/Drawer */}
+      {isCartOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-sm animate-fade-in">
+           <div className="bg-white dark:bg-gray-900 w-full max-w-md h-full shadow-2xl flex flex-col animate-slide-in-right">
+              {/* Header */}
+              <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                 <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <ShoppingCart className="w-6 h-6 text-emerald-600" /> 
+                    {isGeg ? 'Shporta' : 'Your Cart'}
+                 </h2>
+                 <button onClick={() => setIsCartOpen(false)} className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                    <X className="w-5 h-5 text-gray-500" />
+                 </button>
+              </div>
+
+              {/* Cart Items List */}
+              <div className="flex-grow overflow-y-auto p-6 space-y-4">
+                 {cartProducts.length === 0 ? (
+                    <div className="text-center py-12">
+                       <ShoppingBag className="w-16 h-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
+                       <p className="text-gray-500 dark:text-gray-400 font-medium">
+                          {isGeg ? 'Shporta âsht e zbrazët.' : 'Your cart is empty.'}
+                       </p>
+                       <button onClick={() => setIsCartOpen(false)} className="mt-4 text-emerald-600 font-bold text-sm hover:underline">
+                          {isGeg ? 'Fillo Blerjen' : 'Start Shopping'}
+                       </button>
+                    </div>
+                 ) : (
+                    cartProducts.map((item, index) => (
+                       <div key={`${item.id}-${index}`} className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-white ${item.color.split(' ')[0]}`}>
+                             {/* Extract just the bg color part roughly or default */}
+                             <ShoppingBag className="w-6 h-6" /> 
+                          </div>
+                          <div className="flex-grow min-w-0">
+                             <h4 className="font-bold text-gray-900 dark:text-white truncate text-sm">{isGeg ? item.nameGeg : item.name}</h4>
+                             <p className="text-emerald-600 font-bold">${item.price.toFixed(2)}</p>
+                          </div>
+                          <button 
+                            onClick={() => onRemoveFromCart(item.id)}
+                            className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                            title="Remove"
+                          >
+                             <Trash2 className="w-4 h-4" />
+                          </button>
+                       </div>
+                    ))
+                 )}
+              </div>
+
+              {/* Footer / Checkout */}
+              <div className="p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
+                 <div className="flex justify-between items-center mb-6">
+                    <span className="text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider text-sm">{isGeg ? 'Totali' : 'Total'}</span>
+                    <span className="text-3xl font-black text-gray-900 dark:text-white">${totalPrice.toFixed(2)}</span>
+                 </div>
+                 <button 
+                   disabled={cartItems.length === 0}
+                   className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-black dark:hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                 >
+                    <CreditCard className="w-5 h-5" />
+                    {isGeg ? 'Paguaj Tash' : 'Checkout Now'}
+                 </button>
+              </div>
+           </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <div className="bg-gray-900 dark:bg-black rounded-3xl overflow-hidden mb-12 relative shadow-2xl mx-4 lg:mx-0">
@@ -258,7 +336,7 @@ const ShopPage: React.FC<ShopPageProps> = ({ lang }) => {
                    </p>
 
                    <button 
-                     onClick={() => handleAddToCart(product)}
+                     onClick={() => handleAddToCartClick(product)}
                      disabled={!!addingToCart}
                      className="w-full py-3.5 rounded-xl font-bold text-white transition-all shadow-lg flex items-center justify-center gap-2 bg-gray-900 hover:bg-black dark:bg-gray-700 dark:hover:bg-gray-600 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
                    >

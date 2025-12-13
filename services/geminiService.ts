@@ -4,10 +4,10 @@ import { DictionaryEntry, QuizQuestion, CrosswordData, AlphabetData, GlossaryTer
 // Helper to initialize AI safely
 const getAI = () => {
   const apiKey = process.env.API_KEY;
-  if (!apiKey) {
+  // Check for undefined, null, or empty string, or the string "undefined" which can happen during string replacement
+  if (!apiKey || apiKey === 'undefined' || apiKey.trim() === '') {
     console.error("API Key is missing. Please check your environment variables.");
-    // We return a dummy object or throw a handled error to prevent app crash on load
-    throw new Error("API Key missing");
+    throw new Error("MISSING_API_KEY");
   }
   return new GoogleGenAI({ apiKey });
 };

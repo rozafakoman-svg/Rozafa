@@ -18,7 +18,7 @@ import GlossaryPage from './components/GlossaryPage';
 import ThesaurusDashboard from './components/ThesaurusDashboard';
 import AuthModal from './components/AuthModal';
 import AdUnit from './components/AdUnit';
-import { Sparkles, BookOpen, GraduationCap, RefreshCw, ScrollText, Globe, Mic, FileText, Heart, Trophy, Shield, ShoppingBag, MessageCircle, AlignLeft, Gamepad2, User, Type, MessageSquare, Book, Menu, X, Sun, Moon, Github, Twitter, Facebook, Instagram, ArrowRight } from './components/Icons';
+import { Sparkles, BookOpen, GraduationCap, RefreshCw, ScrollText, Globe, Mic, FileText, Heart, Trophy, Shield, ShoppingBag, MessageCircle, AlignLeft, Gamepad2, User, Type, MessageSquare, Book, Menu, X, Sun, Moon, Github, Twitter, Facebook, Instagram, ArrowRight, AlertTriangle } from './components/Icons';
 
 type View = 'dictionary' | 'thesaurus' | 'glossary' | 'games' | 'about' | 'history' | 'podcast' | 'blog' | 'support' | 'community' | 'admin' | 'shop' | 'interjections' | 'alphabet' | 'forum';
 export type Language = 'geg' | 'eng';
@@ -95,6 +95,9 @@ const App: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   
+  // Cart State
+  const [cartItems, setCartItems] = useState<string[]>([]);
+
   const [searchState, setSearchState] = useState<SearchState>({
     isLoading: false,
     error: null,
@@ -143,10 +146,20 @@ const App: React.FC = () => {
     try {
       const data = await fetchWordDefinition(query);
       setSearchState({ isLoading: false, error: null, data });
-    } catch (err) {
+    } catch (err: any) {
+      // Improve Error Handling Logic
+      console.error("Search Error:", err);
+      let errorMsg = lang === 'geg' ? "S'u gjet kuptimi. Provo nji fjalë tjetër." : "Could not find definition. Please try another word.";
+      
+      if (err.message === "MISSING_API_KEY") {
+         errorMsg = "DEPLOYMENT ERROR: API_KEY is missing. Please add 'API_KEY' to your environment variables (local .env or Cloudflare Dashboard) and rebuild.";
+      } else if (err.message && err.message.includes("403")) {
+         errorMsg = "API ERROR: Access Denied. Check your API Key billing or permissions.";
+      }
+
       setSearchState({ 
         isLoading: false, 
-        error: lang === 'geg' ? "S'u gjet kuptimi. Provo nji fjalë tjetër." : "Could not find definition. Please try another word.", 
+        error: errorMsg, 
         data: null 
       });
     }
@@ -161,6 +174,22 @@ const App: React.FC = () => {
 
   const handleEntryUpdate = (updatedEntry: DictionaryEntry) => {
     setSearchState(prev => ({ ...prev, data: updatedEntry }));
+  };
+
+  const handleAddToCart = (id: string) => {
+    setCartItems(prev => [...prev, id]);
+  };
+
+  const handleRemoveFromCart = (id: string) => {
+    setCartItems(prev => {
+      const idx = prev.indexOf(id);
+      if (idx > -1) {
+        const newArr = [...prev];
+        newArr.splice(idx, 1);
+        return newArr;
+      }
+      return prev;
+    });
   };
 
   useEffect(() => {
@@ -397,8 +426,9 @@ const App: React.FC = () => {
 
               {/* Error Message */}
               {searchState.error && (
-                <div className="max-w-xl mx-auto p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-300 text-center mb-10">
-                  {searchState.error}
+                <div className="max-w-xl mx-auto p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-300 text-center mb-10 flex items-center justify-center gap-3">
+                  <AlertTriangle className="w-6 h-6 flex-shrink-0" />
+                  <span className="font-medium text-sm sm:text-base">{searchState.error}</span>
                 </div>
               )}
 
@@ -552,7 +582,12 @@ const App: React.FC = () => {
 
           {/* SHOP VIEW */}
           {currentView === 'shop' && (
-             <ShopPage lang={lang} />
+             <ShopPage 
+               lang={lang} 
+               cartItems={cartItems}
+               onAddToCart={handleAddToCart}
+               onRemoveFromCart={handleRemoveFromCart}
+             />
           )}
 
           {/* INTERJECTIONS VIEW */}
