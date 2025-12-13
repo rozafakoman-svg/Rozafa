@@ -109,17 +109,23 @@ const alphabetSchema: Schema = {
 };
 
 const glossarySchema: Schema = {
-  type: Type.ARRAY,
-  items: {
-    type: Type.OBJECT,
-    properties: {
-      word: { type: Type.STRING, description: "The word in Geg" },
-      definition: { type: Type.STRING, description: "Short definition in English" },
-      partOfSpeech: { type: Type.STRING, description: "Part of speech" },
-      origin: { type: Type.STRING, description: "Etymological origin (e.g. Native, Turkish, Slavic, Latin)" }
-    },
-    required: ["word", "definition", "partOfSpeech", "origin"]
-  }
+  type: Type.OBJECT,
+  properties: {
+    terms: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          word: { type: Type.STRING, description: "The word in Geg" },
+          definition: { type: Type.STRING, description: "Short definition in English" },
+          partOfSpeech: { type: Type.STRING, description: "Part of speech" },
+          origin: { type: Type.STRING, description: "Etymological origin (e.g. Native, Turkish, Slavic, Latin)" }
+        },
+        required: ["word", "definition", "partOfSpeech", "origin"]
+      }
+    }
+  },
+  required: ["terms"]
 };
 
 export const fetchWordDefinition = async (query: string): Promise<DictionaryEntry> => {
@@ -322,7 +328,7 @@ export const fetchGlossaryTerms = async (letter: string): Promise<GlossaryTerm[]
       - Its part of speech
       - Its likely etymological origin (e.g., Native, Turkish, Slavic, Latin, Greek) if known/applicable.
       
-      Return strictly JSON array.`,
+      Return strictly JSON.`,
       config: {
         responseMimeType: "application/json",
         responseSchema: glossarySchema,
@@ -332,7 +338,8 @@ export const fetchGlossaryTerms = async (letter: string): Promise<GlossaryTerm[]
 
     const text = response.text;
     if (!text) throw new Error("No glossary data");
-    return JSON.parse(text) as GlossaryTerm[];
+    const result = JSON.parse(text);
+    return result.terms as GlossaryTerm[];
   } catch (error) {
     console.error("Glossary Fetch Error:", error);
     throw error;

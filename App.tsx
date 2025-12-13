@@ -363,7 +363,7 @@ const App: React.FC = () => {
             <>
               {/* Header */}
               <div className="mb-12 text-center">
-                {!searchState.data && currentView !== 'thesaurus' && (
+                {!searchState.data && currentView === 'dictionary' && (
                     <div className="mb-10 animate-fade-in-down">
                         <h1 className="text-4xl sm:text-6xl font-serif font-bold text-albanian-black dark:text-white mb-4">
                            {t.hero.title_main}
@@ -373,10 +373,17 @@ const App: React.FC = () => {
                         </p>
                     </div>
                 )}
-                {/* For Thesaurus, the dashboard handles the title if no search data */}
                 {!searchState.data && currentView === 'thesaurus' && (
-                   <div className="mb-8">
-                      {/* Placeholder for layout consistency, actual header in ThesaurusDashboard */}
+                   <div className="mb-10 animate-fade-in-down">
+                      <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-6 shadow-lg shadow-indigo-200 dark:shadow-indigo-900/20 transform rotate-3">
+                        <AlignLeft className="w-8 h-8 text-white" />
+                      </div>
+                      <h1 className="text-4xl sm:text-6xl font-serif font-bold text-gray-900 dark:text-white mb-4">
+                        {lang === 'geg' ? 'Eksploro ' : 'Explore '}<span className="text-indigo-600 dark:text-indigo-400">Thesarin</span>
+                      </h1>
+                      <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
+                        {t.hero.subtitle_thes}
+                      </p>
                    </div>
                 )}
 

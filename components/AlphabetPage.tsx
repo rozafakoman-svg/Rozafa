@@ -190,13 +190,13 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
 
       {/* Header */}
       <div className="text-center mb-12">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-900 rounded-3xl mb-6 shadow-xl border-4 border-gray-100">
-           <span className="font-serif font-black text-4xl text-white">Aa</span>
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-900 dark:bg-white rounded-3xl mb-6 shadow-xl border-4 border-gray-100 dark:border-gray-800">
+           <span className="font-serif font-black text-4xl text-white dark:text-gray-900">Aa</span>
         </div>
-        <h1 className="text-4xl sm:text-6xl font-serif font-bold text-gray-900 mb-4">
+        <h1 className="text-4xl sm:text-6xl font-serif font-bold text-gray-900 dark:text-white mb-4">
            {isGeg ? 'Alfabeti i ' : 'The Alphabet of '}<span className="text-albanian-red">Gegenishtes</span>
         </h1>
-        <p className="text-xl text-gray-500 font-medium max-w-2xl mx-auto">
+        <p className="text-xl text-gray-500 dark:text-gray-400 font-medium max-w-2xl mx-auto">
             {isGeg 
               ? '36 shkronjat standarde plus zanoret hundore karakteristike të Veriut.' 
               : 'The 36 standard letters plus the distinctive nasal vowels of the North.'}
@@ -211,16 +211,16 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
             onClick={() => openLetter(letter)}
             className={`aspect-[3/4] rounded-3xl flex flex-col items-center justify-between border-2 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group relative overflow-hidden cursor-pointer ${
               letter.isNasal 
-                ? 'bg-red-50/50 border-red-200 hover:border-red-400' 
-                : 'bg-white border-gray-100 hover:border-blue-300'
+                ? 'bg-red-50/50 dark:bg-red-900/10 border-red-200 dark:border-red-900/50 hover:border-red-400' 
+                : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500'
             }`}
           >
             {/* Image Area - Expanded Height */}
-            <div className="w-full h-[65%] bg-gray-50 relative overflow-hidden">
+            <div className="w-full h-[65%] bg-gray-50 dark:bg-gray-700 relative overflow-hidden">
                 {letter.imageUrl ? (
                     <img src={letter.imageUrl} alt={letter.exampleWord} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300">
+                    <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600">
                         <ImageIcon className="w-8 h-8" />
                     </div>
                 )}
@@ -232,7 +232,7 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
                 {isEditing && (
                     <button 
                         onClick={(e) => triggerGridUpload(e, letter.id)}
-                        className="absolute top-2 right-2 p-2 bg-white/90 backdrop-blur-sm rounded-full text-gray-700 hover:text-blue-600 shadow-md hover:scale-110 transition-all z-20"
+                        className="absolute top-2 right-2 p-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full text-gray-700 dark:text-gray-300 hover:text-blue-600 shadow-md hover:scale-110 transition-all z-20"
                         title="Upload Image"
                     >
                         <Upload className="w-4 h-4" />
@@ -242,7 +242,7 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
                 {/* Sound Player Overlay */}
                 <button 
                     onClick={(e) => playAudio(e, letter)}
-                    className="absolute bottom-3 right-3 p-2.5 bg-white/95 backdrop-blur-sm rounded-full text-albanian-red shadow-lg hover:scale-110 active:scale-95 transition-all z-10"
+                    className="absolute bottom-3 right-3 p-2.5 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-full text-albanian-red shadow-lg hover:scale-110 active:scale-95 transition-all z-10"
                 >
                     <Volume2 className="w-5 h-5" />
                 </button>
@@ -254,12 +254,12 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
             </div>
 
             {/* Content Bottom */}
-            <div className="flex-grow flex flex-col items-start justify-center p-4 w-full bg-white relative">
+            <div className="flex-grow flex flex-col items-start justify-center p-4 w-full bg-white dark:bg-gray-800 relative">
                 {/* Example Word */}
-                <span className="text-lg font-bold text-gray-800 truncate w-full leading-tight">{letter.exampleWord}</span>
-                <span className="text-xs text-gray-400 font-medium truncate w-full">{letter.exampleTranslation}</span>
+                <span className="text-lg font-bold text-gray-800 dark:text-gray-200 truncate w-full leading-tight">{letter.exampleWord}</span>
+                <span className="text-xs text-gray-400 dark:text-gray-500 font-medium truncate w-full">{letter.exampleTranslation}</span>
                 
-                <div className="absolute top-0 right-4 -mt-3 bg-white px-2 py-0.5 rounded-full border border-gray-100 shadow-sm text-[10px] font-mono text-gray-500">
+                <div className="absolute top-0 right-4 -mt-3 bg-white dark:bg-gray-700 px-2 py-0.5 rounded-full border border-gray-100 dark:border-gray-600 shadow-sm text-[10px] font-mono text-gray-500 dark:text-gray-300">
                     [{letter.ipa}]
                 </div>
             </div>
@@ -274,7 +274,7 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
         {isEditing && (
             <button 
                 onClick={addNewCard}
-                className="aspect-[3/4] rounded-3xl flex flex-col items-center justify-center border-2 border-dashed border-gray-300 text-gray-400 hover:border-albanian-red hover:text-albanian-red hover:bg-red-50 transition-all gap-2"
+                className="aspect-[3/4] rounded-3xl flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 text-gray-400 dark:text-gray-600 hover:border-albanian-red hover:text-albanian-red hover:bg-red-50 dark:hover:bg-red-900/10 transition-all gap-2"
             >
                 <PlusCircle className="w-10 h-10" />
                 <span className="font-bold text-base">Add New Letter</span>
@@ -285,11 +285,11 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
       {/* Legend */}
       <div className="mt-12 flex items-center justify-center gap-6 text-sm">
         <div className="flex items-center gap-2">
-           <span className="w-3 h-3 rounded-full bg-gray-200 border border-gray-300"></span>
-           <span className="text-gray-600">Standard</span>
+           <span className="w-3 h-3 rounded-full bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600"></span>
+           <span className="text-gray-600 dark:text-gray-400">Standard</span>
         </div>
         <div className="flex items-center gap-2">
-           <span className="w-3 h-3 rounded-full bg-red-100 border border-red-300"></span>
+           <span className="w-3 h-3 rounded-full bg-red-100 dark:bg-red-900/50 border border-red-300 dark:border-red-800"></span>
            <span className="text-albanian-red font-bold">Nasal (Geg)</span>
         </div>
       </div>
@@ -297,27 +297,27 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
       {/* Modal Detail View */}
       {isModalOpen && selectedLetter && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl w-full max-w-3xl relative overflow-hidden shadow-2xl animate-scale-in flex flex-col md:flex-row min-h-[500px]">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-3xl relative overflow-hidden shadow-2xl animate-scale-in flex flex-col md:flex-row min-h-[500px] border border-gray-100 dark:border-gray-800">
             
             <button 
               onClick={closeModal}
-              className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors z-20"
+              className="absolute top-4 right-4 p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors z-20"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
             </button>
 
             {/* Left Side: Letter Visualization */}
-            <div className={`w-full md:w-5/12 flex flex-col items-center justify-center p-8 ${selectedLetter.isNasal ? 'bg-red-50' : 'bg-gray-50'}`}>
+            <div className={`w-full md:w-5/12 flex flex-col items-center justify-center p-8 ${selectedLetter.isNasal ? 'bg-red-50 dark:bg-red-900/20' : 'bg-gray-50 dark:bg-gray-800'}`}>
                
                {/* Editable Char */}
                {isEditing ? (
                    <input 
                       value={selectedLetter.char}
                       onChange={(e) => handleUpdate('char', e.target.value)}
-                      className="text-8xl font-black font-serif mb-4 text-center bg-transparent border-b-2 border-dashed border-gray-300 focus:border-albanian-red focus:outline-none w-1/2"
+                      className="text-8xl font-black font-serif mb-4 text-center bg-transparent border-b-2 border-dashed border-gray-300 focus:border-albanian-red focus:outline-none w-1/2 text-gray-900 dark:text-white"
                    />
                ) : (
-                    <span className={`text-9xl font-black font-serif mb-4 ${selectedLetter.isNasal ? 'text-albanian-red' : 'text-gray-900'}`}>
+                    <span className={`text-9xl font-black font-serif mb-4 ${selectedLetter.isNasal ? 'text-albanian-red' : 'text-gray-900 dark:text-white'}`}>
                         {selectedLetter.char}
                     </span>
                )}
@@ -326,10 +326,10 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
                    <input 
                       value={selectedLetter.ipa}
                       onChange={(e) => handleUpdate('ipa', e.target.value)}
-                      className="text-xl font-mono text-center bg-white px-4 py-1 rounded-full shadow-sm w-3/4"
+                      className="text-xl font-mono text-center bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-1 rounded-full shadow-sm w-3/4"
                    />
                ) : (
-                    <span className="text-2xl font-mono text-gray-500 bg-white px-4 py-1 rounded-full shadow-sm">
+                    <span className="text-2xl font-mono text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 px-4 py-1 rounded-full shadow-sm">
                         [{selectedLetter.ipa}]
                     </span>
                )}
@@ -337,31 +337,31 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
                {/* Audio Play Button Large */}
                <button 
                  onClick={() => playAudio()}
-                 className="mt-8 w-16 h-16 rounded-full bg-white shadow-lg flex items-center justify-center text-albanian-red hover:scale-110 transition-transform"
+                 className="mt-8 w-16 h-16 rounded-full bg-white dark:bg-gray-700 shadow-lg flex items-center justify-center text-albanian-red hover:scale-110 transition-transform"
                >
                  <Volume2 className="w-8 h-8" />
                </button>
             </div>
 
             {/* Right Side: Details & Admin */}
-            <div className="w-full md:w-7/12 p-8 flex flex-col overflow-y-auto bg-white">
+            <div className="w-full md:w-7/12 p-8 flex flex-col overflow-y-auto bg-white dark:bg-gray-900">
                <div className="mb-6">
                  <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">
                     {isGeg ? 'Përshkrimi' : 'Description'}
                  </h3>
                  {isEditing ? (
                    <textarea
-                     className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
+                     className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
                      value={selectedLetter.description}
                      onChange={(e) => handleUpdate('description', e.target.value)}
                      rows={3}
                    />
                  ) : (
-                   <p className="text-gray-700 leading-relaxed font-medium">{selectedLetter.description}</p>
+                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed font-medium">{selectedLetter.description}</p>
                  )}
                </div>
 
-               <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-6 relative hover:border-blue-200 transition-colors shadow-sm">
+               <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 mb-6 relative hover:border-blue-200 dark:hover:border-blue-700 transition-colors shadow-sm">
                   <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center justify-between">
                      <span>{isGeg ? 'Fjala Shembull' : 'Example Word'}</span>
                   </h3>
@@ -369,9 +369,9 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
                   <div className="flex items-start gap-6">
                       <div className="relative group">
                         {selectedLetter.imageUrl ? (
-                            <img src={selectedLetter.imageUrl} alt={selectedLetter.exampleWord} className="w-24 h-24 object-cover rounded-xl shadow-sm bg-gray-100" />
+                            <img src={selectedLetter.imageUrl} alt={selectedLetter.exampleWord} className="w-24 h-24 object-cover rounded-xl shadow-sm bg-gray-100 dark:bg-gray-700" />
                         ) : (
-                            <div className="w-24 h-24 bg-gray-100 rounded-xl flex items-center justify-center text-gray-300">
+                            <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center text-gray-300 dark:text-gray-600">
                                 <ImageIcon className="w-10 h-10" />
                             </div>
                         )}
@@ -392,13 +392,13 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
                           {isEditing ? (
                              <div className="flex flex-col gap-2">
                                 <input 
-                                  className="font-serif text-2xl font-bold text-gray-900 bg-gray-50 border border-gray-200 rounded px-2 py-1 focus:outline-none focus:border-blue-400"
+                                  className="font-serif text-2xl font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-blue-400"
                                   value={selectedLetter.exampleWord}
                                   onChange={(e) => handleUpdate('exampleWord', e.target.value)}
                                   placeholder="Word"
                                 />
                                 <input 
-                                  className="text-gray-500 italic bg-gray-50 border border-gray-200 rounded px-2 py-1 focus:outline-none focus:border-blue-400 text-sm"
+                                  className="text-gray-500 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:border-blue-400 text-sm"
                                   value={selectedLetter.exampleTranslation}
                                   onChange={(e) => handleUpdate('exampleTranslation', e.target.value)}
                                   placeholder="Translation"
@@ -406,8 +406,8 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
                              </div>
                           ) : (
                              <>
-                                <p className="text-3xl font-serif font-bold text-gray-900 mb-1">{selectedLetter.exampleWord}</p>
-                                <p className="text-gray-500 italic text-lg">{selectedLetter.exampleTranslation}</p>
+                                <p className="text-3xl font-serif font-bold text-gray-900 dark:text-white mb-1">{selectedLetter.exampleWord}</p>
+                                <p className="text-gray-500 dark:text-gray-400 italic text-lg">{selectedLetter.exampleTranslation}</p>
                              </>
                           )}
                       </div>
@@ -415,7 +415,7 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
 
                   {/* Admin Upload Controls */}
                   {isEditing && (
-                    <div className="mt-6 pt-4 border-t border-gray-100 flex gap-4">
+                    <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700 flex gap-4">
                        <input 
                          type="file" 
                          accept="audio/*" 
@@ -425,7 +425,7 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
                        />
                        <button 
                          onClick={() => fileInputAudioRef.current?.click()}
-                         className="flex items-center gap-2 text-xs font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-lg transition-colors border border-gray-200"
+                         className="flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
                        >
                          <Upload className="w-3 h-3" /> Upload Audio
                        </button>
@@ -439,7 +439,7 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
                        />
                        <button 
                          onClick={() => fileInputImageRef.current?.click()}
-                         className="flex items-center gap-2 text-xs font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-lg transition-colors border border-gray-200"
+                         className="flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
                        >
                          <Upload className="w-3 h-3" /> Upload Image
                        </button>
@@ -448,14 +448,14 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
                </div>
                
                {isEditing && (
-                 <div className="mt-auto flex justify-between pt-4 border-t border-gray-100">
+                 <div className="mt-auto flex justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
                     <button 
                         onClick={deleteCard}
-                        className="flex items-center gap-2 text-red-500 px-4 py-2 rounded-xl font-bold hover:bg-red-50 transition-colors"
+                        className="flex items-center gap-2 text-red-500 px-4 py-2 rounded-xl font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     >
                         <Trash2 className="w-5 h-5" /> Delete
                     </button>
-                    <button onClick={closeModal} className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-black transition-colors">
+                    <button onClick={closeModal} className="flex items-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-black dark:hover:bg-gray-200 transition-colors">
                        <Save className="w-5 h-5" /> Done
                     </button>
                  </div>

@@ -65,47 +65,55 @@ const INTERJECTIONS_DATA: InterjectionEntry[] = [
     example: "Bani gajret, se do bëhet mirë.",
     tags: ["Consolation", "Emotional"]
   },
+  {
+    word: "Fakira",
+    origin: "Turkish",
+    meaning: "Poor fellow",
+    usage: "Often used for pity (Arabic 'Fakir' via Turkish).",
+    example: "Gjynah fakiri, s'ka pas fat.",
+    tags: ["Pity", "Common"]
+  },
 
   // SLAVIC ORIGIN
   {
-    word: "Zakon",
+    word: "Gjobë",
     origin: "Slavic",
-    meaning: "Custom, Habit, Law",
-    usage: "Commonly used in Geg to refer to tradition or habit.",
-    example: "E ka zakon me u çue herët.",
-    tags: ["Cultural", "Noun"]
+    meaning: "Fine, Penalty",
+    usage: "A fine imposed for breaking the law or Kanun rules (from Slavic 'globa').",
+    example: "I vunë gjobë të randë.",
+    tags: ["Legal", "Kanun"]
   },
   {
-    word: "Oborr",
+    word: "Megjë",
     origin: "Slavic",
-    meaning: "Yard, Courtyard",
-    usage: "The enclosed area outside a house.",
-    example: "Fëmija po lujnë n'oborr.",
-    tags: ["Daily Use", "Household"]
+    meaning: "Boundary, Border Stone",
+    usage: "The marking line between land properties (from Slavic 'međa'). Highly significant in Kanun.",
+    example: "Mos e luj megjën e kojshisë.",
+    tags: ["Land", "Kanun"]
   },
   {
-    word: "Prag",
+    word: "Stan",
     origin: "Slavic",
-    meaning: "Threshold",
-    usage: "The bottom of a doorway; symbolic boundary.",
-    example: "Mos më shkel në prag.",
-    tags: ["Household", "Symbolic"]
+    meaning: "Dairy Hut, Shepherd's Camp",
+    usage: "The summer dwelling for shepherds in the mountains (from Slavic 'stan').",
+    example: "Verën e kalojmë n'stan.",
+    tags: ["Pastoral", "Mountain"]
   },
   {
-    word: "Kuku",
+    word: "Rob",
     origin: "Slavic",
-    meaning: "Woe! (Crying sound)",
-    usage: "Expressing grief, shock, or dismay (linked to Slavic 'kukati' - to wail).",
-    example: "Kuku për mue çka më gjeti!",
-    tags: ["Emotional", "Expressive"]
+    meaning: "Person, Soul (orig. Slave)",
+    usage: "Originally 'slave', now used affectionately for 'person' or 'family member' in Geg (from Slavic 'rob').",
+    example: "O rob i zotit, ndiju!",
+    tags: ["Daily Use", "Family"]
   },
   {
-    word: "Grusht",
+    word: "Kosh",
     origin: "Slavic",
-    meaning: "Fist, Handful",
-    usage: "Physical fist or a measurement (handful).",
-    example: "Nji grusht dhe.",
-    tags: ["Physical", "Measurement"]
+    meaning: "Basket",
+    usage: "Woven container used for carrying crops or objects (from Slavic 'koš').",
+    example: "Mbushi koshin me rrush.",
+    tags: ["Household", "Agriculture"]
   },
 
   // LATIN / ITALIAN ORIGIN (The 3rd Main Influence)
@@ -126,34 +134,29 @@ const INTERJECTIONS_DATA: InterjectionEntry[] = [
     tags: ["Encouragement"]
   },
   {
-    word: "Kujdes",
+    word: "Mik",
     origin: "Latin/Italian",
-    meaning: "Care, Caution",
-    usage: "Warning or advice (from Latin 'Cogitare' or 'Quietus' debated).",
-    example: "Ki kujdes kur kalon rrugën.",
-    tags: ["Warning", "Common"]
+    meaning: "Friend, Guest",
+    usage: "A fundamental concept in Albanian culture, derived from Latin 'Amicus'.",
+    example: "Miku i shtëpisë.",
+    tags: ["Culture", "Common"]
   },
   {
-    word: "Fakira",
+    word: "Qytet",
     origin: "Latin/Italian",
-    meaning: "Poor fellow",
-    usage: "Often used for pity (actually Arabic via Turkish 'Fakir', but included here for contrast context if users confuse them).",
-    example: "Gjynah fakiri.",
-    tags: ["Pity"]
+    meaning: "City, Town",
+    usage: "From Latin 'Civitas'.",
+    example: "Shkoj në qytet.",
+    tags: ["Place", "Noun"]
   }
 ];
-
-// Fix Fakira origin manually for correctness in display
-const FIXED_DATA = INTERJECTIONS_DATA.map(d => 
-  d.word === 'Fakira' ? { ...d, origin: 'Turkish' as const } : d
-);
 
 const InterjectionsPage: React.FC<InterjectionsPageProps> = ({ lang }) => {
   const [activeTab, setActiveTab] = useState<'Turkish' | 'Slavic' | 'Latin/Italian'>('Turkish');
   
   const isGeg = lang === 'geg';
 
-  const filteredData = FIXED_DATA.filter(item => item.origin === activeTab);
+  const filteredData = INTERJECTIONS_DATA.filter(item => item.origin === activeTab);
 
   const getOriginStyles = (origin: string) => {
     switch(origin) {

@@ -77,9 +77,9 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
       <div className="max-w-5xl mx-auto animate-fade-in-up pb-20">
          <button 
            onClick={() => setSelectedEntry(null)}
-           className="mb-6 flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors font-medium group px-4 sm:px-0"
+           className="mb-6 flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors font-medium group px-4 sm:px-0"
          >
-            <div className="p-2 bg-white rounded-full border border-gray-200 group-hover:border-gray-400 transition-colors">
+            <div className="p-2 bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 group-hover:border-gray-400 transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </div>
             <span>{isGeg ? 'Kthehu te Fjalorthi' : 'Back to Glossary'}</span>
@@ -98,12 +98,12 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
          <div className="relative">
-            <div className="w-16 h-16 border-4 border-teal-100 border-t-teal-600 rounded-full animate-spin"></div>
+            <div className="w-16 h-16 border-4 border-teal-100 dark:border-teal-900/30 border-t-teal-600 dark:border-t-teal-500 rounded-full animate-spin"></div>
             <div className="absolute inset-0 flex items-center justify-center">
-               <Book className="w-6 h-6 text-teal-600" />
+               <Book className="w-6 h-6 text-teal-600 dark:text-teal-500" />
             </div>
          </div>
-         <p className="text-gray-500 font-medium mt-6 animate-pulse">{isGeg ? 'Duke hulumtue fjalën...' : 'Looking up definition...'}</p>
+         <p className="text-gray-500 dark:text-gray-400 font-medium mt-6 animate-pulse">{isGeg ? 'Duke hulumtue fjalën...' : 'Looking up definition...'}</p>
       </div>
     );
   }
@@ -111,13 +111,13 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
   return (
     <div className="max-w-7xl mx-auto animate-fade-in-up pb-20">
        <div className="text-center mb-10 px-4">
-         <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-teal-50 rounded-3xl mb-6 shadow-sm border border-teal-100 transform rotate-2">
-             <Book className="w-8 h-8 sm:w-10 sm:h-10 text-teal-600" />
+         <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-teal-50 dark:bg-teal-900/20 rounded-3xl mb-6 shadow-sm border border-teal-100 dark:border-teal-800 transform rotate-2">
+             <Book className="w-8 h-8 sm:w-10 sm:h-10 text-teal-600 dark:text-teal-400" />
          </div>
-         <h1 className="text-3xl sm:text-5xl font-serif font-bold text-gray-900 mb-4">
-            {isGeg ? 'Fjalorthi i ' : 'Glossary of '}<span className="text-teal-600">Gegenishtes</span>
+         <h1 className="text-3xl sm:text-5xl font-serif font-bold text-gray-900 dark:text-white mb-4">
+            {isGeg ? 'Fjalorthi i ' : 'Glossary of '}<span className="text-teal-600 dark:text-teal-400">Gegenishtes</span>
          </h1>
-         <p className="text-lg text-gray-500 font-medium max-w-2xl mx-auto leading-relaxed">
+         <p className="text-lg text-gray-500 dark:text-gray-400 font-medium max-w-2xl mx-auto leading-relaxed">
              {isGeg 
                ? 'Shfletoni fjalët sipas shkronjave. Nji koleksion i kuruem termash arkaikë dhe kulturorë.' 
                : 'Browse words by letter. A curated collection of archaic and cultural terms.'}
@@ -125,7 +125,7 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
        </div>
 
        {/* Sticky Alphabet Navigation */}
-       <div className="sticky top-16 z-30 bg-white/95 backdrop-blur-md border-y border-gray-200 mb-8 shadow-sm">
+       <div className="sticky top-16 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-y border-gray-200 dark:border-gray-800 mb-8 shadow-sm">
           <div className="max-w-7xl mx-auto">
              <div className="flex items-center gap-1 sm:gap-2 p-2 sm:p-4 overflow-x-auto no-scrollbar scroll-smooth">
                 {ALPHABET.map((letter) => {
@@ -137,7 +137,7 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
                         className={`flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center transition-all duration-200 ${
                            isActive 
                            ? 'bg-teal-600 text-white shadow-lg scale-105 transform' 
-                           : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                           : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                         }`}
                       >
                          {letter}
@@ -159,12 +159,12 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
                placeholder={isGeg ? `Kërko ndër fjalët me ${selectedLetter}...` : `Search words starting with ${selectedLetter}...`}
                value={localSearch}
                onChange={(e) => setLocalSearch(e.target.value)}
-               className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-200 outline-none transition-all text-sm"
+               className="w-full pl-10 pr-10 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-200 dark:focus:ring-teal-900 outline-none transition-all text-sm dark:text-white dark:placeholder-gray-500"
              />
              {localSearch && (
                <button 
                  onClick={() => setLocalSearch('')}
-                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                >
                  <X className="w-4 h-4" />
                </button>
@@ -183,7 +183,7 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
                    className={`px-4 py-2 rounded-full text-sm font-bold border transition-all whitespace-nowrap ${
                       originFilter === origin 
                       ? 'bg-teal-600 text-white border-teal-600 shadow-md' 
-                      : 'bg-white text-gray-500 border-gray-200 hover:border-teal-300 hover:bg-teal-50'
+                      : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-teal-300 hover:bg-teal-50 dark:hover:bg-teal-900/20'
                    }`}
                 >
                    {origin === 'All' ? (isGeg ? 'Të gjitha' : 'All') : origin}
@@ -195,8 +195,8 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
        {/* Content Area */}
        {loading ? (
          <div className="flex flex-col items-center justify-center py-32">
-            <Loader2 className="w-10 h-10 text-teal-600 animate-spin mb-4" />
-            <p className="text-gray-400 font-medium">{isGeg ? 'Duke ngarkue fjalët...' : 'Loading words...'}</p>
+            <Loader2 className="w-10 h-10 text-teal-600 dark:text-teal-500 animate-spin mb-4" />
+            <p className="text-gray-400 dark:text-gray-500 font-medium">{isGeg ? 'Duke ngarkue fjalët...' : 'Loading words...'}</p>
          </div>
        ) : (
          <div className="min-h-[400px]">
@@ -206,33 +206,33 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
                      <div 
                        key={idx}
                        onClick={() => handleTermClick(term.word)}
-                       className="group bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-xl hover:border-teal-300 transition-all cursor-pointer flex flex-col h-full relative overflow-hidden"
+                       className="group bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-teal-300 dark:hover:border-teal-500 transition-all cursor-pointer flex flex-col h-full relative overflow-hidden"
                      >
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50 rounded-bl-[100px] -mr-12 -mt-12 transition-transform group-hover:scale-110"></div>
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50 dark:bg-teal-900/20 rounded-bl-[100px] -mr-12 -mt-12 transition-transform group-hover:scale-110"></div>
                         
                         <div className="relative z-10 flex flex-col h-full">
                            <div className="flex justify-between items-start mb-3">
-                              <h3 className="text-2xl font-serif font-bold text-gray-900 group-hover:text-teal-700 transition-colors">
+                              <h3 className="text-2xl font-serif font-bold text-gray-900 dark:text-white group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
                                  {term.word}
                               </h3>
                            </div>
                            
                            <div className="flex flex-wrap gap-2 mb-4">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 bg-teal-50 px-2 py-1 rounded-md border border-teal-100">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-2 py-1 rounded-md border border-teal-100 dark:border-teal-800">
                                  {term.partOfSpeech}
                               </span>
                               {term.origin && (
-                                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-100 px-2 py-1 rounded-md border border-gray-200">
+                                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md border border-gray-200 dark:border-gray-600">
                                     {term.origin}
                                  </span>
                               )}
                            </div>
 
-                           <p className="text-gray-600 text-sm leading-relaxed mb-6 line-clamp-3 flex-grow">
+                           <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-6 line-clamp-3 flex-grow">
                               {term.definition}
                            </p>
 
-                           <div className="flex items-center text-teal-600 font-bold text-xs uppercase tracking-wider mt-auto group-hover:translate-x-2 transition-transform duration-300">
+                           <div className="flex items-center text-teal-600 dark:text-teal-400 font-bold text-xs uppercase tracking-wider mt-auto group-hover:translate-x-2 transition-transform duration-300">
                               {isGeg ? 'Shiko Detajet' : 'View Details'} <ArrowRight className="w-3 h-3 ml-1" />
                            </div>
                         </div>
@@ -241,11 +241,11 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
                </div>
             ) : (
                <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-400">
+                  <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4 text-gray-400 dark:text-gray-500">
                      <Search className="w-8 h-8" />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{isGeg ? 'Nuk u gjetën fjalë' : 'No words found'}</h3>
-                  <p className="text-gray-500 max-w-sm">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{isGeg ? 'Nuk u gjetën fjalë' : 'No words found'}</h3>
+                  <p className="text-gray-500 dark:text-gray-400 max-w-sm">
                      {isGeg 
                         ? 'Provoni të ndryshoni filtrat ose shkronjën e zgjedhun.' 
                         : 'Try changing your filters or selected letter.'}
