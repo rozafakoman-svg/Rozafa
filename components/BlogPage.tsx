@@ -9,9 +9,29 @@ interface BlogPageProps {
 
 const MOCK_POSTS_GEG: BlogPost[] = [
   {
+    id: 'gjuha_ruhet_1',
+    title: 'Gjuha Ruhet Aty Ku Shkruhet',
+    excerpt: 'Fjala e folun e merr era, fjala e shkrueme mbetet. Pse duhet me fillue me shkrue në dialekt sot, ma shumë se kurrë.',
+    content: `
+      <p class="font-serif text-xl italic text-gray-500 mb-6">"Verba volant, scripta manent" – Fjalët fluturojnë, shkrimet mbesin.</p>
+      
+      <p>Shpesh dëgjojmë se gjuha është e gjallë vetëm kur flitet. Por historia na mëson ndryshe. Latinishtja mbijetoi shekuj përmes shkrimit, edhe kur nuk flitej ma në rrugë. Gegënishtja, e pasun me nji traditë të jashtëzakonshme nga Buzuku te Fishta, rrezikon me u zbehë nëse mbetet vetëm në biseda kafenesh dhe shtëpi.</p>
+      <br/>
+      <h3 class="text-xl font-bold mb-2">Fuqia e Tastierës</h3>
+      <p>Sot, teknologjia na jep nji mundësi të artë. Çdo status në Facebook, çdo mesazh në WhatsApp, çdo email asht nji akt dokumentimi. Kur shkruani <strong>"me ba"</strong> në vend të "bëj", ju nuk po bëni gabim drejtshkrimor; ju po ruani nji formë historike të foljes qi ka mijëra vjet në këto troje.</p>
+      <br/>
+      <p>Gjuha ruhet aty ku shkruhet. Nëse nuk e shkruejmë dialektin tonë, ne e dënojmë atë me harrim. Le ta kthejmë tastierën në nji mjet ruajtjeje.</p>
+    `,
+    author: 'Redaksia',
+    date: 'Sot',
+    readTime: '3 min',
+    tags: ['Kulturë', 'Opinion', 'Digjitalizim'],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Meshari.jpg/640px-Meshari.jpg'
+  },
+  {
     id: 'strategy_1',
-    title: 'Na bashkon nji gjuhë: Përtej Standardit të 1972',
-    excerpt: 'Para vitit 1972 nuk ka pasë nji gjuhë standarde shtetnore. Ka pasë shqipen, të jetueme e të shkrueme në dy krahë kryesorë.',
+    title: 'Gjuha para 1972: çfarë na bashkonte para standardit',
+    excerpt: 'Na bashkon nji gjuhë, siç ka thanë Ndre Mjeda. Po cila asht kjo gjuhë?',
     content: `
       <p class="font-serif text-xl italic text-gray-500 mb-6">"Na bashkon nji gjuhë, siç ka thanë Ndre Mjeda. Po cila asht kjo gjuhë?"</p>
       
@@ -28,7 +48,7 @@ const MOCK_POSTS_GEG: BlogPost[] = [
       </div>
     `,
     author: 'Redaksia Gegenisht',
-    date: 'Sot',
+    date: 'Dje',
     readTime: '4 min',
     tags: ['Gjuhësi', 'Histori', 'Editorial'],
     imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/eb/Ndre_Mjeda.jpg'
@@ -88,7 +108,7 @@ const MOCK_POSTS_GEG: BlogPost[] = [
 const MOCK_POSTS_ENG: BlogPost[] = [
   {
     id: 'strategy_1',
-    title: 'One Language Unites Us: Beyond the 1972 Standard',
+    title: 'Language Before 1972: What United Us',
     excerpt: 'Before 1972, there was no single state standard language. There was Albanian, lived and written in two main branches.',
     content: `
       <p class="font-serif text-xl italic text-gray-500 mb-6">"One language unites us, as Ndre Mjeda said. But what is this language?"</p>

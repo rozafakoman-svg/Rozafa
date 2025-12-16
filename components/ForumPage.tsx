@@ -11,6 +11,22 @@ interface ForumPageProps {
 
 const MOCK_POSTS: ForumPost[] = [
   {
+    id: 'gjuha_ruhet_forum_1',
+    title: 'Gjuha Ruhet Aty Ku Shkruhet',
+    content: 'Hapim këtë temë për me diskutue randsinë e të shkruemit në dialekt në epokën digjitale.\n\nA shkruani shpesh në gegënisht në rrjete sociale? \nA keni hasë vështirësi apo paragjykime kur e bëni këtë?\n\nNdani mendimet tueja dhe ndonji fragment të shkurtër qi keni shkrue ose lexue së fundmi.',
+    author: 'Redaksia',
+    authorRole: 'admin',
+    date: 'Pinned',
+    upvotes: 95,
+    downvotes: 0,
+    tags: ['Shkrim', 'Diskutim', 'Kulturë'],
+    comments: [
+        { id: 'gr1', postId: 'gjuha_ruhet_forum_1', author: 'Leka', content: 'Unë shkruej gjithmonë gegënisht me miqtë, por në punë më duhet standardi.', date: '10 min ago', upvotes: 5 }
+    ],
+    viewCount: 450,
+    pinned: true
+  },
+  {
     id: 'manifesto_2024',
     title: 'Manifest për barazinë historike të gegënishtes',
     content: 'Ne besojmë se:\n\n• Gegënishtja asht pasuni kulturore e shqipes.\n• Para vitit 1972, gegënishtja ishte gjuhë e shkrueme dhe e normueme në praktikë.\n• Heqja e saj nga arsimi dhe administrata ishte akt politik, jo gjuhësor.\n• Rilindja kulturore e gegënishtes nuk cenon unitetin gjuhësor.\n\nNe nuk kërkojmë përçarje, por barazi historike.\n\nKërkojmë:\n• Njohjen e gegënishtes si trashëgimi gjuhësore;\n• Përdorimin e saj të lirë në letërsi, media dhe art;\n• Studim serioz, jo ideologjik, të traditës së saj;\n• Bashkëjetesë mes standardit dhe varianteve historike.\n\nNjë gjuhë nuk forcohet tue u ngushtue, por tue u kuptue.',

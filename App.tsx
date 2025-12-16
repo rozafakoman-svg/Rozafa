@@ -66,7 +66,7 @@ const translations = {
     },
     hero: {
         title_main: "Fjalori i Gegenishtes",
-        subtitle_dict: "Tuj ruejt pasuninë e dialektit të Veriut.",
+        subtitle_dict: "Tuej Ruejt Pasunine e gjuhes Gege",
         subtitle_thes: "Eksploroni nuancat dhe sinonimet e Gegenishtes."
     },
     footer: {
