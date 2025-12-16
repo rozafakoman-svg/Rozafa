@@ -1,6 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Language } from '../App';
-import { GlossaryTerm, DictionaryEntry } from '../types';
+import { GlossaryTerm, DictionaryEntry, Language } from '../types';
 import { fetchGlossaryTerms, fetchWordDefinition } from '../services/geminiService';
 import WordCard from './WordCard';
 import { Loader2, Book, ArrowRight, ArrowLeft, Filter, Search, X } from './Icons';

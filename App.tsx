@@ -1,231 +1,222 @@
+
 import React, { useState, useEffect } from 'react';
-import { SearchState, DictionaryEntry, UserProfile } from './types';
+import { 
+  BookOpen, Menu, X, Moon, Sun, Globe, Zap, User, 
+  ArrowRight, Github, Twitter, Instagram,
+  AlignLeft, Gamepad2, GraduationCap, Clock, FileText, 
+  ShoppingBag, Shield, MessageCircle, Mic, Heart, Sparkles, AlertTriangle, LogOut
+} from './components/Icons';
+import { DictionaryEntry, UserProfile, Language } from './types';
 import { fetchWordDefinition, fetchWordOfTheDay } from './services/geminiService';
 import SearchBar from './components/SearchBar';
 import WordCard from './components/WordCard';
+import ThesaurusDashboard from './components/ThesaurusDashboard';
 import GamesDashboard from './components/GamesDashboard';
+import GlossaryPage from './components/GlossaryPage';
 import HistoryPage from './components/HistoryPage';
 import PodcastPage from './components/PodcastPage';
 import BlogPage from './components/BlogPage';
 import SupportPage from './components/SupportPage';
 import CommunityPage from './components/CommunityPage';
-import AdminDashboard from './components/AdminDashboard';
 import ShopPage from './components/ShopPage';
 import InterjectionsPage from './components/InterjectionsPage';
 import AlphabetPage from './components/AlphabetPage';
 import ForumPage from './components/ForumPage';
-import GlossaryPage from './components/GlossaryPage';
-import ThesaurusDashboard from './components/ThesaurusDashboard';
+import AdminDashboard from './components/AdminDashboard';
 import AuthModal from './components/AuthModal';
 import AdUnit from './components/AdUnit';
-import { Sparkles, BookOpen, GraduationCap, RefreshCw, ScrollText, Globe, Mic, FileText, Heart, Trophy, Shield, ShoppingBag, MessageCircle, AlignLeft, Gamepad2, User, Type, MessageSquare, Book, Menu, X, Sun, Moon, Github, Twitter, Facebook, Instagram, ArrowRight, AlertTriangle } from './components/Icons';
 
-type View = 'dictionary' | 'thesaurus' | 'glossary' | 'games' | 'about' | 'history' | 'podcast' | 'blog' | 'support' | 'community' | 'admin' | 'shop' | 'interjections' | 'alphabet' | 'forum';
-export type Language = 'geg' | 'eng';
-type Theme = 'light' | 'dark';
+type View = 'dictionary' | 'thesaurus' | 'games' | 'glossary' | 'history' | 'podcast' | 'blog' | 'support' | 'community' | 'shop' | 'interjections' | 'alphabet' | 'forum' | 'admin' | 'about';
 
 const translations = {
   eng: {
-    nav: { dict: "Dictionary", thes: "Thesaurus", gloss: "Glossary", games: "Games", hist: "History", podcast: "Podcast", blog: "Blog", support: "Donate", community: "Community", about: "About", edit: "Admin Mode", editing: "Admin ON", shop: "Shop", interjections: "Loanwords", alphabet: "Alphabet", forum: "Forum", login: "Login", profile: "Profile" },
-    hero: {
-      title_main: "The Geg Language Project",
-      subtitle_dict: "The most comprehensive AI-powered dictionary for the Geg Language, reclaiming words lost to time and politics.",
-      title_thes: "Geg Thesaurus",
-      subtitle_thes: "Explore synonyms, antonyms, and related concepts in the Geg Language."
+    nav: {
+        dict: "Dictionary", thes: "Thesaurus", games: "Games", gloss: "Glossary", 
+        hist: "History", podcast: "Podcast", blog: "Blog", support: "Support", 
+        community: "Community", shop: "Shop", interjections: "Interjections", 
+        alphabet: "Alphabet", forum: "Forum", about: "About", admin: "Admin Panel",
+        login: "Login", profile: "Profile", edit: "Edit Mode", editing: "Editing"
     },
-    wotd: "Word of the Day",
-    view_entry: "View Full Entry",
-    quick_challenge: "Quick Challenge",
-    test_skills: "Test Your Skills",
-    quiz_desc: "Take a quick quiz to check your knowledge of Geg vocabulary and grammar.",
-    play_now: "Play Now",
-    back_search: "Back to search",
-    footer_quote: "\"Language is preserved where it is written\"",
-    about_title: "About the Project",
-    about_text_1: "Gegenisht is an open-source initiative dedicated to preserving and digitizing the Geg language.",
-    about_mission: "Our Mission",
-    about_mission_text: "To undo the silence imposed by the regime and bridge the gap between tradition and technology by providing an accessible, intelligent, and comprehensive resource for the Geg language.",
-    about_contribute: "Contribute on GitHub",
+    hero: {
+        title_main: "The Geg Dictionary",
+        subtitle_dict: "Preserving the richness of the Northern Albanian dialect.",
+        subtitle_thes: "Explore the nuances and synonyms of the Geg dialect."
+    },
     footer: {
-      explore: "Explore",
-      community: "Community",
-      project: "Project",
-      connect: "Connect",
-      rights: "All rights reserved."
-    }
+        explore: "Explore", community: "Community", project: "Project",
+        rights: "All rights reserved."
+    },
+    footer_quote: "Language is the archive of history.",
+    wotd: "Word of the Day",
+    view_entry: "View Entry",
+    back_search: "Back to Search",
+    about_title: "About Gegenisht",
+    about_text_1: "Gegenisht is an open-source initiative...",
+    about_mission: "Our Mission",
+    about_mission_text: "To revitalize the Geg dialect...",
+    about_contribute: "Contribute on GitHub"
   },
   geg: {
-    nav: { dict: "Fjalor", thes: "Thesar", gloss: "Fjalorth", games: "Lojna", hist: "Histori", podcast: "Podkast", blog: "Blog", support: "Dhuro", community: "Komuniteti", about: "Rreth Nesh", edit: "Administrator", editing: "Admin ON", shop: "Dyqani", interjections: "Huazime", alphabet: "Alfabeti", forum: "Forumi", login: "Hini", profile: "Profili" },
-    hero: {
-      title_main: "Projekti i Gjuhës Gegenishte",
-      subtitle_dict: "Fjalori ma i plotë me Inteligjencë Artificiale për Gegenishten, tuj rikthye fjalët e humbuna nga koha dhe politika.",
-      title_thes: "Thesari i Gegenishtes",
-      subtitle_thes: "Eksploro sinonime, antonime dhe koncepte të përafërta në Gegenisht."
+    nav: {
+        dict: "Fjalori", thes: "Thesari", games: "Lojëra", gloss: "Fjalorthi", 
+        hist: "Historia", podcast: "Podkaste", blog: "Blogu", support: "Mbështetje", 
+        community: "Komuniteti", shop: "Dyqani", interjections: "Pasthirrma", 
+        alphabet: "Alfabeti", forum: "Forumi", about: "Rreth Nesh", admin: "Paneli Admin",
+        login: "Hini", profile: "Profili", edit: "Modi Editimit", editing: "Duke Editue"
     },
-    wotd: "Fjala e Ditës",
-    view_entry: "Shiko Fjalën e Plotë",
-    quick_challenge: "Sfidë e Shpejtë",
-    test_skills: "Provo Aftësitë",
-    quiz_desc: "Bani nji kuiz të shpejtë me provue njohunitë tueja në fjalor dhe gramatikë.",
-    play_now: "Luaj Tash",
-    back_search: "Kthehu te lypja",
-    footer_quote: "\"Gjuha ruhet aty ku shkruhet\"",
-    about_title: "Rreth Projektit",
-    about_text_1: "Gegenisht âsht nji nismë me burim të hapun kushtue ruajtjes dhe digjitalizimit të gjuhës Gege.",
-    about_mission: "Misioni Jonë",
-    about_mission_text: "Me zhbâ heshtjen e imponueme nga regjimi dhe me lidhë traditën me teknologjinë, tuj ofrue nji burim të qasshëm, inteligjent dhe gjithëpërfshimës për gjuhën Gege.",
-    about_contribute: "Kontribuo në GitHub",
+    hero: {
+        title_main: "Fjalori i Gegenishtes",
+        subtitle_dict: "Tuj ruejt pasuninë e dialektit të Veriut.",
+        subtitle_thes: "Eksploroni nuancat dhe sinonimet e Gegenishtes."
+    },
     footer: {
-      explore: "Eksploro",
-      community: "Komuniteti",
-      project: "Projekti",
-      connect: "Lidhuni",
-      rights: "Të gjitha të drejtat e rezervueme."
-    }
+        explore: "Eksploro", community: "Komuniteti", project: "Projekti",
+        rights: "Të gjitha të drejtat e rezervueme."
+    },
+    footer_quote: "Gjuha âsht arkiva e historisë.",
+    wotd: "Fjala e Ditës",
+    view_entry: "Shiko Fjalën",
+    back_search: "Kthehu te Kërkimi",
+    about_title: "Rreth Gegenisht",
+    about_text_1: "Gegenisht âsht nji nismë...",
+    about_mission: "Misioni Jonë",
+    about_mission_text: "Me e ringjallë dialektin Geg...",
+    about_contribute: "Kontribuo në GitHub"
   }
 };
 
+const navItems = [
+  { id: 'dictionary', label: 'Dictionary', icon: BookOpen },
+  { id: 'thesaurus', label: 'Thesaurus', icon: AlignLeft },
+  { id: 'alphabet', label: 'Alphabet', icon: Sparkles },
+  { id: 'games', label: 'Games', icon: Gamepad2 },
+  { id: 'glossary', label: 'Glossary', icon: GraduationCap },
+  { id: 'history', label: 'History', icon: Clock },
+  { id: 'podcast', label: 'Podcast', icon: Mic },
+  { id: 'blog', label: 'Blog', icon: FileText },
+  { id: 'shop', label: 'Shop', icon: ShoppingBag },
+  { id: 'community', label: 'Community', icon: Shield },
+  { id: 'forum', label: 'Forum', icon: MessageCircle },
+  { id: 'support', label: 'Support', icon: Heart, isSpecial: true },
+];
+
 const App: React.FC = () => {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [lang, setLang] = useState<Language>('geg');
   const [currentView, setCurrentView] = useState<View>('dictionary');
   const [isEditMode, setIsEditMode] = useState(false);
-  const [lang, setLang] = useState<Language>('geg');
-  const [theme, setTheme] = useState<Theme>('light');
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [user, setUser] = useState<UserProfile | null>(null);
   
-  // Cart State
+  const [searchState, setSearchState] = useState<{
+    isLoading: boolean;
+    error: string | null;
+    data: DictionaryEntry | null;
+  }>({ isLoading: false, error: null, data: null });
+
+  const [wordOfTheDay, setWordOfTheDay] = useState<{
+    isLoading: boolean;
+    data: DictionaryEntry | null;
+  }>({ isLoading: true, data: null });
+
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [cartItems, setCartItems] = useState<string[]>([]);
-
-  const [searchState, setSearchState] = useState<SearchState>({
-    isLoading: false,
-    error: null,
-    data: null,
-  });
-
-  const [wordOfTheDay, setWordOfTheDay] = useState<SearchState>({
-    isLoading: true,
-    error: null,
-    data: null,
-  });
 
   const t = translations[lang];
 
-  // Theme initialization
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
-    const sysPref = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    setTheme(savedTheme || sysPref);
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      setTheme('dark');
+    }
+    
+    // Load User from Persistence
+    const storedUser = localStorage.getItem('gegenisht_user');
+    if (storedUser) {
+        try {
+            setUser(JSON.parse(storedUser));
+        } catch (e) {
+            console.error("Failed to parse stored user");
+        }
+    }
+    
+    // Load WOTD
+    fetchWordOfTheDay().then(data => {
+        setWordOfTheDay({ isLoading: false, data });
+    }).catch(() => {
+        setWordOfTheDay({ isLoading: false, data: null });
+    });
   }, []);
 
-  // Theme application
   useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-    localStorage.setItem('theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
+  const handleNavClick = (view: View) => {
+    setCurrentView(view);
+    setMobileMenuOpen(false);
+    setSearchState({ isLoading: false, error: null, data: null });
+    window.scrollTo(0, 0);
+  };
+
+  const handleLogin = (newUser: UserProfile) => {
+      setUser(newUser);
+      localStorage.setItem('gegenisht_user', JSON.stringify(newUser));
+      setAuthModalOpen(false);
+  };
+
+  const handleLogout = () => {
+      setUser(null);
+      localStorage.removeItem('gegenisht_user');
+      setIsEditMode(false); // Disable God Mode on logout
+      setCurrentView('dictionary'); // Reset view to home
+  };
+
   const handleSearch = async (query: string) => {
     if (!query.trim()) return;
     
-    // Update History
-    setSearchHistory(prev => {
-       const filtered = prev.filter(item => item.toLowerCase() !== query.toLowerCase());
-       return [query, ...filtered].slice(0, 5); // Keep last 5
-    });
-
-    setSearchState(prev => ({ ...prev, isLoading: true, error: null }));
+    setSearchState({ isLoading: true, error: null, data: null });
+    setCurrentView('dictionary'); // Force dictionary view on search
+    
     try {
-      const data = await fetchWordDefinition(query);
-      setSearchState({ isLoading: false, error: null, data });
-    } catch (err: any) {
-      // Improve Error Handling Logic
-      console.error("Search Error:", err);
-      let errorMsg = lang === 'geg' ? "S'u gjet kuptimi. Provo nji fjalë tjetër." : "Could not find definition. Please try another word.";
-      
-      if (err.message === "MISSING_API_KEY") {
-         errorMsg = "DEPLOYMENT ERROR: API_KEY is missing. Please add 'API_KEY' to your environment variables (local .env or Cloudflare Dashboard) and rebuild.";
-      } else if (err.message && err.message.includes("403")) {
-         errorMsg = "API ERROR: Access Denied. Check your API Key billing or permissions.";
+      // Add to history
+      if (!searchHistory.includes(query)) {
+        setSearchHistory(prev => [query, ...prev].slice(0, 5));
       }
 
-      setSearchState({ 
-        isLoading: false, 
-        error: errorMsg, 
-        data: null 
-      });
+      const result = await fetchWordDefinition(query);
+      setSearchState({ isLoading: false, error: null, data: result });
+    } catch (err) {
+      setSearchState({ isLoading: false, error: lang === 'geg' ? 'Ndodhi nji gabim. Provoni përsëri.' : 'An error occurred. Please try again.', data: null });
     }
   };
 
-  const handleNavClick = (view: View) => {
-    setCurrentView(view);
-    setSearchState(prev => ({ ...prev, data: null, error: null }));
-    setMobileMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleEntryUpdate = (updatedEntry: DictionaryEntry) => {
-    setSearchState(prev => ({ ...prev, data: updatedEntry }));
+  const handleEntryUpdate = (entry: DictionaryEntry) => {
+      setSearchState(prev => ({ ...prev, data: entry }));
   };
 
   const handleAddToCart = (id: string) => {
-    setCartItems(prev => [...prev, id]);
+      setCartItems(prev => [...prev, id]);
   };
 
   const handleRemoveFromCart = (id: string) => {
-    setCartItems(prev => {
-      const idx = prev.indexOf(id);
-      if (idx > -1) {
-        const newArr = [...prev];
-        newArr.splice(idx, 1);
-        return newArr;
-      }
-      return prev;
-    });
+      setCartItems(prev => prev.filter(item => item !== id));
   };
 
-  useEffect(() => {
-    const getWotD = async () => {
-      try {
-        const data = await fetchWordOfTheDay();
-        setWordOfTheDay({ isLoading: false, error: null, data });
-      } catch (err) {
-        setWordOfTheDay({ 
-            isLoading: false, 
-            error: "Failed to load Word of the Day", 
-            data: null 
-        });
-      }
-    };
-    getWotD();
-  }, []);
-
-  const navItems = [
-    { id: 'dictionary', label: t.nav.dict, icon: BookOpen },
-    { id: 'thesaurus', label: t.nav.thes, icon: AlignLeft },
-    { id: 'glossary', label: t.nav.gloss, icon: Book },
-    { id: 'alphabet', label: t.nav.alphabet, icon: Type },
-    { id: 'interjections', label: t.nav.interjections, icon: MessageCircle },
-    { id: 'forum', label: t.nav.forum, icon: MessageSquare },
-    { id: 'games', label: t.nav.games, icon: Gamepad2 },
-    { id: 'community', label: t.nav.community, icon: Trophy },
-    { id: 'podcast', label: t.nav.podcast, icon: Mic },
-    { id: 'blog', label: t.nav.blog, icon: FileText },
-    { id: 'history', label: t.nav.hist, icon: ScrollText },
-    { id: 'shop', label: t.nav.shop, icon: ShoppingBag },
-    { id: 'support', label: t.nav.support, icon: Heart, isSpecial: true },
-  ];
+  const handleClearCart = () => {
+      setCartItems([]);
+  };
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans text-slate-800 dark:text-gray-100 bg-[#fcfbf7] dark:bg-gray-950 transition-colors duration-300 ${isEditMode ? 'border-4 border-dashed border-red-300' : ''}`}>
+    <div className={`min-h-screen flex flex-col font-sans text-slate-800 dark:text-gray-100 bg-[#fcfbf7] dark:bg-gray-950 transition-colors duration-300 ${isEditMode ? 'border-4 border-dashed border-red-500' : ''}`}>
       
       {/* Primary Navbar */}
       <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50 shadow-sm h-16 transition-colors duration-300">
@@ -272,24 +263,45 @@ const App: React.FC = () => {
                  <Globe className="w-3 h-3" /> {lang === 'geg' ? 'GEG' : 'ENG'}
                </button>
 
-               {/* Admin Edit Toggle */}
-               <button 
-                onClick={() => setIsEditMode(!isEditMode)}
-                className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full transition-all ${isEditMode ? 'bg-red-600 text-white shadow-md animate-pulse' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
-                title="Toggle Administrator Mode"
-               >
-                 <Shield className="w-3 h-3" /> 
-                 <span className="hidden sm:inline">{isEditMode ? t.nav.editing : t.nav.edit}</span>
-               </button>
+               {/* God Mode Toggle - Only Visible to Admins */}
+               {user?.role === 'admin' && (
+                 <button 
+                  onClick={() => setIsEditMode(!isEditMode)}
+                  className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full transition-all ${isEditMode ? 'bg-red-600 text-white shadow-lg shadow-red-500/50 animate-pulse' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                  title="Toggle God Mode"
+                 >
+                   <Zap className="w-3 h-3 fill-current" /> 
+                   <span className="hidden sm:inline">{isEditMode ? t.nav.editing : t.nav.edit}</span>
+                 </button>
+               )}
 
-               {/* Auth/Profile Button */}
-               <button 
-                 onClick={() => user ? handleNavClick('community') : setAuthModalOpen(true)}
-                 className="flex items-center gap-2 text-sm font-bold bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-1.5 rounded-full hover:bg-black dark:hover:bg-gray-100 transition-colors"
-               >
-                  <User className="w-4 h-4" />
-                  <span className="hidden sm:inline">{user ? t.nav.profile : t.nav.login}</span>
-               </button>
+               {/* Auth/Profile/Logout Group */}
+               {user ? (
+                 <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => handleNavClick('community')}
+                      className="flex items-center gap-2 text-sm font-bold bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-1.5 rounded-full hover:bg-black dark:hover:bg-gray-100 transition-colors"
+                    >
+                        <User className="w-4 h-4" />
+                        <span className="hidden sm:inline">{user.name.split(' ')[0]}</span>
+                    </button>
+                    <button 
+                      onClick={handleLogout}
+                      className="p-2 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-full hover:bg-red-100 hover:text-red-500 transition-colors"
+                      title="Logout"
+                    >
+                       <LogOut className="w-4 h-4" /> 
+                    </button>
+                 </div>
+               ) : (
+                 <button 
+                   onClick={() => setAuthModalOpen(true)}
+                   className="flex items-center gap-2 text-sm font-bold bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-1.5 rounded-full hover:bg-black dark:hover:bg-gray-100 transition-colors"
+                 >
+                    <User className="w-4 h-4" />
+                    <span className="hidden sm:inline">{t.nav.login}</span>
+                 </button>
+               )}
             </div>
           </div>
         </div>
@@ -320,6 +332,23 @@ const App: React.FC = () => {
                    </button>
                  );
                })}
+               
+               {/* Admin Only Navigation Item */}
+               {user?.role === 'admin' && (
+                   <button
+                     onClick={() => handleNavClick('admin')}
+                     className={`
+                       flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap
+                       ${currentView === 'admin'
+                         ? 'bg-indigo-600 text-white shadow-md transform scale-105' 
+                         : 'text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'
+                       }
+                     `}
+                   >
+                      <Shield className="w-4 h-4" />
+                      {t.nav.admin}
+                   </button>
+               )}
             </div>
          </div>
       </div>
@@ -372,6 +401,23 @@ const App: React.FC = () => {
                           </button>
                        );
                     })}
+                    
+                    {/* Admin Mobile Link */}
+                    {user?.role === 'admin' && (
+                       <button
+                          onClick={() => handleNavClick('admin')}
+                          className={`
+                            flex items-center gap-4 px-4 py-3 rounded-xl text-base font-bold transition-all
+                            ${currentView === 'admin'
+                              ? 'bg-indigo-600 text-white' 
+                              : 'text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'
+                            }
+                          `}
+                       >
+                          <Shield className="w-5 h-5" />
+                          {t.nav.admin}
+                       </button>
+                    )}
                  </div>
               </div>
 
@@ -454,7 +500,7 @@ const App: React.FC = () => {
                     />
                     
                     {/* AD PLACEMENT: Below Word Card */}
-                    <AdUnit user={user} lang={lang} className="mt-8" />
+                    {!isEditMode && <AdUnit user={user} lang={lang} className="mt-8" />}
                 </div>
               )}
 
@@ -505,7 +551,7 @@ const App: React.FC = () => {
                                   >
                                     {t.view_entry} (Edit) →
                                   </button>
-                               </div>
+                                </div>
                             </div>
                         ) : null}
                        </div>
@@ -513,7 +559,7 @@ const App: React.FC = () => {
                 </div>
                 
                 {/* AD PLACEMENT: Bottom of Dashboard */}
-                <AdUnit user={user} lang={lang} className="mt-12" />
+                {!isEditMode && <AdUnit user={user} lang={lang} className="mt-12" />}
                 </>
               )}
 
@@ -551,7 +597,7 @@ const App: React.FC = () => {
 
           {/* PODCAST VIEW */}
           {currentView === 'podcast' && (
-             <PodcastPage lang={lang} />
+             <PodcastPage lang={lang} user={user} />
           )}
 
           {/* BLOG VIEW */}
@@ -587,6 +633,7 @@ const App: React.FC = () => {
                cartItems={cartItems}
                onAddToCart={handleAddToCart}
                onRemoveFromCart={handleRemoveFromCart}
+               onClearCart={handleClearCart}
              />
           )}
 
@@ -622,7 +669,7 @@ const App: React.FC = () => {
                       </p>
                       {lang === 'geg' ? (
                         <p>
-                           Ndërsa Shqipja Standarde âsht thelbësore për komunikimin zyrtar, âsht e randsishme me pranue origjinën e saj politike. Në vitin <strong>1972</strong>, Kongresi i Drejtshkrimit, nën drejtimin e regjimit totalitar, vendosi nji standard të unifikuem të bazuem randë në dialektin toskë. Ky akt e zhvlerësoi efektivisht Gegenishten—të folun nga shumica e shqiptarëve në Shqipninë e Veriut, Kosovë, Maqedoni të Veriut dhe Mal të Zi—tuj shtypë nji traditë të pasun letrare që daton prej shekujsh.
+                           Ndërsa Shqipja Standarde âsht thelbësore për komunikimin zyrtar, âsht e randsishme me pranue origjinën e saj politike. Në vitin <strong>1972</strong>, Kongresi i Drejtshkrimit, nën drejtimin e regjimit totalitar, vendosi nji standard të unifikuem të bazuem randë në dialektin toskë. Ky akt e zhvlerësoi efektivisht Gegenishten—të folun nga shumica e shqiptarëve në Shqipninë e Veriut, Kosovë, Maqedoni të Veriut dhe Mal të Zi—tuj shtypë nji traditë të pasun letrare qi daton prej shekujsh.
                         </p>
                       ) : (
                         <p>
@@ -636,7 +683,7 @@ const App: React.FC = () => {
                       </div>
                       <p>
                         {lang === 'geg' 
-                         ? "Fuqizue nga Gemini AI i Google, kjo platformë gjeneron në mënyrë dinamike përkufizime, etimologji dhe shembuj, tuj siguru që edhe fjalët e rralla ose arkaike—dikur të ndalueme ose të harrueme—të jenë të qasshme për nji audiencë moderne."
+                         ? "Fuqizue nga Gemini AI i Google, kjo platformë gjeneron në mënyrë dinamike përkufizime, etimologji dhe shembuj, tuj siguru qi edhe fjalët e rralla ose arkaike—dikur të ndalueme ose të harrueme—të jenë të qasshme për nji audiencë moderne."
                          : "Powered by Google's Gemini AI, this platform dynamically generates definitions, etymologies, and examples, ensuring that even rare or archaic words—once banned or forgotten—are accessible to a modern audience."}
                       </p>
                    </div>
@@ -653,6 +700,7 @@ const App: React.FC = () => {
       </main>
 
       {/* Enhanced Footer - Optimized for Mobile */}
+      {!isEditMode && (
       <footer className="bg-gray-50 dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800 pt-16 pb-12 md:pb-8 transition-colors duration-300 text-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12 lg:mb-16">
@@ -745,14 +793,12 @@ const App: React.FC = () => {
           </div>
         </div>
       </footer>
+      )}
       
       <AuthModal 
         isOpen={authModalOpen} 
         onClose={() => setAuthModalOpen(false)}
-        onLogin={(user) => {
-            setUser(user);
-            setAuthModalOpen(false);
-        }}
+        onLogin={handleLogin}
         lang={lang}
       />
     </div>

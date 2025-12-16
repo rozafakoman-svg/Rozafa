@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Language } from '../App';
-import { UserProfile, Badge } from '../types';
+import { UserProfile, Badge, Language } from '../types';
 import { Trophy, Star, Medal, Flag, Edit3, PlusCircle, TrendingUp, Shield, Crown, Award, CheckCircle, ArrowRight, User, Flame, Lock } from './Icons';
 import ContributionModal from './ContributionModal';
 

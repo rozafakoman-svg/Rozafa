@@ -1,3 +1,4 @@
+export type Language = 'geg' | 'eng';
 
 export interface ExampleSentence {
   original: string;
@@ -85,6 +86,13 @@ export interface AlphabetLetter {
 }
 
 // Podcast Types
+export interface PodcastComment {
+  id: string;
+  user: string;
+  content: string;
+  timestamp: string;
+}
+
 export interface PodcastEpisode {
   id: string;
   title: string;
@@ -93,6 +101,9 @@ export interface PodcastEpisode {
   date: string;
   topic: string; // e.g., History, Literature, Folklore
   audioUrl?: string; // Placeholder for real audio
+  isLive?: boolean;
+  comments: PodcastComment[];
+  host?: string;
 }
 
 // Blog Types

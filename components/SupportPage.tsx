@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Language } from '../App';
-import { UserProfile, Badge } from '../types';
+import { UserProfile, Badge, Language } from '../types';
 import { Heart, Shield, Star, Award, Crown, Zap, CheckCircle, CreditCard, X, Loader2, TrendingUp } from './Icons';
 
 interface SupportPageProps {
@@ -11,6 +10,7 @@ interface SupportPageProps {
 }
 
 const tiers = [
+// ... existing code ...
   {
     id: 'bronze',
     name: 'Bronze',

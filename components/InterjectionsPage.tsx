@@ -1,6 +1,6 @@
+
 import React, { useState } from 'react';
-import { Language } from '../App';
-import { InterjectionEntry } from '../types';
+import { InterjectionEntry, Language } from '../types';
 import { MessageCircle, Globe, BookOpen, Star, Info, Filter, ArrowRight } from './Icons';
 
 interface InterjectionsPageProps {
@@ -22,7 +22,7 @@ const INTERJECTIONS_DATA: InterjectionEntry[] = [
     origin: "Turkish",
     meaning: "Help, Woe, Alas",
     usage: "An archaic cry for help, now mostly used to express pity or regret.",
-    example: "Medet për ata që s'kanë strehë.",
+    example: "Medet për ata qi s'kanë strehë.",
     tags: ["Archaic", "Emotional"]
   },
   {
@@ -199,7 +199,7 @@ const InterjectionsPage: React.FC<InterjectionsPageProps> = ({ lang }) => {
          </h1>
          <p className="text-xl text-gray-600 dark:text-gray-400 font-medium max-w-2xl mx-auto leading-relaxed">
              {isGeg 
-               ? 'Nji udhëtim nëpër shtresat historike të gjuhës sonë. Zbuloni fjalët që na lanë perandoritë dhe fqinjët.' 
+               ? 'Nji udhëtim nëpër shtresat historike të gjuhës sonë. Zbuloni fjalët qi na lanë perandoritë dhe fqinjët.' 
                : 'A journey through the historical layers of our language. Discover words left behind by empires and neighbors.'}
          </p>
        </div>

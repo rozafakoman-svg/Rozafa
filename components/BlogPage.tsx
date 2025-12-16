@@ -1,6 +1,6 @@
+
 import React, { useState } from 'react';
-import { BlogPost } from '../types';
-import { Language } from '../App';
+import { BlogPost, Language } from '../types';
 import { Calendar, User, Clock, ArrowUpRight, ArrowLeft, FileText } from './Icons';
 
 interface BlogPageProps {
@@ -9,14 +9,39 @@ interface BlogPageProps {
 
 const MOCK_POSTS_GEG: BlogPost[] = [
   {
+    id: 'strategy_1',
+    title: 'Na bashkon nji gjuhë: Përtej Standardit të 1972',
+    excerpt: 'Para vitit 1972 nuk ka pasë nji gjuhë standarde shtetnore. Ka pasë shqipen, të jetueme e të shkrueme në dy krahë kryesorë.',
+    content: `
+      <p class="font-serif text-xl italic text-gray-500 mb-6">"Na bashkon nji gjuhë, siç ka thanë Ndre Mjeda. Po cila asht kjo gjuhë?"</p>
+      
+      <p>Para vitit 1972 nuk ka pasë nji gjuhë standarde shtetnore. Ka pasë <strong>shqipen</strong>, të jetueme e të shkrueme në dy krahë kryesorë: gegënishtën në Veri dhe toskërishten në Jug. Gegënishtja nuk ka qenë thjesht e folun, por <strong>gjuhë e plotë shkrimi, kulture dhe mendimi</strong>, me letërsi, gramatikë dhe normë të qëndrueshme.</p>
+      <br/>
+      <h3 class="text-xl font-bold mb-2">Një Zgjedhje Politike</h3>
+      <p>Standardi i vitit 1972 nuk e krijoi shqipen; ai përzgjodhi <strong>nji normë të vetme</strong>, kryesisht mbi bazë të toskërishtes, dhe e bani atë zyrtare. Kjo zgjedhje ishte institucionale dhe politike, jo përfundim shkencor që e zhvlerëson gegënishten.</p>
+      <br/>
+      <p>Gegënishtja nuk asht kundër shqipes. Gegënishtja <strong>asht shqip</strong>. Toskërishtja <strong>asht shqip</strong>. Shqiptarët nuk bashkohen tue fshi njanin krah, por tue i njohë të dy.</p>
+      <br/>
+      <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl border-l-4 border-indigo-500 my-6">
+        <p class="font-bold text-indigo-900 dark:text-indigo-200">Shënim për lexuesin:</p>
+        <p class="text-sm mt-2 text-gray-700 dark:text-gray-300">Ky shkrim shoqërohet me një <strong>Manifest Kulturor</strong> dhe një <strong>Kornizë Akademike</strong>, të cilat janë publikuar për diskutim të hapur në Forumin tonë.</p>
+      </div>
+    `,
+    author: 'Redaksia Gegenisht',
+    date: 'Sot',
+    readTime: '4 min',
+    tags: ['Gjuhësi', 'Histori', 'Editorial'],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/eb/Ndre_Mjeda.jpg'
+  },
+  {
     id: '1',
     title: 'Paskajorja: Shpirti i Gegenishtes',
-    excerpt: 'Pse forma "me punue" âsht ma shumë se gramatikë—âsht nji mënyrë mendimi që u hoq padrejtësisht nga standardi.',
+    excerpt: 'Pse forma "me punue" âsht ma shumë se gramatikë—âsht nji mënyrë mendimi qi u hoq padrejtësisht nga standardi.',
     content: `
       <p>Gjuha nuk âsht thjesht mjet komunikimi, por pasqyrë e shpirtit të nji populli. Nji nga humbjet ma të mëdha gjatë standardizimit të vitit 1972 ishte <strong>Paskajorja (Infinitivi)</strong> e tipit <em>me + pjesore</em> (p.sh., "me punue", "me kândue").</p>
       <br/>
       <h3 class="text-xl font-bold mb-2">Çka humbëm?</h3>
-      <p>Në Standardin e sotëm, kjo formë zëvendësohet shpesh me lidhoren "për të punuar" ose "që të punojë". Por për folësit e Gegnishtes, kjo tingëllon e stërzgjatun dhe e panatyrshme. Paskajorja ofron nji precizion dhe nji rrjedhshmëri që lidhorja nuk e ka.</p>
+      <p>Në Standardin e sotëm, kjo formë zëvendësohet shpesh me lidhoren "për të punuar" ose "që të punojë". Por për folësit e Gegnishtes, kjo tingëllon e stërzgjatun dhe e panatyrshme. Paskajorja ofron nji precizion dhe nji rrjedhshmëri qi lidhorja nuk e ka.</p>
       <br/>
       <p>Mendoni frazën e famshme të Hamletit: <em>"Me qenë a mos me qenë"</em>. Në Standard: "Të jesh apo të mos jesh". Fuqia e paskajores qëndron te thjeshtësia e saj filozofike.</p>
     `,
@@ -31,12 +56,12 @@ const MOCK_POSTS_GEG: BlogPost[] = [
     title: 'Arkivat Digjitale: Ruajtja e Fjalëve',
     excerpt: 'Si inteligjenca artificiale po ndihmon në deshifrimin e dorëshkrimeve të vjetra të etërve françeskanë.',
     content: `
-      <p>Në bodrumet e bibliotekave tona flejnë mijëra faqe dorëshkrimesh që nuk e panë kurrë dritën e botimit. Sot, teknologjia na jep nji mundësi të dytë.</p>
+      <p>Në bodrumet e bibliotekave tona flejnë mijëra faqe dorëshkrimesh qi nuk e panë kurrë dritën e botimit. Sot, teknologjia na jep nji mundësi të dytë.</p>
       <br/>
       <h3 class="text-xl font-bold mb-2">Roli i AI</h3>
-      <p>Përmes modeleve gjuhësore si Gemini, ne po krijojmë nji bazë të dhanash që jo vetëm i digjitalizon këto tekste, por edhe i kupton ato. Kjo na lejon me rindërtue fjalorë të tërë dialektorë që rrezikonin me u harrue.</p>
+      <p>Përmes modeleve gjuhësore si Gemini, ne po krijojmë nji bazë të dhanash qi jo vetëm i digjitalizon këto tekste, por edhe i kupton ato. Kjo na lejon me rindërtue fjalorë të tërë dialektorë qi rrezikonin me u harrue.</p>
       <br/>
-      <p>Projekti "Gegenisht" synon me bâ këto thesare të qasshme për çdo shqiptar, kudo që ndodhet.</p>
+      <p>Projekti "Gegenisht" synon me bâ këto thesare të qasshme për çdo shqiptar, kudo qi ndodhet.</p>
     `,
     author: 'Dritan K.',
     date: '28 Shkurt 2024',
@@ -61,6 +86,31 @@ const MOCK_POSTS_GEG: BlogPost[] = [
 ];
 
 const MOCK_POSTS_ENG: BlogPost[] = [
+  {
+    id: 'strategy_1',
+    title: 'One Language Unites Us: Beyond the 1972 Standard',
+    excerpt: 'Before 1972, there was no single state standard language. There was Albanian, lived and written in two main branches.',
+    content: `
+      <p class="font-serif text-xl italic text-gray-500 mb-6">"One language unites us, as Ndre Mjeda said. But what is this language?"</p>
+      
+      <p>Before 1972, there was no single state standard language. There was <strong>Albanian</strong>, lived and written in two main branches: Geg in the North and Tosk in the South. Geg was not merely spoken, but a <strong>complete language of writing, culture, and thought</strong>, with literature, grammar, and a stable norm.</p>
+      <br/>
+      <h3 class="text-xl font-bold mb-2">A Political Choice</h3>
+      <p>The 1972 Standard did not create Albanian; it selected <strong>a single norm</strong>, primarily based on Tosk, and made it official. This choice was institutional and political, not a scientific conclusion that devalues Geg.</p>
+      <br/>
+      <p>Geg is not against Albanian. Geg <strong>is Albanian</strong>. Tosk <strong>is Albanian</strong>. Albanians unite not by erasing one branch, but by acknowledging both.</p>
+      <br/>
+      <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl border-l-4 border-indigo-500 my-6">
+        <p class="font-bold text-indigo-900 dark:text-indigo-200">Editor's Note:</p>
+        <p class="text-sm mt-2 text-gray-700 dark:text-gray-300">This article is accompanied by a <strong>Cultural Manifesto</strong> and an <strong>Academic Framework</strong>, published for open discussion in our Forum.</p>
+      </div>
+    `,
+    author: 'Gegenisht Team',
+    date: 'Today',
+    readTime: '4 min',
+    tags: ['Linguistics', 'History', 'Editorial'],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/eb/Ndre_Mjeda.jpg'
+  },
   {
     id: '1',
     title: 'The Infinitive: The Soul of Geg',

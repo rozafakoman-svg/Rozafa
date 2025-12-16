@@ -1,6 +1,6 @@
+
 import React, { useState } from 'react';
-import { Language } from '../App';
-import { ForumPost, ForumComment, UserProfile } from '../types';
+import { ForumPost, ForumComment, UserProfile, Language } from '../types';
 import { ArrowBigUp, ArrowBigDown, MessageSquare, Clock, User, PlusCircle, Pin, MoreHorizontal, ArrowLeft, Send, X, Search, Filter, Shield, Flame, Hash, TrendingUp, Info } from './Icons';
 
 interface ForumPageProps {
@@ -10,6 +10,37 @@ interface ForumPageProps {
 }
 
 const MOCK_POSTS: ForumPost[] = [
+  {
+    id: 'manifesto_2024',
+    title: 'Manifest për barazinë historike të gegënishtes',
+    content: 'Ne besojmë se:\n\n• Gegënishtja asht pasuni kulturore e shqipes.\n• Para vitit 1972, gegënishtja ishte gjuhë e shkrueme dhe e normueme në praktikë.\n• Heqja e saj nga arsimi dhe administrata ishte akt politik, jo gjuhësor.\n• Rilindja kulturore e gegënishtes nuk cenon unitetin gjuhësor.\n\nNe nuk kërkojmë përçarje, por barazi historike.\n\nKërkojmë:\n• Njohjen e gegënishtes si trashëgimi gjuhësore;\n• Përdorimin e saj të lirë në letërsi, media dhe art;\n• Studim serioz, jo ideologjik, të traditës së saj;\n• Bashkëjetesë mes standardit dhe varianteve historike.\n\nNjë gjuhë nuk forcohet tue u ngushtue, por tue u kuptue.',
+    author: 'Redaksia',
+    authorRole: 'admin',
+    date: 'Pinned',
+    upvotes: 1205,
+    downvotes: 0,
+    tags: ['Manifest', 'Kulturë', 'Histori'],
+    comments: [
+       { id: 'm1', postId: 'manifesto_2024', author: 'Gjergj', content: 'Plotësisht dakord. Kjo është rruga përpara.', date: '1 hour ago', upvotes: 45 },
+       { id: 'm2', postId: 'manifesto_2024', author: 'Valbona', content: 'Gjuha jonë është pasuri, jo kërcënim.', date: '2 hours ago', upvotes: 32 }
+    ],
+    viewCount: 8500,
+    pinned: true
+  },
+  {
+    id: 'academic_2024',
+    title: 'Shqipja para standardizimit: kornizë studimore',
+    content: '1. Gjendja para-standardizuese\nPara vitit 1972, shqipja funksiononte si gjuhë pluricentrike, me dy tradita kryesore shkrimi:\n• Gegënishtja (Veri, Kosovë, Mal i Zi, Maqedoni Perëndimore);\n• Toskërishtja (Jug).\nNuk ekzistonte një normë e vetme detyruese në shkallë shtetërore.\n\n2. Gegënishtja si gjuhë shkrimi\nGegënishtja përdorej gjerësisht në:\n• Letërsi artistike;\n• Publicistikë;\n• Tekste fetare;\n• Arsim para vitit 1945.\nAutorë kryesorë dëshmojnë stabilitetin dhe funksionalitetin e saj si gjuhë shkrimi.\n\n3. Standardizimi i vitit 1972\nKongresi i Drejtshkrimit (1972) përcaktoi një normë të vetme zyrtare, të ndërtuar kryesisht mbi toskërishten, me elemente të kufizuara gegë. Ky proces rriti unifikimin administrativ por uli përfaqësimin e traditës gegë në institucionet shtetërore.\n\n4. Përfundim\nStandardi është mjet funksional komunikimi, jo matës i vlerës kulturore. Studimi i shqipes kërkon njohjen e të dy traditave historike pa hierarki ideologjike.',
+    author: 'Moderatori_Akademik',
+    authorRole: 'moderator',
+    date: 'Pinned',
+    upvotes: 450,
+    downvotes: 2,
+    tags: ['Akademi', 'Gjuhësi', 'Studim'],
+    comments: [],
+    viewCount: 3200,
+    pinned: true
+  },
   {
     id: '1',
     title: 'Welcome to the Gegenisht Community Forum!',
@@ -69,7 +100,7 @@ const MOCK_POSTS: ForumPost[] = [
   }
 ];
 
-const POPULAR_TAGS = ['Grammar', 'History', 'Vocabulary', 'Resources', 'Dialects', 'Translation'];
+const POPULAR_TAGS = ['Grammar', 'History', 'Vocabulary', 'Resources', 'Dialects', 'Translation', 'Manifest', 'Akademi'];
 
 const ForumPage: React.FC<ForumPageProps> = ({ lang, user, onReqAuth }) => {
   const [posts, setPosts] = useState<ForumPost[]>(MOCK_POSTS);

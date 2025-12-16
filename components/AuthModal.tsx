@@ -1,7 +1,7 @@
+
 import React, { useState } from 'react';
-import { UserProfile, Badge } from '../types';
-import { X, User, Lock, Mail, Loader2, Shield } from './Icons';
-import { Language } from '../App';
+import { UserProfile, Badge, Language } from '../types';
+import { X, User, Lock, Mail, Loader2, Shield, Zap } from './Icons';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -12,6 +12,13 @@ interface AuthModalProps {
 
 const MOCK_BADGES: Badge[] = [
   { id: '3', name: 'Newcomer', nameGeg: 'Fillestar', iconName: 'Star', description: 'Joined the community', descriptionGeg: 'U bashkue me komunitetin', color: 'bg-gray-100 text-gray-600', earned: true },
+];
+
+const ADMIN_BADGES: Badge[] = [
+  { id: '1', name: 'Founder', nameGeg: 'Themelues', iconName: 'Crown', description: 'Project Creator', descriptionGeg: 'Krijuesi i Projektit', color: 'bg-yellow-100 text-yellow-700', earned: true },
+  { id: '2', name: 'Guardian', nameGeg: 'Rojtar', iconName: 'Shield', description: 'Community Admin', descriptionGeg: 'Administrator', color: 'bg-red-100 text-red-700', earned: true },
+  { id: '3', name: 'Scholar', nameGeg: 'Dijetar', iconName: 'GraduationCap', description: 'Top Contributor', descriptionGeg: 'Kontribues i Naltë', color: 'bg-blue-100 text-blue-700', earned: true },
+  { id: '4', name: 'Omnipotent', nameGeg: 'I Plotfuqishëm', iconName: 'Zap', description: 'God Mode Activated', descriptionGeg: 'Modi i Zotit Aktiv', color: 'bg-purple-100 text-purple-700', earned: true },
 ];
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, lang }) => {
@@ -55,7 +62,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, lang })
         // Create Mock User
         const newUser: UserProfile = {
             id: Date.now().toString(),
-            name: mode === 'login' ? (isGeg ? 'Përdorues Geg' : 'Geg User') : formData.name, // In real app, fetch name on login
+            name: mode === 'login' ? (isGeg ? 'Përdorues Geg' : 'Geg User') : formData.name, 
             email: formData.email,
             role: 'user', // Default role
             level: 1,
@@ -69,6 +76,28 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, lang })
         };
         onLogin(newUser);
     }, 1500);
+  };
+
+  const handleAdminLogin = () => {
+      setIsLoading(true);
+      setTimeout(() => {
+          setIsLoading(false);
+          const adminUser: UserProfile = {
+              id: 'admin_001',
+              name: 'Gjergj Kastrioti',
+              email: 'admin@gegenisht.com',
+              role: 'admin',
+              level: 100,
+              levelTitle: 'God Mode',
+              levelTitleGeg: 'Zot',
+              points: 999999,
+              nextLevelPoints: 1000000,
+              badges: ADMIN_BADGES,
+              contributions: 9999,
+              joinedDate: 'Jan 2024'
+          };
+          onLogin(adminUser);
+      }, 800);
   };
 
   return (
@@ -182,6 +211,26 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, lang })
                     )}
                 </button>
             </form>
+
+            <div className="px-8 pb-6 text-center">
+                <div className="relative mb-6">
+                    <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                        <span className="bg-white dark:bg-gray-900 px-2 text-gray-400 font-bold uppercase tracking-wider">Demo Access</span>
+                    </div>
+                </div>
+                
+                <button 
+                    type="button"
+                    onClick={handleAdminLogin}
+                    className="w-full py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-xl font-bold text-sm hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border border-indigo-200 dark:border-indigo-800 flex items-center justify-center gap-2"
+                >
+                    <Zap className="w-4 h-4 fill-current text-yellow-500" />
+                    {isGeg ? 'Hini: Modi i Zotit (Admin)' : 'Login: God Mode (Admin)'}
+                </button>
+            </div>
 
             <div className="p-6 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 text-center">
                 <p className="text-gray-500 dark:text-gray-400 text-sm">

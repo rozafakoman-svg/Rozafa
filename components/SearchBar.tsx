@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, Loader2, Clock, ArrowRight, Sparkles, HelpCircle } from './Icons';
 
@@ -236,7 +237,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, lang, histor
     : "Search for a word...";
     
   const buttonText = lang === 'geg' ? "Lyp" : "Search";
-  const tryText = lang === 'geg' ? "Provo:" : "Try:";
   const didYouMeanText = lang === 'geg' ? "Mos lypët:" : "Did you mean:";
 
   // Determine what to show in dropdown
@@ -356,16 +356,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, lang, histor
                  </div>
               )}
            </div>
-        </div>
-      )}
-
-      {/* Helper Links (Hidden when dropdown is active to reduce clutter) */}
-      {!showDropdown && (
-        <div className="mt-3 flex gap-2 justify-center text-sm text-gray-500 dark:text-gray-400 animate-fade-in">
-          <span>{tryText}</span>
-          <button onClick={() => { setQuery("bujrum"); onSearch("bujrum"); }} className="hover:text-albanian-red dark:hover:text-red-400 underline decoration-dotted">bujrum</button>
-          <button onClick={() => { setQuery("shpi"); onSearch("shpi"); }} className="hover:text-albanian-red dark:hover:text-red-400 underline decoration-dotted">shpi</button>
-          <button onClick={() => { setQuery("njeri"); onSearch("njeri"); }} className="hover:text-albanian-red dark:hover:text-red-400 underline decoration-dotted">njeri</button>
         </div>
       )}
     </div>

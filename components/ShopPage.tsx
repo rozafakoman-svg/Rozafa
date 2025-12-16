@@ -1,6 +1,6 @@
+
 import React, { useState } from 'react';
-import { Language } from '../App';
-import { Product } from '../types';
+import { Product, Language } from '../types';
 import { ShoppingBag, Star, CheckCircle, Loader2, Package, Sparkles, Crown, Megaphone, ShoppingCart, Filter, Heart, X, Search, ArrowRight, Trash2, CreditCard } from './Icons';
 
 interface ShopPageProps {
@@ -8,6 +8,7 @@ interface ShopPageProps {
   cartItems: string[];
   onAddToCart: (id: string) => void;
   onRemoveFromCart: (id: string) => void;
+  onClearCart: () => void;
 }
 
 const MOCK_PRODUCTS: (Product & { rating: number, reviews: number })[] = [
@@ -97,12 +98,14 @@ const MOCK_PRODUCTS: (Product & { rating: number, reviews: number })[] = [
   }
 ];
 
-const ShopPage: React.FC<ShopPageProps> = ({ lang, cartItems, onAddToCart, onRemoveFromCart }) => {
+const ShopPage: React.FC<ShopPageProps> = ({ lang, cartItems, onAddToCart, onRemoveFromCart, onClearCart }) => {
   const isGeg = lang === 'geg';
   const [activeCategory, setActiveCategory] = useState<'all' | 'apparel' | 'souvenir' | 'digital' | 'corporate'>('all');
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [checkoutSuccess, setCheckoutSuccess] = useState(false);
 
   const filteredProducts = activeCategory === 'all' 
     ? MOCK_PRODUCTS 
@@ -120,6 +123,22 @@ const ShopPage: React.FC<ShopPageProps> = ({ lang, cartItems, onAddToCart, onRem
         setNotification(isGeg ? `U shtue në shportë: ${product.nameGeg}` : `Added to cart: ${product.name}`);
         setTimeout(() => setNotification(null), 3000);
     }, 600);
+  };
+
+  const handleCheckout = () => {
+    setIsCheckingOut(true);
+    // Simulate API call for payment
+    setTimeout(() => {
+        setIsCheckingOut(false);
+        setCheckoutSuccess(true);
+        onClearCart();
+        
+        // Auto close after delay
+        setTimeout(() => {
+            setCheckoutSuccess(false);
+            setIsCartOpen(false);
+        }, 3000);
+    }, 2000);
   };
 
   const renderProductIcon = (type: string) => {
@@ -157,7 +176,7 @@ const ShopPage: React.FC<ShopPageProps> = ({ lang, cartItems, onAddToCart, onRem
       {/* Floating Cart Button */}
       <div className="fixed bottom-6 right-6 z-40">
           <button 
-            onClick={() => setIsCartOpen(true)}
+            onClick={() => { setIsCartOpen(true); setCheckoutSuccess(false); }}
             className="w-16 h-16 bg-emerald-600 text-white rounded-full shadow-xl flex items-center justify-center relative hover:scale-110 hover:bg-emerald-500 transition-all group"
           >
               <ShoppingCart className="w-7 h-7" />
@@ -179,204 +198,150 @@ const ShopPage: React.FC<ShopPageProps> = ({ lang, cartItems, onAddToCart, onRem
                     <ShoppingCart className="w-6 h-6 text-emerald-600" /> 
                     {isGeg ? 'Shporta' : 'Your Cart'}
                  </h2>
-                 <button onClick={() => setIsCartOpen(false)} className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                 <button 
+                    onClick={() => setIsCartOpen(false)} 
+                    className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                    disabled={isCheckingOut}
+                 >
                     <X className="w-5 h-5 text-gray-500" />
                  </button>
               </div>
 
-              {/* Cart Items List */}
-              <div className="flex-grow overflow-y-auto p-6 space-y-4">
-                 {cartProducts.length === 0 ? (
-                    <div className="text-center py-12">
-                       <ShoppingBag className="w-16 h-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
-                       <p className="text-gray-500 dark:text-gray-400 font-medium">
-                          {isGeg ? 'Shporta âsht e zbrazët.' : 'Your cart is empty.'}
-                       </p>
-                       <button onClick={() => setIsCartOpen(false)} className="mt-4 text-emerald-600 font-bold text-sm hover:underline">
-                          {isGeg ? 'Fillo Blerjen' : 'Start Shopping'}
-                       </button>
+              {/* Cart Content */}
+              {checkoutSuccess ? (
+                  <div className="flex-grow flex flex-col items-center justify-center p-8 text-center animate-fade-in">
+                      <div className="w-24 h-24 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6">
+                          <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400 animate-bounce" />
+                      </div>
+                      <h3 className="text-3xl font-serif font-bold text-gray-900 dark:text-white mb-2">{isGeg ? 'Pagesa u Krye!' : 'Payment Successful!'}</h3>
+                      <p className="text-gray-500 dark:text-gray-400 mb-8">{isGeg ? 'Faleminderit për blerjen.' : 'Thank you for your purchase.'}</p>
+                      <button 
+                        onClick={() => setIsCartOpen(false)}
+                        className="px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold hover:bg-black dark:hover:bg-gray-200 transition-colors"
+                      >
+                        {isGeg ? 'Mbyll' : 'Close'}
+                      </button>
+                  </div>
+              ) : (
+                  <>
+                    <div className="flex-grow overflow-y-auto p-6 space-y-4">
+                        {cartProducts.length === 0 ? (
+                            <div className="text-center py-12">
+                            <ShoppingBag className="w-16 h-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
+                            <p className="text-gray-500 dark:text-gray-400 font-medium">
+                                {isGeg ? 'Shporta âsht e zbrazët.' : 'Your cart is empty.'}
+                            </p>
+                            <button onClick={() => setIsCartOpen(false)} className="mt-4 text-emerald-600 font-bold text-sm hover:underline">
+                                {isGeg ? 'Fillo Blerjen' : 'Start Shopping'}
+                            </button>
+                            </div>
+                        ) : (
+                            cartProducts.map((item, index) => (
+                            <div key={`${item.id}-${index}`} className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                                <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-white ${item.color.split(' ')[0]}`}>
+                                    <ShoppingBag className="w-6 h-6" /> 
+                                </div>
+                                <div className="flex-grow min-w-0">
+                                    <h4 className="font-bold text-gray-900 dark:text-white truncate text-sm">{isGeg ? item.nameGeg : item.name}</h4>
+                                    <p className="text-emerald-600 font-bold">${item.price.toFixed(2)}</p>
+                                </div>
+                                <button 
+                                    onClick={() => onRemoveFromCart(item.id)}
+                                    className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                    title="Remove"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            </div>
+                            ))
+                        )}
                     </div>
-                 ) : (
-                    cartProducts.map((item, index) => (
-                       <div key={`${item.id}-${index}`} className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
-                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-white ${item.color.split(' ')[0]}`}>
-                             {/* Extract just the bg color part roughly or default */}
-                             <ShoppingBag className="w-6 h-6" /> 
-                          </div>
-                          <div className="flex-grow min-w-0">
-                             <h4 className="font-bold text-gray-900 dark:text-white truncate text-sm">{isGeg ? item.nameGeg : item.name}</h4>
-                             <p className="text-emerald-600 font-bold">${item.price.toFixed(2)}</p>
-                          </div>
-                          <button 
-                            onClick={() => onRemoveFromCart(item.id)}
-                            className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                            title="Remove"
-                          >
-                             <Trash2 className="w-4 h-4" />
-                          </button>
-                       </div>
-                    ))
-                 )}
-              </div>
 
-              {/* Footer / Checkout */}
-              <div className="p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-                 <div className="flex justify-between items-center mb-6">
-                    <span className="text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider text-sm">{isGeg ? 'Totali' : 'Total'}</span>
-                    <span className="text-3xl font-black text-gray-900 dark:text-white">${totalPrice.toFixed(2)}</span>
-                 </div>
-                 <button 
-                   disabled={cartItems.length === 0}
-                   className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-black dark:hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                 >
-                    <CreditCard className="w-5 h-5" />
-                    {isGeg ? 'Paguaj Tash' : 'Checkout Now'}
-                 </button>
-              </div>
+                    {/* Footer / Checkout */}
+                    <div className="p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
+                        <div className="flex justify-between items-center mb-6">
+                            <span className="text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider text-sm">{isGeg ? 'Totali' : 'Total'}</span>
+                            <span className="text-3xl font-black text-gray-900 dark:text-white">${totalPrice.toFixed(2)}</span>
+                        </div>
+                        <button 
+                        onClick={handleCheckout}
+                        disabled={cartItems.length === 0 || isCheckingOut}
+                        className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-black dark:hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                        >
+                            {isCheckingOut ? (
+                                <><Loader2 className="w-5 h-5 animate-spin" /> {isGeg ? 'Duke procesue...' : 'Processing...'}</>
+                            ) : (
+                                <>{isGeg ? 'Paguaj' : 'Checkout'} - ${totalPrice.toFixed(2)}</>
+                            )}
+                        </button>
+                    </div>
+                  </>
+              )}
            </div>
         </div>
       )}
 
-      {/* Hero Section */}
-      <div className="bg-gray-900 dark:bg-black rounded-3xl overflow-hidden mb-12 relative shadow-2xl mx-4 lg:mx-0">
-         <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-l from-emerald-900/40 to-transparent z-10 pointer-events-none"></div>
-         <div className="absolute -right-20 -top-20 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl"></div>
-         
-         <div className="relative z-20 p-8 sm:p-12 lg:p-16 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
-            <div className="max-w-xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-900/50 border border-emerald-700 text-emerald-300 text-xs font-bold uppercase tracking-widest mb-6">
-                    <Sparkles className="w-3 h-3" /> {isGeg ? 'Koleksioni i Ri 2024' : 'New Collection 2024'}
-                </div>
-                <h1 className="text-4xl sm:text-6xl font-serif font-bold text-white mb-6 leading-tight">
-                    {isGeg ? 'Vishni Kulturën,' : 'Wear the Culture,'} <br/>
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">
-                        {isGeg ? 'Ruani Gjuhën.' : 'Preserve the Language.'}
-                    </span>
-                </h1>
-                <p className="text-gray-300 text-lg mb-8 leading-relaxed">
-                    {isGeg 
-                        ? '100% e fitimeve shkojnë direkt për zhvillimin e platformës Gegenisht dhe digjitalizimin e arkivave.' 
-                        : '100% of profits go directly to the development of the Gegenisht platform and archive digitization.'}
-                </p>
-                <button className="px-8 py-4 bg-white text-gray-900 rounded-full font-bold hover:bg-gray-100 transition-colors shadow-lg flex items-center gap-2 mx-auto md:mx-0">
-                    {isGeg ? 'Bli Tani' : 'Shop Now'} <ArrowRight className="w-5 h-5" />
-                </button>
-            </div>
-            {/* Hero Image Abstract Representation */}
-            <div className="relative w-64 h-64 sm:w-80 sm:h-80 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/10 animate-float">
-                <ShoppingBag className="w-32 h-32 text-white/90 drop-shadow-lg" />
-                <div className="absolute -bottom-4 -left-4 bg-white text-gray-900 px-6 py-3 rounded-xl font-bold shadow-xl rotate-[-6deg]">
-                    {isGeg ? 'Cilësi Premium' : 'Premium Quality'}
-                </div>
-            </div>
-         </div>
-      </div>
-
-      {/* Filter Categories */}
-      <div className="flex justify-center mb-10 px-4 overflow-x-auto no-scrollbar">
-          <div className="bg-white dark:bg-gray-800 p-1.5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex gap-2">
+      {/* Main Content: Categories & Products */}
+      <div className="flex flex-col gap-8">
+          
+          {/* Categories */}
+          <div className="flex justify-center flex-wrap gap-3">
               {categories.map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => setActiveCategory(cat.id as any)}
-                    className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
+                    className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all border ${
                         activeCategory === cat.id 
-                        ? 'bg-emerald-600 text-white shadow-md' 
-                        : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400'
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg' 
+                        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-700'
                     }`}
                   >
                       {cat.label}
                   </button>
               ))}
           </div>
-      </div>
 
-       {/* Products Grid */}
-       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
-          {filteredProducts.map((product) => (
-             <div key={product.id} className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group h-full">
-                {/* Image Placeholder */}
-                <div className={`h-64 ${product.color} flex items-center justify-center relative`}>
-                   {/* Favorite Button */}
-                   <button className="absolute top-4 right-4 p-2 bg-white/50 hover:bg-white backdrop-blur-md rounded-full text-gray-700 transition-colors z-10">
-                       <Heart className="w-5 h-5" />
-                   </button>
-                   
-                   {/* Product Icon */}
-                   <div className="bg-white/90 dark:bg-gray-900/50 p-6 rounded-full shadow-lg group-hover:scale-110 transition-transform duration-300">
-                      {renderProductIcon(product.imageIcon)}
-                   </div>
-                   
-                   {/* Category Badge */}
-                   <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-gray-900/90 dark:text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm flex items-center gap-1">
-                      <Package className="w-3 h-3" /> {product.category}
-                   </div>
-                </div>
+          {/* Product Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
+              {filteredProducts.map((product) => (
+                  <div key={product.id} className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group flex flex-col h-full relative overflow-hidden">
+                      {/* Product Image Placeholder */}
+                      <div className={`aspect-square rounded-2xl mb-6 flex items-center justify-center relative overflow-hidden ${product.color}`}>
+                          {renderProductIcon(product.imageIcon)}
+                          
+                          {/* Rating Badge */}
+                          <div className="absolute top-4 right-4 bg-white/90 dark:bg-black/50 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-gray-800 dark:text-white flex items-center gap-1 shadow-sm">
+                              <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                              {product.rating}
+                          </div>
+                      </div>
 
-                <div className="p-6 flex flex-col flex-grow">
-                   <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-xl font-bold font-serif text-gray-900 dark:text-white leading-tight pr-4">
-                        {isGeg ? product.nameGeg : product.name}
-                      </h3>
-                      <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 whitespace-nowrap">${product.price}</span>
-                   </div>
-                   
-                   {/* Rating */}
-                   <div className="flex items-center gap-1 mb-4">
-                       <div className="flex text-yellow-400">
-                           {[...Array(5)].map((_, i) => (
-                               <Star key={i} className={`w-3.5 h-3.5 ${i < Math.floor(product.rating) ? 'fill-current' : 'text-gray-300 dark:text-gray-600'}`} />
-                           ))}
-                       </div>
-                       <span className="text-xs text-gray-400 font-medium ml-1">({product.reviews})</span>
-                   </div>
-
-                   <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 leading-relaxed flex-grow line-clamp-3">
-                      {product.description}
-                   </p>
-
-                   <button 
-                     onClick={() => handleAddToCartClick(product)}
-                     disabled={!!addingToCart}
-                     className="w-full py-3.5 rounded-xl font-bold text-white transition-all shadow-lg flex items-center justify-center gap-2 bg-gray-900 hover:bg-black dark:bg-gray-700 dark:hover:bg-gray-600 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
-                   >
-                     {addingToCart === product.id ? (
-                        <><Loader2 className="w-5 h-5 animate-spin" /> {isGeg ? 'Duke shtue...' : 'Adding...'}</>
-                     ) : (
-                        <>{isGeg ? 'Shto në Shportë' : 'Add to Cart'}</>
-                     )}
-                   </button>
-                </div>
-             </div>
-          ))}
-       </div>
-
-       {/* Bottom Trust Badge */}
-       <div className="mt-20 border-t border-gray-200 dark:border-gray-800 pt-12 pb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center px-4">
-              <div className="flex flex-col items-center gap-3">
-                  <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                      <CheckCircle className="w-6 h-6" />
+                      <div className="flex-grow flex flex-col">
+                          <h3 className="text-xl font-serif font-bold text-gray-900 dark:text-white mb-2 leading-tight">
+                              {isGeg ? product.nameGeg : product.name}
+                          </h3>
+                          <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-6 line-clamp-3">
+                              {product.description}
+                          </p>
+                          
+                          <div className="mt-auto flex items-center justify-between">
+                              <span className="text-2xl font-black text-gray-900 dark:text-white">
+                                  ${product.price}
+                              </span>
+                              <button 
+                                onClick={() => handleAddToCartClick(product)}
+                                disabled={addingToCart === product.id}
+                                className="px-5 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold text-sm hover:bg-emerald-600 dark:hover:bg-emerald-400 dark:hover:text-white transition-all shadow-md flex items-center gap-2 disabled:opacity-70 disabled:cursor-wait"
+                              >
+                                  {addingToCart === product.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingBag className="w-4 h-4" />}
+                                  {isGeg ? 'Shto' : 'Add'}
+                              </button>
+                          </div>
+                      </div>
                   </div>
-                  <h4 className="font-bold text-gray-900 dark:text-white">{isGeg ? 'Cilësi e Garantueme' : 'Quality Guaranteed'}</h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{isGeg ? 'Produkte të zgjedhuna me kujdes.' : 'Carefully curated products.'}</p>
-              </div>
-              <div className="flex flex-col items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400">
-                      <Package className="w-6 h-6" />
-                  </div>
-                  <h4 className="font-bold text-gray-900 dark:text-white">{isGeg ? 'Dërgesa në gjithë botën' : 'Worldwide Shipping'}</h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{isGeg ? 'Kudo që janë shqiptarët.' : 'Wherever Albanians are.'}</p>
-              </div>
-              <div className="flex flex-col items-center gap-3">
-                  <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/30 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400">
-                      <Heart className="w-6 h-6" />
-                  </div>
-                  <h4 className="font-bold text-gray-900 dark:text-white">{isGeg ? 'Mbështetje për Kauzën' : 'Support the Cause'}</h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{isGeg ? 'Çdo blerje ndihmon gjuhën.' : 'Every purchase helps the language.'}</p>
-              </div>
+              ))}
           </div>
-       </div>
+      </div>
     </div>
   );
 };

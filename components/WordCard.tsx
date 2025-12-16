@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { DictionaryEntry, ContributionType } from '../types';
-import { Volume2, BookOpen, Share2, ArrowRight, AlignLeft, Globe, GraduationCap, Info, HelpCircle, MapPin, Repeat, MessageCircle, Image, Sparkles, Loader2, GitCompare, X, ShieldAlert, Upload, Mic, PlayCircle, PauseCircle, Flag, Edit3, Headphones, Download } from './Icons';
+import { DictionaryEntry, ContributionType, ExampleSentence } from '../types';
+import { Volume2, BookOpen, Share2, ArrowRight, AlignLeft, Globe, GraduationCap, Info, HelpCircle, MapPin, Repeat, MessageCircle, Image, Sparkles, Loader2, GitCompare, X, ShieldAlert, Upload, Mic, PlayCircle, PauseCircle, Flag, Edit3, Headphones, Download, Trash2, PlusCircle, CheckCircle, Save, Zap } from './Icons';
 import { fetchEtymologyImage, fetchWordDefinition } from '../services/geminiService';
 import ContributionModal from './ContributionModal';
 
@@ -121,6 +122,10 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
   const [contributionModalOpen, setContributionModalOpen] = useState(false);
   const [contributionType, setContributionType] = useState<ContributionType>('report_error');
   
+  // Save State
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
   const t = translations[lang];
 
   // Palindrome check logic
@@ -143,6 +148,7 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
     setCompareEntry(null);
     setCompareQuery('');
     setIsPlayingCustom(false);
+    setSaveSuccess(false);
   }, [entry?.word]);
 
   useEffect(() => {
@@ -217,6 +223,43 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
     }
   };
 
+  // Helper functions for array editing
+  const updateStringArray = (field: keyof DictionaryEntry, idx: number, value: string) => {
+    const arr = (entry[field] as string[]) || [];
+    const newArr = [...arr];
+    newArr[idx] = value;
+    handleUpdate(field, newArr);
+  };
+
+  const addToStringArray = (field: keyof DictionaryEntry) => {
+    const arr = (entry[field] as string[]) || [];
+    handleUpdate(field, [...arr, '']);
+  };
+
+  const removeFromStringArray = (field: keyof DictionaryEntry, idx: number) => {
+    const arr = (entry[field] as string[]) || [];
+    handleUpdate(field, arr.filter((_, i) => i !== idx));
+  };
+
+  // Helper functions for example editing
+  const updateExample = (idx: number, field: keyof ExampleSentence, value: string) => {
+    if (!entry.examples) return;
+    const newExamples = [...entry.examples];
+    newExamples[idx] = { ...newExamples[idx], [field]: value };
+    handleUpdate('examples', newExamples);
+  };
+
+  const addExample = () => {
+    const newExamples = [...(entry.examples || []), { original: '', standard: '', translation: '' }];
+    handleUpdate('examples', newExamples);
+  };
+
+  const removeExample = (idx: number) => {
+    if (!entry.examples) return;
+    const newExamples = entry.examples.filter((_, i) => i !== idx);
+    handleUpdate('examples', newExamples);
+  };
+
   const openContribution = (type: ContributionType) => {
     setContributionType(type);
     setContributionModalOpen(true);
@@ -227,6 +270,16 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
       onSearch(term);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  const handleSave = () => {
+      setIsSaving(true);
+      // Simulate API Save
+      setTimeout(() => {
+          setIsSaving(false);
+          setSaveSuccess(true);
+          setTimeout(() => setSaveSuccess(false), 2000);
+      }, 1200);
   };
 
   if (!entry) return null;
@@ -263,7 +316,7 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
             
             {/* Pronunciation & Audio Section - Header Summary */}
             <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700/50 inline-flex px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600">
+                <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700/50 inline-flex px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 relative group">
                 {hasSpeechSupport && (
                     <button 
                         onClick={() => handleSpeak(entry.word)}
@@ -275,7 +328,32 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
                 )}
                 <div className="flex flex-col">
                     <span className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide text-[10px] leading-tight text-gray-400">{t.pronunciation}</span>
-                    <span className="text-lg font-mono text-gray-800 dark:text-gray-200">/{entry.phonetic}/</span>
+                    <div className="flex items-center gap-2">
+                        {isEditing ? (
+                            <div className="flex items-center font-mono text-lg text-gray-800 dark:text-gray-200">
+                                <span className="text-gray-400">/</span>
+                                <input 
+                                    value={entry.phonetic}
+                                    onChange={(e) => handleUpdate('phonetic', e.target.value)}
+                                    className="bg-transparent border-b border-red-300 focus:outline-none w-auto min-w-[60px] max-w-[120px]"
+                                />
+                                <span className="text-gray-400">/</span>
+                            </div>
+                        ) : (
+                            <span className="text-lg font-mono text-gray-800 dark:text-gray-200">/{entry.phonetic}/</span>
+                        )}
+
+                        {/* Tooltip unified in header */}
+                        {pronunciationTooltip && !isEditing && (
+                            <div className="relative ml-1">
+                                <HelpCircle className="w-4 h-4 text-gray-400 hover:text-indigo-500 cursor-help transition-colors" />
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-56 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 font-sans leading-relaxed">
+                                    {pronunciationTooltip}
+                                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
                 </div>
 
@@ -295,10 +373,20 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
                                 onEnded={() => setIsPlayingCustom(false)} 
                                 className="hidden"
                             />
-                            <div className="flex flex-col">
+                            
+                            <div className="flex flex-col mr-2">
                                 <span className="text-[10px] font-bold text-blue-400 dark:text-blue-300 uppercase tracking-wide leading-tight">{t.custom_rec}</span>
                                 <span className="text-xs font-medium text-blue-800 dark:text-blue-200">Uploaded</span>
                             </div>
+
+                            <a 
+                                href={entry.customAudio} 
+                                download={`${entry.word}_pronunciation`}
+                                className="p-2 text-blue-400 hover:text-blue-600 dark:hover:text-blue-200 transition-colors"
+                                title="Download"
+                            >
+                                <Download className="w-4 h-4" />
+                            </a>
                         </>
                     ) : (
                         <div className="flex items-center gap-2 text-blue-400 dark:text-blue-300">
@@ -491,76 +579,7 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
             {activeTab === 'definitions' && (
               <div className="space-y-8 animate-fade-in">
                 
-                {/* Pronunciation Guide Section */}
-                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm">
-                   <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-4">
-                      <Headphones className="w-4 h-4 text-albanian-red" /> {t.pronunciation_guide}
-                   </h3>
-                   <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg px-6 py-3 border border-gray-200 dark:border-gray-600 text-center sm:text-left min-w-[200px] relative group">
-                         <span className="text-xs font-bold text-gray-400 uppercase tracking-wide block mb-1">{t.phonetic_transcription}</span>
-                         <div className="flex items-center justify-center sm:justify-start gap-2">
-                            {isEditing ? (
-                                <div className="flex items-center gap-2">
-                                <span className="text-2xl font-mono text-gray-400">/</span>
-                                <input 
-                                    value={entry.phonetic}
-                                    onChange={(e) => handleUpdate('phonetic', e.target.value)}
-                                    className="text-2xl font-mono text-gray-900 dark:text-white bg-transparent border-b border-red-300 focus:outline-none w-full min-w-[120px]"
-                                    placeholder="phonetic"
-                                />
-                                <span className="text-2xl font-mono text-gray-400">/</span>
-                                </div>
-                            ) : (
-                                <span className="text-2xl font-mono text-gray-900 dark:text-white">/{entry.phonetic}/</span>
-                            )}
-                            
-                            {/* Pronunciation Tooltip */}
-                            {pronunciationTooltip && !isEditing && (
-                                <div className="relative">
-                                    <HelpCircle className="w-4 h-4 text-gray-400 hover:text-indigo-500 cursor-help transition-colors" />
-                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-56 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 font-sans leading-relaxed">
-                                        {pronunciationTooltip}
-                                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
-                                    </div>
-                                </div>
-                            )}
-                         </div>
-                      </div>
-                      
-                      <div className="flex flex-wrap items-center gap-3">
-                         {hasSpeechSupport && (
-                            <button 
-                                onClick={() => handleSpeak(entry.word)}
-                                className="flex items-center gap-2 px-4 py-2 bg-albanian-red text-white rounded-lg hover:bg-red-800 transition-colors shadow-sm font-medium"
-                            >
-                                <Volume2 className="w-4 h-4" /> {t.listen} (AI)
-                            </button>
-                         )}
-                         
-                         {entry.customAudio && (
-                            <>
-                                <button 
-                                    onClick={toggleCustomAudio}
-                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium"
-                                >
-                                    {isPlayingCustom ? <PauseCircle className="w-4 h-4" /> : <PlayCircle className="w-4 h-4" />} 
-                                    {t.listen} (Custom)
-                                </button>
-                                <a 
-                                    href={entry.customAudio} 
-                                    download={`${entry.word}_pronunciation`}
-                                    className="flex items-center justify-center px-3 py-2 bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 rounded-lg border border-blue-200 dark:border-blue-800 hover:bg-blue-100 transition-colors"
-                                    title="Download Audio"
-                                >
-                                    <Download className="w-4 h-4" />
-                                </a>
-                            </>
-                         )}
-                      </div>
-                   </div>
-                </div>
-
+                {/* Simplified Definition Layout since Pronunciation is now in Header */}
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="space-y-3 group relative">
                     <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
@@ -601,36 +620,70 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
                   </div>
                 </div>
 
-                {entry.grammarNotes && entry.grammarNotes.length > 0 && (
+                {(isEditing || (entry.grammarNotes && entry.grammarNotes.length > 0)) && (
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-6">
                     <h3 className="flex items-center gap-2 text-sm font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider mb-3">
                       <GraduationCap className="w-4 h-4" /> {t.grammar}
                     </h3>
-                    <ul className="list-disc list-inside space-y-2 text-blue-900 dark:text-blue-200">
-                      {entry.grammarNotes.map((note, i) => <li key={i}>{note}</li>)}
-                    </ul>
+                    {isEditing ? (
+                        <div className="space-y-2">
+                            {entry.grammarNotes?.map((note, i) => (
+                                <div key={i} className="flex gap-2">
+                                    <input 
+                                        value={note} 
+                                        onChange={(e) => updateStringArray('grammarNotes', i, e.target.value)} 
+                                        className="flex-1 p-2 border border-blue-200 rounded bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 text-sm" 
+                                    />
+                                    <button onClick={() => removeFromStringArray('grammarNotes', i)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded"><Trash2 className="w-4 h-4" /></button>
+                                </div>
+                            ))}
+                            <button onClick={() => addToStringArray('grammarNotes')} className="text-xs font-bold text-blue-600 flex items-center gap-1 mt-2 hover:underline"><PlusCircle className="w-3 h-3" /> Add Note</button>
+                        </div>
+                    ) : (
+                        <ul className="list-disc list-inside space-y-2 text-blue-900 dark:text-blue-200">
+                        {entry.grammarNotes?.map((note, i) => <li key={i}>{note}</li>)}
+                        </ul>
+                    )}
                   </div>
                 )}
                 
-                {entry.dialectRegion && (
+                {(isEditing || entry.dialectRegion) && (
                   <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-xl p-6">
                      <h3 className="flex items-center gap-2 text-sm font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider mb-3">
                        <MapPin className="w-4 h-4" /> {t.region}
                      </h3>
-                     <p className="text-emerald-900 dark:text-emerald-200 font-medium leading-relaxed">
-                       {entry.dialectRegion}
-                     </p>
+                     {isEditing ? (
+                         <input 
+                            value={entry.dialectRegion} 
+                            onChange={(e) => handleUpdate('dialectRegion', e.target.value)} 
+                            className="w-full p-2 border border-emerald-200 rounded bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600"
+                            placeholder="e.g. Shkodra, Kosova"
+                         />
+                     ) : (
+                        <p className="text-emerald-900 dark:text-emerald-200 font-medium leading-relaxed">
+                        {entry.dialectRegion}
+                        </p>
+                     )}
                   </div>
                 )}
 
-                {entry.culturalNote && (
+                {(isEditing || entry.culturalNote) && (
                   <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-xl p-6">
                     <h3 className="flex items-center gap-2 text-sm font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider mb-3">
                       <Globe className="w-4 h-4" /> {t.culture}
                     </h3>
-                    <p className="text-amber-900/80 dark:text-amber-200/80 italic leading-relaxed">
-                      {entry.culturalNote}
-                    </p>
+                    {isEditing ? (
+                        <textarea
+                            value={entry.culturalNote}
+                            onChange={(e) => handleUpdate('culturalNote', e.target.value)}
+                            className="w-full p-2 border border-amber-200 rounded bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 min-h-[80px]"
+                            placeholder="Add cultural context..."
+                        />
+                    ) : (
+                        <p className="text-amber-900/80 dark:text-amber-200/80 italic leading-relaxed">
+                        {entry.culturalNote}
+                        </p>
+                    )}
                   </div>
                 )}
                 
@@ -643,7 +696,7 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
                           {t.etymology}
                         </h3>
                       </div>
-                      {!etymologyImage && entry.etymology && (
+                      {!etymologyImage && entry.etymology && !isEditing && (
                         <button 
                           onClick={handleGenerateImage}
                           disabled={isGeneratingImage}
@@ -658,9 +711,18 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
                   <div className={`grid gap-6 ${etymologyImage ? 'md:grid-cols-3' : 'grid-cols-1'}`}>
                      <div className={`${etymologyImage ? 'md:col-span-2' : ''} bg-gray-50 dark:bg-gray-700/30 rounded-xl p-5 border border-gray-100 dark:border-gray-700 relative h-full`}>
                         <div className="absolute top-5 left-0 w-1 h-8 bg-albanian-red rounded-r"></div>
-                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed italic pl-2">
-                            {entry.etymology || "Etymology details are currently unavailable for this entry."}
-                        </p>
+                        {isEditing ? (
+                            <textarea
+                                value={entry.etymology}
+                                onChange={(e) => handleUpdate('etymology', e.target.value)}
+                                className="w-full h-full p-2 border border-gray-200 rounded bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 min-h-[100px]"
+                                placeholder="Origin details..."
+                            />
+                        ) : (
+                            <p className="text-gray-700 dark:text-gray-300 leading-relaxed italic pl-2">
+                                {entry.etymology || "Etymology details are currently unavailable for this entry."}
+                            </p>
+                        )}
                      </div>
                      {etymologyImage && (
                         <div className="animate-fade-in relative group aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-100">
@@ -697,50 +759,98 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
                  <div className={`grid ${entry.antonyms && entry.antonyms.length > 0 ? 'md:grid-cols-2' : 'grid-cols-1'} gap-8`}>
                     <div>
                         <h3 className="text-sm font-bold text-orange-600 uppercase tracking-wider mb-4 border-b border-orange-100 dark:border-orange-900/50 pb-2">{t.synonyms}</h3>
-                        <div className="flex flex-wrap gap-3">
-                            {entry.synonyms && entry.synonyms.length > 0 ? entry.synonyms.map((syn, i) => (
-                            <button 
-                              key={i} 
-                              onClick={() => handleTermClick(syn)}
-                              className="px-4 py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 rounded-full font-medium hover:bg-orange-100 dark:hover:bg-orange-900/40 cursor-pointer transition-colors"
-                            >
-                                {syn}
-                            </button>
-                            )) : <span className="text-gray-400 italic">{t.no_syn}</span>}
-                        </div>
+                        {isEditing ? (
+                            <div className="space-y-2">
+                                {entry.synonyms?.map((syn, i) => (
+                                    <div key={i} className="flex gap-2">
+                                        <input 
+                                            value={syn} 
+                                            onChange={(e) => updateStringArray('synonyms', i, e.target.value)} 
+                                            className="flex-1 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        />
+                                        <button onClick={() => removeFromStringArray('synonyms', i)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded"><Trash2 className="w-4 h-4"/></button>
+                                    </div>
+                                ))}
+                                <button onClick={() => addToStringArray('synonyms')} className="text-xs font-bold text-blue-600 flex items-center gap-1 mt-2 hover:underline"><PlusCircle className="w-3 h-3" /> Add Synonym</button>
+                            </div>
+                        ) : (
+                            <div className="flex flex-wrap gap-3">
+                                {entry.synonyms && entry.synonyms.length > 0 ? entry.synonyms.map((syn, i) => (
+                                <button 
+                                key={i} 
+                                onClick={() => handleTermClick(syn)}
+                                className="px-4 py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 rounded-full font-medium hover:bg-orange-100 dark:hover:bg-orange-900/40 cursor-pointer transition-colors"
+                                >
+                                    {syn}
+                                </button>
+                                )) : <span className="text-gray-400 italic">{t.no_syn}</span>}
+                            </div>
+                        )}
                     </div>
-                    {entry.antonyms && entry.antonyms.length > 0 && (
+                    {(isEditing || (entry.antonyms && entry.antonyms.length > 0)) && (
                     <div>
                         <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 border-b border-gray-100 dark:border-gray-700 pb-2">{t.antonyms}</h3>
-                        <div className="flex flex-wrap gap-3">
-                            {entry.antonyms.map((ant, i) => (
-                            <button 
-                              key={i} 
-                              onClick={() => handleTermClick(ant)}
-                              className="px-4 py-2 bg-gray-50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-full font-medium hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
-                            >
-                                {ant}
-                            </button>
-                            ))}
-                        </div>
+                        {isEditing ? (
+                            <div className="space-y-2">
+                                {entry.antonyms?.map((ant, i) => (
+                                    <div key={i} className="flex gap-2">
+                                        <input 
+                                            value={ant} 
+                                            onChange={(e) => updateStringArray('antonyms', i, e.target.value)} 
+                                            className="flex-1 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        />
+                                        <button onClick={() => removeFromStringArray('antonyms', i)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded"><Trash2 className="w-4 h-4"/></button>
+                                    </div>
+                                ))}
+                                <button onClick={() => addToStringArray('antonyms')} className="text-xs font-bold text-blue-600 flex items-center gap-1 mt-2 hover:underline"><PlusCircle className="w-3 h-3" /> Add Antonym</button>
+                            </div>
+                        ) : (
+                            <div className="flex flex-wrap gap-3">
+                                {entry.antonyms?.map((ant, i) => (
+                                <button 
+                                key={i} 
+                                onClick={() => handleTermClick(ant)}
+                                className="px-4 py-2 bg-gray-50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-full font-medium hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                                >
+                                    {ant}
+                                </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     )}
                   </div>
 
-                  {entry.relatedWords && entry.relatedWords.length > 0 && (
+                  {(isEditing || (entry.relatedWords && entry.relatedWords.length > 0)) && (
                       <div className="mt-8">
                           <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-wider mb-4 border-b border-indigo-100 dark:border-indigo-900/50 pb-2">{t.related}</h3>
-                          <div className="flex flex-wrap gap-3">
-                              {entry.relatedWords.map((word, i) => (
-                                  <button 
-                                    key={i} 
-                                    onClick={() => handleTermClick(word)}
-                                    className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors"
-                                  >
-                                      {word}
-                                  </button>
-                              ))}
-                          </div>
+                          {isEditing ? (
+                            <div className="space-y-2">
+                                {entry.relatedWords?.map((word, i) => (
+                                    <div key={i} className="flex gap-2">
+                                        <input 
+                                            value={word} 
+                                            onChange={(e) => updateStringArray('relatedWords', i, e.target.value)} 
+                                            className="flex-1 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        />
+                                        <button onClick={() => removeFromStringArray('relatedWords', i)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded"><Trash2 className="w-4 h-4"/></button>
+                                    </div>
+                                ))}
+                                <button onClick={() => addToStringArray('relatedWords')} className="text-xs font-bold text-blue-600 flex items-center gap-1 mt-2 hover:underline"><PlusCircle className="w-3 h-3" /> Add Related Word</button>
+                            </div>
+                          ) : (
+                            <div className="flex flex-wrap gap-3">
+                                {entry.relatedWords?.map((word, i) => (
+                                    <button 
+                                        key={i} 
+                                        onClick={() => handleTermClick(word)}
+                                        className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors"
+                                    >
+                                        {word}
+                                    </button>
+                                ))}
+                            </div>
+                          )}
                       </div>
                   )}
               </div>
@@ -750,24 +860,64 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
             {activeTab === 'examples' && (
               <div className="space-y-6 animate-fade-in">
                   <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-4">{t.sentences}</h3>
+                  
+                  {isEditing && (
+                      <button onClick={addExample} className="mb-4 flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold hover:bg-blue-100 transition-colors">
+                          <PlusCircle className="w-4 h-4" /> Add Example
+                      </button>
+                  )}
+
                   {entry.examples && entry.examples.length > 0 ? entry.examples.map((ex, idx) => (
                      <div key={idx} className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 relative overflow-hidden group hover:border-blue-200 dark:hover:border-blue-700 transition-colors">
                         <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 opacity-20 group-hover:opacity-100 transition-opacity"></div>
                         
+                        {isEditing && (
+                            <button 
+                                onClick={() => removeExample(idx)}
+                                className="absolute top-4 right-4 text-red-400 hover:text-red-600 p-2 bg-white dark:bg-gray-800 rounded-full shadow-sm"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        )}
+
                         <div className="space-y-3">
                           <div>
                             <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider mb-1 block">Geg (Original)</span>
-                            <p className="text-xl font-serif text-gray-900 dark:text-white">"{ex.original}"</p>
+                            {isEditing ? (
+                                <textarea 
+                                    value={ex.original}
+                                    onChange={(e) => updateExample(idx, 'original', e.target.value)}
+                                    className="w-full p-2 border rounded bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 font-serif"
+                                />
+                            ) : (
+                                <p className="text-xl font-serif text-gray-900 dark:text-white">"{ex.original}"</p>
+                            )}
                           </div>
                           
                           <div className="flex flex-col sm:flex-row gap-4 pt-3 border-t border-gray-200/50 dark:border-gray-600/30 mt-3">
                             <div className="flex-1">
                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5 block">Standard</span>
-                               <p className="text-gray-600 dark:text-gray-300 text-sm italic">{ex.standard}</p>
+                               {isEditing ? (
+                                    <input 
+                                        value={ex.standard}
+                                        onChange={(e) => updateExample(idx, 'standard', e.target.value)}
+                                        className="w-full p-2 border rounded bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 text-sm"
+                                    />
+                               ) : (
+                                    <p className="text-gray-600 dark:text-gray-300 text-sm italic">{ex.standard}</p>
+                               )}
                             </div>
                             <div className="flex-1">
                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5 block">English</span>
-                               <p className="text-gray-600 dark:text-gray-300 text-sm">{ex.translation}</p>
+                               {isEditing ? (
+                                    <input 
+                                        value={ex.translation}
+                                        onChange={(e) => updateExample(idx, 'translation', e.target.value)}
+                                        className="w-full p-2 border rounded bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 text-sm"
+                                    />
+                               ) : (
+                                    <p className="text-gray-600 dark:text-gray-300 text-sm">{ex.translation}</p>
+                               )}
                             </div>
                           </div>
                         </div>
@@ -780,11 +930,29 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
              {activeTab === 'phrases' && (
               <div className="space-y-6 animate-fade-in">
                   <h3 className="text-sm font-bold text-purple-600 uppercase tracking-wider mb-4">{t.phrases_title}</h3>
-                  {entry.relatedPhrases && entry.relatedPhrases.length > 0 ? entry.relatedPhrases.map((phrase, idx) => (
-                     <div key={idx} className="bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-6 border border-purple-100 dark:border-purple-900/50 hover:shadow-md transition-shadow">
-                        <p className="text-xl font-serif text-purple-900 dark:text-purple-300 font-medium">{phrase}</p>
-                     </div>
-                   )) : <p className="text-gray-400 italic text-center py-8">{t.no_phrases}</p>}
+                  {isEditing ? (
+                    <div className="space-y-4">
+                        {entry.relatedPhrases?.map((phrase, idx) => (
+                            <div key={idx} className="flex gap-2">
+                                <textarea 
+                                    value={phrase} 
+                                    onChange={(e) => updateStringArray('relatedPhrases', idx, e.target.value)} 
+                                    className="flex-1 p-3 border rounded bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 font-serif"
+                                />
+                                <button onClick={() => removeFromStringArray('relatedPhrases', idx)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded self-start"><Trash2 className="w-5 h-5"/></button>
+                            </div>
+                        ))}
+                        <button onClick={() => addToStringArray('relatedPhrases')} className="flex items-center gap-2 text-purple-600 font-bold hover:underline"><PlusCircle className="w-4 h-4" /> Add Phrase</button>
+                    </div>
+                  ) : (
+                    <>
+                        {entry.relatedPhrases && entry.relatedPhrases.length > 0 ? entry.relatedPhrases.map((phrase, idx) => (
+                            <div key={idx} className="bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-6 border border-purple-100 dark:border-purple-900/50 hover:shadow-md transition-shadow">
+                                <p className="text-xl font-serif text-purple-900 dark:text-purple-300 font-medium">{phrase}</p>
+                            </div>
+                        )) : <p className="text-gray-400 italic text-center py-8">{t.no_phrases}</p>}
+                    </>
+                  )}
               </div>
             )}
 
@@ -806,6 +974,31 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
              </button>
           </div>
         </>
+      )}
+
+      {/* Sticky Save Bar for Admins in Edit Mode */}
+      {isEditing && (
+          <div className="sticky bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-red-200 dark:border-red-900 p-4 flex items-center justify-between z-20 animate-slide-in-up">
+              <span className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-widest flex items-center gap-2">
+                  <Zap className="w-4 h-4 fill-current" /> GOD MODE ACTIVE
+              </span>
+              <div className="flex gap-4">
+                  {saveSuccess ? (
+                      <div className="flex items-center gap-2 text-green-600 font-bold px-6 py-2">
+                          <CheckCircle className="w-5 h-5" /> Saved!
+                      </div>
+                  ) : (
+                      <button 
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-bold shadow-lg flex items-center gap-2 transition-all disabled:opacity-70 disabled:cursor-wait"
+                      >
+                          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                          {isSaving ? 'Saving...' : 'Save Changes'}
+                      </button>
+                  )}
+              </div>
+          </div>
       )}
 
       <ContributionModal 

@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { CrosswordData, CrosswordWord } from '../types';
+import { CrosswordData } from '../types';
 import { fetchCrosswordPuzzle } from '../services/geminiService';
-import { Loader2, RefreshCw, CheckCircle, HelpCircle } from './Icons';
+import { Loader2, RefreshCw, CheckCircle } from './Icons';
 
 const CrosswordGame: React.FC = () => {
   const [data, setData] = useState<CrosswordData | null>(null);
@@ -89,7 +90,9 @@ const CrosswordGame: React.FC = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, x: number, y: number) => {
+    // Backspace Handling
     if (e.key === 'Backspace') {
+       e.preventDefault();
        if (userGrid[y][x] === '') {
          // Move back
          if (direction === 'across' && x > 0 && grid[y][x-1] !== '') {
@@ -104,6 +107,31 @@ const CrosswordGame: React.FC = () => {
          newUserGrid[y][x] = '';
          setUserGrid(newUserGrid);
        }
+    }
+    // Arrow Key Navigation
+    else if (e.key === 'ArrowRight') {
+        if (x + 1 < (data?.width || 10) && grid[y][x + 1] !== '') {
+            setSelectedCell({ x: x + 1, y });
+            inputRefs.current[y][x + 1]?.focus();
+        }
+    }
+    else if (e.key === 'ArrowLeft') {
+        if (x > 0 && grid[y][x - 1] !== '') {
+            setSelectedCell({ x: x - 1, y });
+            inputRefs.current[y][x - 1]?.focus();
+        }
+    }
+    else if (e.key === 'ArrowDown') {
+        if (y + 1 < (data?.height || 10) && grid[y + 1][x] !== '') {
+            setSelectedCell({ x, y: y + 1 });
+            inputRefs.current[y + 1][x]?.focus();
+        }
+    }
+    else if (e.key === 'ArrowUp') {
+        if (y > 0 && grid[y - 1][x] !== '') {
+            setSelectedCell({ x, y: y - 1 });
+            inputRefs.current[y - 1][x]?.focus();
+        }
     }
   };
 
@@ -168,14 +196,15 @@ const CrosswordGame: React.FC = () => {
                          onClick={() => handleCellClick(x, y)}
                          onKeyDown={(e) => handleKeyDown(e, x, y)}
                          className={`w-full h-full text-center font-bold text-lg sm:text-xl uppercase focus:outline-none transition-colors rounded-sm
-                           ${selectedCell?.x === x && selectedCell?.y === y ? 'bg-yellow-200 text-yellow-900 z-10' : 
-                             isSolved ? 'bg-green-100 text-green-800' : 'bg-white text-gray-900'}`}
+                           ${selectedCell?.x === x && selectedCell?.y === y ? 'bg-yellow-200 text-yellow-900 ring-2 ring-yellow-400 z-10' : 
+                             isSolved ? 'bg-green-100 text-green-800' : 'bg-white text-gray-900'}
+                           ${userGrid[y][x] && grid[y][x] !== userGrid[y][x] && isSolved === false ? '' : ''}
+                           `}
                          readOnly={isSolved}
                        />
                      ) : (
                        <div className="w-full h-full bg-slate-100/50 rounded-sm"></div>
                      )}
-                     {/* Numbering logic could go here if we calculated it */}
                    </div>
                 ))
               ))}
@@ -185,19 +214,25 @@ const CrosswordGame: React.FC = () => {
           {/* Clues */}
           <div className="flex-grow">
              <div className="mb-4">
-                <button 
-                  onClick={checkSolution}
-                  disabled={isSolved}
-                  className="w-full py-3 bg-albanian-red text-white rounded-xl font-bold hover:bg-red-800 transition-colors disabled:opacity-50 disabled:bg-green-600"
-                >
-                  {isSolved ? "Puzzle Solved!" : "Check Answers"}
-                </button>
+                {isSolved ? (
+                    <div className="w-full py-3 bg-green-100 text-green-800 rounded-xl font-bold border border-green-200 flex items-center justify-center gap-2">
+                        <CheckCircle className="w-5 h-5" />
+                        Puzzle Solved!
+                    </div>
+                ) : (
+                    <button 
+                    onClick={checkSolution}
+                    className="w-full py-3 bg-albanian-red text-white rounded-xl font-bold hover:bg-red-800 transition-colors disabled:opacity-50"
+                    >
+                    Check Answers
+                    </button>
+                )}
              </div>
 
              <div className="grid sm:grid-cols-2 lg:grid-cols-1 gap-6">
                 <div>
                    <h3 className="font-bold text-gray-900 border-b border-gray-200 pb-2 mb-3">Across</h3>
-                   <ul className="space-y-2 text-sm">
+                   <ul className="space-y-2 text-sm max-h-[200px] overflow-y-auto pr-2">
                       {data.words.filter(w => w.direction === 'across').map((w, i) => (
                         <li key={i} className="text-gray-600">
                            <span className="font-bold text-gray-400 mr-2">{i+1}.</span>
@@ -208,7 +243,7 @@ const CrosswordGame: React.FC = () => {
                 </div>
                 <div>
                    <h3 className="font-bold text-gray-900 border-b border-gray-200 pb-2 mb-3">Down</h3>
-                   <ul className="space-y-2 text-sm">
+                   <ul className="space-y-2 text-sm max-h-[200px] overflow-y-auto pr-2">
                       {data.words.filter(w => w.direction === 'down').map((w, i) => (
                         <li key={i} className="text-gray-600">
                            <span className="font-bold text-gray-400 mr-2">{i+1}.</span>

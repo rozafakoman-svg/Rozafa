@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Language } from '../App';
+import { Language } from '../types';
 import { AlignLeft, Mountain, Home, Heart, CloudRain, Briefcase, Coffee, ArrowRight, Zap, RefreshCw } from './Icons';
 
 interface ThesaurusDashboardProps {

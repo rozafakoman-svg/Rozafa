@@ -1,12 +1,13 @@
 import React from 'react';
 import { ScrollText, ShieldAlert, BookOpen, GraduationCap, ArrowRight, Shield, Anchor } from './Icons';
-import { Language } from '../App';
+import { Language } from '../types';
 
 interface HistoryPageProps {
   lang: Language;
 }
 
 const translations = {
+// ... existing code ...
   eng: {
     hero_badge: "The Silent Years (1944–1990)",
     hero_title: "The Suppression of a Voice",
@@ -32,10 +33,10 @@ const translations = {
   geg: {
     hero_badge: "Vitet e Heshtjes (1944–1990)",
     hero_title: "Shtypja e nji Zâni",
-    hero_desc: "Si regjimi totalitar u mundue me heshtë traditën letrare Gege dhe me imponue nji standard të unifikuem për kontroll politik.",
+    hero_desc: "Si regjimi totalitar u mundue me heshtë traditën letrare Gege dhe me imponue nji standard për kontroll politik dhe me shketerrue Gjuhen Shqipe.",
     sec_1_title: "Perdja e Hekurt Bie",
     sec_1_p1: "Më <strong>29 Nandor 1944</strong>, partizanët komunistë morën kontrollin e Shqipnisë, tuj fillue nji nga regjimet totalitare ma izoluese dhe shtypëse në historinë moderne. Nën udhëheqjen e Enver Hoxhës, vendi u mbyll nga bota.",
-    sec_1_p2: "Kjo datë shënoi fillimin e nji persekutimi sistematik të intelektualëve, klerit dhe shkrimtarëve—veçanërisht atyne nga Veriu Katolik (krahina Gege)—që shiheshin si kërcënim për ideologjinë e re. Tradita e pasun letrare e Shkodrës dhe e veriut u shënjestrua menjiherë.",
+    sec_1_p2: "Kjo datë shënoi fillimin e nji persekutimi sistematik të intelektualëve, klerit dhe shkrimtarëve—veçanërisht atyne nga Veriu Katolik (krahina Gege)—qi shiheshin si kërcënim për ideologjinë e re. Tradita e pasun letrare e Shkodrës dhe e veriut u shënjestrua menjiherë.",
     sec_2_title: "Kongresi i Drejtshkrimit",
     sec_2_p1: "Në 1972, regjimi mblodhi \"Kongresin e Drejtshkrimit\" në Tiranë për me vendosë nji gjuhë të unifikueme \"Standarde Shqipe\".",
     sec_2_p2: "Ndërsa zyrtarisht u paraqit si nji projekt kombëtar bashkues, standardizimi ishte randë i anshëm drejt <strong>dialektit toskë</strong> (i folun në jug, krahina e udhëheqësit). <strong>Gjuha Gege</strong>—e folun nga shumica e shqiptarëve—u zhvlerësue efektivisht në nji \"dialekt\" dhe u ndalue nga përdorimi zyrtar, shkollat dhe mediat.",
@@ -46,10 +47,10 @@ const translations = {
     sec_3_title: "Burgjet e Mendjes dhe Trupit",
     sec_3_p1: "Shtypja e gjuhës shkoi dorë për dore me mizoritë fizike. Burgjet famëkeqe si <strong>Spaç</strong> dhe <strong>Burrel</strong> u bânë varrezat e inteligjencës së kombit.",
     sec_3_p2: "Shkrimtarë si <strong>At Zef Pllumi</strong> (autori i <em>Rrno vetëm për me tregue</em>) kaluen dekada në kampe pune thjesht për besimet e tyne fetare dhe kulturore. Të tjerë u ekzekutuen pa gjyq. Regjimi kërkonte me krijue \"Njeriun e Ri\" të zhveshun nga e kaluemja, feja dhe identiteti rajonal.",
-    sec_3_quote: "\"Deshtën me na vra fjalët që mos me mujtë me folë, por harruen që rranjët rriten ma thellë në terr.\"",
+    sec_3_quote: "\"Deshtën me na vra fjalët qi mos me mujtë me folë, por harruen qi rranjët rriten ma thellë në terr.\"",
     sec_4_title: "Randa dhe Rilindja",
     sec_4_p1: "Me rënien e regjimit në fillim të viteve 1990, \"veprat e ndalueme\" filluen me dalë në dritë. Tradita letrare Gege, e ruajtun në dorëshkrime të fshehta dhe kujtesën gojore, shpërtheu përsëri në jetë.",
-    sec_4_p2: "Sot, na e njohim Shqipen Standarde si gjuhën zyrtare të shtetit, por e nderojmë <strong>Gegenishten</strong> si nji gjuhë të veçantë, të gjallë dhe të barabartë të popullit shqiptar—nji gjuhë që i mbijetoi gjysëm shekulli heshtje."
+    sec_4_p2: "Sot, na e njohim Shqipen Standarde si gjuhën zyrtare të shtetit, por e nderojmë <strong>Gegenishten</strong> si nji gjuhë të veçantë, të gjallë dhe të barabartë të popullit shqiptar—nji gjuhë qi i mbijetoi gjysëm shekulli heshtje."
   }
 };
 

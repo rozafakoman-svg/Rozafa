@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { ContributionType } from '../types';
-import { Language } from '../App';
+import { ContributionType, Language } from '../types';
 import { X, CheckCircle, Loader2, Trophy, Star, AlertTriangle, Edit3, PlusCircle } from './Icons';
 
 interface ContributionModalProps {
@@ -12,6 +11,7 @@ interface ContributionModalProps {
 }
 
 const ContributionModal: React.FC<ContributionModalProps> = ({ isOpen, onClose, type, initialWord, lang }) => {
+// ... existing code ...
   const [step, setStep] = useState<'form' | 'success'>('form');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [details, setDetails] = useState('');

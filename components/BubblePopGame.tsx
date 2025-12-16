@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Language } from '../App';
+import { Language } from '../types';
 import { Volume2, Trophy, RefreshCw, PlayCircle, PauseCircle } from './Icons';
 
 interface BubblePopGameProps {

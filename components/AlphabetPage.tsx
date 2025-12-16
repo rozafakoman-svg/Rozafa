@@ -1,6 +1,6 @@
+
 import React, { useState, useRef } from 'react';
-import { AlphabetLetter } from '../types';
-import { Language } from '../App';
+import { AlphabetLetter, Language } from '../types';
 import { Volume2, Upload, Image as ImageIcon, X, Edit3, Save, Info, Type, PlusCircle, Trash2, Sparkles, Loader2, PlayCircle } from './Icons';
 import { fetchKidIllustration } from '../services/geminiService';
 

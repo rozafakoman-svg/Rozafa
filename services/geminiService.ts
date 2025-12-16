@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { DictionaryEntry, QuizQuestion, CrosswordData, AlphabetData, GlossaryTerm } from "../types";
 
@@ -250,13 +251,19 @@ export const fetchCrosswordPuzzle = async (): Promise<CrosswordData> => {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Generate a mini crossword puzzle (max 10x10) with exactly 5-6 words related to Geg culture, geography, or language.
-      The words MUST intersect correctly. Provide the grid dimensions and word positions.
-      The clues should be in English.
-      Ensure coordinates are valid within the width/height.`,
+      
+      STRICT REQUIREMENTS:
+      1. Words MUST intersect correctly with common letters. This is critical.
+      2. All words must be placed within a 10x10 grid (coordinates 0-9).
+      3. Words must be in Albanian (Geg dialect preferred).
+      4. Clues must be in English.
+      
+      Verify intersections before returning.`,
       config: {
         responseMimeType: "application/json",
         responseSchema: crosswordSchema,
         temperature: 0.7,
+        thinkingConfig: { thinkingBudget: 2048 }
       },
     });
 
