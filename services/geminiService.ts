@@ -7,10 +7,32 @@ const getAI = () => {
   const apiKey = process.env.API_KEY;
   // Check for undefined, null, or empty string, or the string "undefined" which can happen during string replacement
   if (!apiKey || apiKey === 'undefined' || apiKey.trim() === '') {
-    console.error("API Key is missing. Please check your environment variables.");
-    throw new Error("MISSING_API_KEY");
+    // We don't throw immediately to allow offline mode to work if using cache
+    return null;
   }
   return new GoogleGenAI({ apiKey });
+};
+
+// --- CACHING UTILS ---
+const CACHE_PREFIX = 'gegenisht_dict_';
+
+const getCachedDefinition = (query: string): DictionaryEntry | null => {
+  try {
+    const item = localStorage.getItem(CACHE_PREFIX + query.toLowerCase());
+    return item ? JSON.parse(item) : null;
+  } catch (e) {
+    return null;
+  }
+};
+
+const cacheDefinition = (query: string, data: DictionaryEntry) => {
+  try {
+    localStorage.setItem(CACHE_PREFIX + query.toLowerCase(), JSON.stringify(data));
+    // Also cache by the exact word returned to ensure direct lookups work
+    localStorage.setItem(CACHE_PREFIX + data.word.toLowerCase(), JSON.stringify(data));
+  } catch (e) {
+    console.warn("Quota exceeded or localStorage disabled");
+  }
 };
 
 const dictionarySchema: Schema = {
@@ -139,8 +161,15 @@ const glossarySchema: Schema = {
 };
 
 export const fetchWordDefinition = async (query: string): Promise<DictionaryEntry> => {
+  // 1. Try Cache First (Offline Mode Support)
+  const cached = getCachedDefinition(query);
+  if (cached) return cached;
+
+  // 2. Try AI
   try {
     const ai = getAI();
+    if (!ai) throw new Error("Offline or No API Key");
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Provide a detailed dictionary entry for the Geg language word or phrase related to: "${query}". 
@@ -158,7 +187,12 @@ export const fetchWordDefinition = async (query: string): Promise<DictionaryEntr
     const text = response.text;
     if (!text) throw new Error("No data returned from Gemini");
 
-    return JSON.parse(text) as DictionaryEntry;
+    const data = JSON.parse(text) as DictionaryEntry;
+    
+    // Cache the result
+    cacheDefinition(query, data);
+    
+    return data;
   } catch (error) {
     console.error("Gemini API Error:", error);
     throw error;
@@ -166,8 +200,16 @@ export const fetchWordDefinition = async (query: string): Promise<DictionaryEntr
 };
 
 export const fetchWordOfTheDay = async (): Promise<DictionaryEntry> => {
+  // Try to find a cached WOTD for today
+  const today = new Date().toISOString().split('T')[0];
+  const cachedWOTDKey = `gegenisht_wotd_${today}`;
+  const cached = localStorage.getItem(cachedWOTDKey);
+  if (cached) return JSON.parse(cached);
+
   try {
     const ai = getAI();
+    if (!ai) throw new Error("Offline");
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Choose a unique, interesting, and culturally significant word from the Geg language. 
@@ -182,16 +224,32 @@ export const fetchWordOfTheDay = async (): Promise<DictionaryEntry> => {
 
     const text = response.text;
     if (!text) throw new Error("No data returned");
-    return JSON.parse(text) as DictionaryEntry;
+    const data = JSON.parse(text) as DictionaryEntry;
+    
+    localStorage.setItem(cachedWOTDKey, JSON.stringify(data));
+    return data;
   } catch (error) {
     console.error("Word of the Day Error:", error);
-    throw error;
+    // Return a fallback entry if everything fails
+    return {
+        word: "Votra",
+        phonetic: "/vɔtɾa/",
+        partOfSpeech: "Noun",
+        definitionEnglish: "The hearth; the fireplace. Symbolizes the home and family warmth.",
+        definitionStandard: "Vatra",
+        etymology: "From Latin focus -> Italian focolare context.",
+        synonyms: ["Oda", "Shtëpia"],
+        examples: [{original: "Ruaje votrën.", standard: "Ruaje vatrën.", translation: "Protect the hearth."}],
+        dialectRegion: "Mirdita"
+    };
   }
 };
 
 export const fetchDailyQuiz = async (): Promise<QuizQuestion> => {
   try {
     const ai = getAI();
+    if (!ai) throw new Error("Offline");
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Create a multiple-choice question to test knowledge of Geg language vocabulary or grammar, potentially contrasting it with the 1972 Standard.
@@ -215,6 +273,8 @@ export const fetchDailyQuiz = async (): Promise<QuizQuestion> => {
 export const fetchEtymologyImage = async (word: string, etymology: string): Promise<string | null> => {
   try {
     const ai = getAI();
+    if (!ai) return null;
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
       contents: {
@@ -248,6 +308,8 @@ export const fetchEtymologyImage = async (word: string, etymology: string): Prom
 export const fetchCrosswordPuzzle = async (): Promise<CrosswordData> => {
   try {
     const ai = getAI();
+    if (!ai) throw new Error("Offline");
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Generate a mini crossword puzzle (max 10x10) with exactly 5-6 words related to Geg culture, geography, or language.
@@ -279,6 +341,8 @@ export const fetchCrosswordPuzzle = async (): Promise<CrosswordData> => {
 export const fetchAlphabetWord = async (letter: string): Promise<AlphabetData> => {
   try {
     const ai = getAI();
+    if (!ai) throw new Error("Offline");
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Provide a simple, child-friendly word in the Geg language starting with the letter "${letter}".
@@ -302,6 +366,8 @@ export const fetchAlphabetWord = async (letter: string): Promise<AlphabetData> =
 export const fetchKidIllustration = async (prompt: string): Promise<string | null> => {
   try {
     const ai = getAI();
+    if (!ai) return null;
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
       contents: {
@@ -335,6 +401,8 @@ export const fetchKidIllustration = async (prompt: string): Promise<string | nul
 export const fetchGlossaryTerms = async (letter: string): Promise<GlossaryTerm[]> => {
   try {
     const ai = getAI();
+    if (!ai) throw new Error("Offline");
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Generate a list of 12 distinct, authentic, and culturally significant words specifically in the Geg language (Northern Albania/Kosovo) that start with the letter "${letter}". 

@@ -4,7 +4,7 @@ import {
   BookOpen, Menu, X, Moon, Sun, Globe, Zap, User, 
   ArrowRight, Github, Twitter, Instagram,
   AlignLeft, Gamepad2, GraduationCap, Clock, FileText, 
-  ShoppingBag, Shield, MessageCircle, Mic, Heart, Sparkles, AlertTriangle, LogOut
+  ShoppingBag, Shield, MessageCircle, Mic, Heart, Sparkles, AlertTriangle, LogOut, PlusCircle
 } from './components/Icons';
 import { DictionaryEntry, UserProfile, Language } from './types';
 import { fetchWordDefinition, fetchWordOfTheDay } from './services/geminiService';
@@ -99,6 +99,21 @@ const navItems = [
   { id: 'forum', label: 'Forum', icon: MessageCircle },
   { id: 'support', label: 'Support', icon: Heart, isSpecial: true },
 ];
+
+const EMPTY_ENTRY: DictionaryEntry = {
+  word: 'New Word',
+  phonetic: '',
+  partOfSpeech: 'Noun',
+  definitionEnglish: 'Enter definition here...',
+  definitionStandard: '',
+  etymology: '',
+  synonyms: [],
+  examples: [{ original: 'Original sentence...', standard: 'Standard sentence...', translation: 'English translation...' }],
+  relatedPhrases: [],
+  grammarNotes: [],
+  culturalNote: '',
+  dialectRegion: 'Northern Albania'
+};
 
 const App: React.FC = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -199,8 +214,23 @@ const App: React.FC = () => {
     }
   };
 
+  const handleCreateEntry = () => {
+    setCurrentView('dictionary');
+    setSearchState({
+      isLoading: false,
+      error: null,
+      data: { ...EMPTY_ENTRY }
+    });
+  };
+
   const handleEntryUpdate = (entry: DictionaryEntry) => {
       setSearchState(prev => ({ ...prev, data: entry }));
+  };
+
+  const handleEntryDelete = () => {
+      // In a real app, this would call DELETE API
+      alert("Entry deleted successfully (Mock)");
+      setSearchState({ isLoading: false, error: null, data: null });
   };
 
   const handleAddToCart = (id: string) => {
@@ -437,7 +467,7 @@ const App: React.FC = () => {
           {(currentView === 'dictionary' || currentView === 'thesaurus') && (
             <>
               {/* Header */}
-              <div className="mb-12 text-center">
+              <div className="mb-12 text-center relative">
                 {!searchState.data && currentView === 'dictionary' && (
                     <div className="mb-10 animate-fade-in-down">
                         <h1 className="text-4xl sm:text-6xl font-serif font-bold text-albanian-black dark:text-white mb-4">
@@ -468,6 +498,16 @@ const App: React.FC = () => {
                    lang={lang} 
                    history={searchHistory}
                 />
+
+                {isEditMode && !searchState.data && (
+                    <button 
+                        onClick={handleCreateEntry}
+                        className="mt-4 flex items-center gap-2 mx-auto bg-indigo-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg animate-fade-in"
+                    >
+                        <PlusCircle className="w-5 h-5" />
+                        {lang === 'geg' ? 'Krijo Hyrje të Re' : 'Create New Entry'}
+                    </button>
+                )}
               </div>
 
               {/* Error Message */}
@@ -497,6 +537,7 @@ const App: React.FC = () => {
                       onUpdateEntry={handleEntryUpdate}
                       onSearch={handleSearch}
                       lang={lang}
+                      onDelete={handleEntryDelete}
                     />
                     
                     {/* AD PLACEMENT: Below Word Card */}
@@ -602,7 +643,7 @@ const App: React.FC = () => {
 
           {/* BLOG VIEW */}
           {currentView === 'blog' && (
-             <BlogPage lang={lang} />
+             <BlogPage lang={lang} isEditing={isEditMode} />
           )}
           
           {/* SUPPORT VIEW */}

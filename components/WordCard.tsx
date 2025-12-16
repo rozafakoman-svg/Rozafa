@@ -10,7 +10,8 @@ interface WordCardProps {
   initialTab?: 'definitions' | 'thesaurus' | 'examples' | 'phrases';
   isEditing?: boolean;
   onUpdateEntry?: (entry: DictionaryEntry) => void;
-  onSearch?: (term: string) => void; // Added for internal navigation
+  onSearch?: (term: string) => void; 
+  onDelete?: () => void; // Added for delete functionality
   lang: 'geg' | 'eng';
 }
 
@@ -56,7 +57,8 @@ const translations = {
     suggest_edit: "Suggest Edit",
     pronunciation_guide: "Pronunciation Guide",
     listen: "Listen",
-    phonetic_transcription: "Phonetic Transcription"
+    phonetic_transcription: "Phonetic Transcription",
+    delete: "Delete Entry"
   },
   geg: {
     tabs: { definitions: "Kuptime", thesaurus: "Thesar", examples: "Shembuj & Kontekst", phrases: "Shprehje" },
@@ -97,11 +99,12 @@ const translations = {
     suggest_edit: "Sugjero Ndryshim",
     pronunciation_guide: "Udhëzues Shqiptimi",
     listen: "Ndëgjo",
-    phonetic_transcription: "Transkriptimi Fonetik"
+    phonetic_transcription: "Transkriptimi Fonetik",
+    delete: "Fshi Fjalën"
   }
 };
 
-const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', isEditing = false, onUpdateEntry, onSearch, lang }) => {
+const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', isEditing = false, onUpdateEntry, onSearch, onDelete, lang }) => {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [hasSpeechSupport, setHasSpeechSupport] = useState(false);
   const [etymologyImage, setEtymologyImage] = useState<string | null>(null);
@@ -280,6 +283,12 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
           setSaveSuccess(true);
           setTimeout(() => setSaveSuccess(false), 2000);
       }, 1200);
+  };
+
+  const handleDelete = () => {
+      if (confirm(lang === 'geg' ? 'A jeni i sigurtë që doni me e fshi këtë fjalë?' : 'Are you sure you want to delete this entry?')) {
+          if (onDelete) onDelete();
+      }
   };
 
   if (!entry) return null;
@@ -983,6 +992,14 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
                   <Zap className="w-4 h-4 fill-current" /> GOD MODE ACTIVE
               </span>
               <div className="flex gap-4">
+                  {onDelete && (
+                      <button 
+                        onClick={handleDelete}
+                        className="bg-red-100 dark:bg-red-900/50 hover:bg-red-200 text-red-600 dark:text-red-300 px-4 py-2 rounded-lg font-bold shadow-sm flex items-center gap-2 transition-all border border-red-200 dark:border-red-800"
+                      >
+                          <Trash2 className="w-4 h-4" /> {t.delete}
+                      </button>
+                  )}
                   {saveSuccess ? (
                       <div className="flex items-center gap-2 text-green-600 font-bold px-6 py-2">
                           <CheckCircle className="w-5 h-5" /> Saved!

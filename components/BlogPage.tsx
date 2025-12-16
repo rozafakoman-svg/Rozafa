@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BlogPost, Language } from '../types';
-import { Calendar, User, Clock, ArrowUpRight, ArrowLeft, FileText } from './Icons';
+import { Calendar, User, Clock, ArrowUpRight, ArrowLeft, FileText, PlusCircle, Trash2, Save, X, Image as ImageIcon } from './Icons';
 
 interface BlogPageProps {
   lang: Language;
+  isEditing?: boolean;
 }
 
 const MOCK_POSTS_GEG: BlogPost[] = [
@@ -183,59 +184,170 @@ const MOCK_POSTS_ENG: BlogPost[] = [
   }
 ];
 
-const BlogPage: React.FC<BlogPageProps> = ({ lang }) => {
+const BlogPage: React.FC<BlogPageProps> = ({ lang, isEditing = false }) => {
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
-  
-  const posts = lang === 'geg' ? MOCK_POSTS_GEG : MOCK_POSTS_ENG;
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+
+  useEffect(() => {
+    setPosts(lang === 'geg' ? MOCK_POSTS_GEG : MOCK_POSTS_ENG);
+  }, [lang]);
+
+  const handleUpdatePost = (field: keyof BlogPost, value: any) => {
+    if (!selectedPost) return;
+    const updatedPost = { ...selectedPost, [field]: value };
+    setSelectedPost(updatedPost);
+    setPosts(prev => prev.map(p => p.id === updatedPost.id ? updatedPost : p));
+  };
+
+  const handleCreatePost = () => {
+    const newPost: BlogPost = {
+        id: `new_${Date.now()}`,
+        title: lang === 'geg' ? 'Artikull i Ri' : 'New Article',
+        excerpt: lang === 'geg' ? 'Përmbledhje...' : 'Summary...',
+        content: '<p>Content...</p>',
+        author: 'Admin',
+        date: new Date().toLocaleDateString(),
+        readTime: '1 min',
+        tags: ['New'],
+        imageUrl: ''
+    };
+    setPosts([newPost, ...posts]);
+    setSelectedPost(newPost);
+  };
+
+  const handleDeletePost = (e: React.MouseEvent, id: string) => {
+      e.stopPropagation();
+      if(window.confirm('Delete this post?')) {
+          setPosts(prev => prev.filter(p => p.id !== id));
+          if (selectedPost?.id === id) setSelectedPost(null);
+      }
+  };
 
   if (selectedPost) {
     return (
       <div className="max-w-4xl mx-auto animate-fade-in pt-6 pb-20">
-         <button 
-           onClick={() => setSelectedPost(null)}
-           className="mb-8 group flex items-center gap-2 text-gray-500 hover:text-albanian-red transition-colors"
-         >
-           <div className="p-2 bg-white rounded-full border border-gray-200 group-hover:border-red-200 transition-colors">
-             <ArrowLeft className="w-5 h-5" />
-           </div>
-           <span className="font-medium">{lang === 'geg' ? 'Kthehu te Blogu' : 'Back to Blog'}</span>
-         </button>
-
-         <article className="bg-white rounded-3xl p-8 sm:p-12 border border-gray-200 shadow-sm">
-            {selectedPost.imageUrl && (
-              <div className="w-full h-64 sm:h-96 mb-10 rounded-2xl overflow-hidden">
-                <img src={selectedPost.imageUrl} alt={selectedPost.title} className="w-full h-full object-cover" />
-              </div>
+         <div className="flex justify-between items-center mb-8">
+            <button 
+                onClick={() => setSelectedPost(null)}
+                className="group flex items-center gap-2 text-gray-500 hover:text-albanian-red transition-colors"
+                >
+                <div className="p-2 bg-white rounded-full border border-gray-200 group-hover:border-red-200 transition-colors">
+                    <ArrowLeft className="w-5 h-5" />
+                </div>
+                <span className="font-medium">{lang === 'geg' ? 'Kthehu te Blogu' : 'Back to Blog'}</span>
+            </button>
+            
+            {isEditing && (
+                <div className="flex gap-2">
+                    <button 
+                        onClick={() => setSelectedPost(null)} 
+                        className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-700 transition-colors"
+                    >
+                        <Save className="w-4 h-4" /> Save & Close
+                    </button>
+                </div>
             )}
+         </div>
+
+         <article className={`bg-white rounded-3xl p-8 sm:p-12 border shadow-sm ${isEditing ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'}`}>
+            <div className="w-full mb-10 rounded-2xl overflow-hidden relative bg-gray-100">
+                {selectedPost.imageUrl ? (
+                    <img src={selectedPost.imageUrl} alt={selectedPost.title} className="w-full h-64 sm:h-96 object-cover" />
+                ) : (
+                    <div className="w-full h-64 sm:h-96 flex items-center justify-center text-gray-300">
+                        <FileText className="w-20 h-20" />
+                    </div>
+                )}
+                {isEditing && (
+                    <div className="absolute bottom-4 right-4 flex gap-2">
+                        <div className="relative">
+                            <input 
+                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                placeholder="Image URL"
+                                value={selectedPost.imageUrl || ''}
+                                onChange={(e) => handleUpdatePost('imageUrl', e.target.value)}
+                            />
+                            <button className="bg-white/90 p-2 rounded-full text-gray-700 hover:text-blue-600 shadow-md pointer-events-none">
+                                <ImageIcon className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
             
             <div className="flex flex-wrap gap-4 items-center text-sm text-gray-400 mb-6">
                <span className="flex items-center gap-1.5 px-3 py-1 bg-gray-50 rounded-full text-gray-600 font-medium">
-                 <User className="w-4 h-4" /> {selectedPost.author}
+                 <User className="w-4 h-4" /> 
+                 {isEditing ? (
+                     <input 
+                        value={selectedPost.author}
+                        onChange={(e) => handleUpdatePost('author', e.target.value)}
+                        className="bg-transparent border-b border-red-200 focus:outline-none w-24"
+                     />
+                 ) : selectedPost.author}
                </span>
                <span className="flex items-center gap-1.5">
-                 <Calendar className="w-4 h-4" /> {selectedPost.date}
+                 <Calendar className="w-4 h-4" /> 
+                 {isEditing ? (
+                     <input 
+                        value={selectedPost.date}
+                        onChange={(e) => handleUpdatePost('date', e.target.value)}
+                        className="bg-transparent border-b border-red-200 focus:outline-none w-24"
+                     />
+                 ) : selectedPost.date}
                </span>
                <span className="flex items-center gap-1.5">
-                 <Clock className="w-4 h-4" /> {selectedPost.readTime}
+                 <Clock className="w-4 h-4" /> 
+                 {isEditing ? (
+                     <input 
+                        value={selectedPost.readTime}
+                        onChange={(e) => handleUpdatePost('readTime', e.target.value)}
+                        className="bg-transparent border-b border-red-200 focus:outline-none w-16"
+                     />
+                 ) : selectedPost.readTime}
                </span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-serif font-bold text-gray-900 mb-8 leading-tight">
-               {selectedPost.title}
-            </h1>
+            {isEditing ? (
+                <input 
+                    value={selectedPost.title}
+                    onChange={(e) => handleUpdatePost('title', e.target.value)}
+                    className="text-3xl sm:text-5xl font-serif font-bold text-gray-900 mb-8 leading-tight w-full border-b-2 border-red-200 focus:border-red-500 outline-none bg-red-50/20"
+                />
+            ) : (
+                <h1 className="text-3xl sm:text-5xl font-serif font-bold text-gray-900 mb-8 leading-tight">
+                    {selectedPost.title}
+                </h1>
+            )}
 
-            <div 
-              className="prose prose-lg text-gray-700 leading-relaxed max-w-none font-serif"
-              dangerouslySetInnerHTML={{ __html: selectedPost.content }}
-            />
+            {isEditing ? (
+                <div className="space-y-4">
+                    <label className="text-xs font-bold text-red-500 uppercase">HTML Content Editor</label>
+                    <textarea 
+                        value={selectedPost.content}
+                        onChange={(e) => handleUpdatePost('content', e.target.value)}
+                        className="w-full p-4 border-2 border-red-200 rounded-xl bg-gray-50 font-mono text-sm h-[400px] focus:border-red-500 outline-none"
+                    />
+                </div>
+            ) : (
+                <div 
+                className="prose prose-lg text-gray-700 leading-relaxed max-w-none font-serif"
+                dangerouslySetInnerHTML={{ __html: selectedPost.content }}
+                />
+            )}
 
             <div className="mt-10 pt-10 border-t border-gray-100">
                <div className="flex flex-wrap gap-2">
-                  {selectedPost.tags.map(tag => (
-                    <span key={tag} className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium">
+                  {selectedPost.tags.map((tag, idx) => (
+                    <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium">
                       #{tag}
                     </span>
                   ))}
+                  {isEditing && (
+                      <button className="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-sm font-medium border border-red-200 hover:bg-red-100">
+                          + Edit Tags
+                      </button>
+                  )}
                </div>
             </div>
          </article>
@@ -246,8 +358,13 @@ const BlogPage: React.FC<BlogPageProps> = ({ lang }) => {
   return (
     <div className="max-w-6xl mx-auto animate-fade-in-up pb-20">
        <div className="text-center mb-16">
-         <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-50 rounded-3xl mb-6 transform rotate-3">
+         <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-50 rounded-3xl mb-6 transform rotate-3 relative group">
              <FileText className="w-10 h-10 text-emerald-600" />
+             {isEditing && (
+                 <div className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md animate-pulse">
+                     EDIT MODE
+                 </div>
+             )}
          </div>
          <h1 className="text-4xl sm:text-6xl font-serif font-bold text-gray-900 mb-4">
             {lang === 'geg' ? 'Blogu i Gegenishtes' : 'Gegenisht Blog'}
@@ -257,6 +374,15 @@ const BlogPage: React.FC<BlogPageProps> = ({ lang }) => {
                ? 'Artikuj, analiza dhe tregime rreth gjuhës, kulturës dhe historisë së Veriut.' 
                : 'Articles, analysis, and stories about the language, culture, and history of the North.'}
          </p>
+         
+         {isEditing && (
+             <button 
+                onClick={handleCreatePost}
+                className="mt-8 bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg flex items-center gap-2 mx-auto"
+             >
+                 <PlusCircle className="w-5 h-5" /> {lang === 'geg' ? 'Krijo Artikull' : 'Create Article'}
+             </button>
+         )}
        </div>
 
        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -264,8 +390,17 @@ const BlogPage: React.FC<BlogPageProps> = ({ lang }) => {
              <div 
                key={post.id}
                onClick={() => setSelectedPost(post)}
-               className="bg-white rounded-3xl border border-gray-200 overflow-hidden hover:shadow-xl hover:border-emerald-200 hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col h-full"
+               className={`bg-white rounded-3xl border overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col h-full relative ${isEditing ? 'border-red-200 hover:border-red-400' : 'border-gray-200 hover:border-emerald-200'}`}
              >
+                {isEditing && (
+                    <button 
+                        onClick={(e) => handleDeletePost(e, post.id)}
+                        className="absolute top-2 right-2 z-20 p-2 bg-white/90 text-red-500 rounded-full hover:bg-red-50 shadow-sm border border-red-100"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                )}
+
                 <div className="h-48 bg-gray-100 relative overflow-hidden">
                    {post.imageUrl ? (
                       <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
