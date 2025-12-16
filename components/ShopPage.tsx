@@ -14,7 +14,7 @@ interface ShopPageProps {
 const MOCK_PRODUCTS: (Product & { rating: number, reviews: number })[] = [
   {
     id: '1',
-    name: 'Geg Dialect T-Shirt',
+    name: 'Geg Language T-Shirt',
     nameGeg: 'T-Shirt "Flas Gegnisht"',
     description: 'Premium 100% cotton tee featuring the bold declaration "Flas Gegnisht" (I speak Geg). Available in sizes S-XXL.',
     price: 25.00,

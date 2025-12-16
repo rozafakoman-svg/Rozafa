@@ -11,7 +11,7 @@ const MOCK_POSTS_GEG: BlogPost[] = [
   {
     id: 'gjuha_ruhet_1',
     title: 'Gjuha Ruhet Aty Ku Shkruhet',
-    excerpt: 'Fjala e folun e merr era, fjala e shkrueme mbetet. Pse duhet me fillue me shkrue në dialekt sot, ma shumë se kurrë.',
+    excerpt: 'Fjala e folun e merr era, fjala e shkrueme mbetet. Pse duhet me fillue me shkrue në gegënisht sot, ma shumë se kurrë.',
     content: `
       <p class="font-serif text-xl italic text-gray-500 mb-6">"Verba volant, scripta manent" – Fjalët fluturojnë, shkrimet mbesin.</p>
       
@@ -20,7 +20,7 @@ const MOCK_POSTS_GEG: BlogPost[] = [
       <h3 class="text-xl font-bold mb-2">Fuqia e Tastierës</h3>
       <p>Sot, teknologjia na jep nji mundësi të artë. Çdo status në Facebook, çdo mesazh në WhatsApp, çdo email asht nji akt dokumentimi. Kur shkruani <strong>"me ba"</strong> në vend të "bëj", ju nuk po bëni gabim drejtshkrimor; ju po ruani nji formë historike të foljes qi ka mijëra vjet në këto troje.</p>
       <br/>
-      <p>Gjuha ruhet aty ku shkruhet. Nëse nuk e shkruejmë dialektin tonë, ne e dënojmë atë me harrim. Le ta kthejmë tastierën në nji mjet ruajtjeje.</p>
+      <p>Gjuha ruhet aty ku shkruhet. Nëse nuk e shkruejmë gjuhën tonë, ne e dënojmë atë me harrim. Le ta kthejmë tastierën në nji mjet ruajtjeje.</p>
     `,
     author: 'Redaksia',
     date: 'Sot',
@@ -79,7 +79,7 @@ const MOCK_POSTS_GEG: BlogPost[] = [
       <p>Në bodrumet e bibliotekave tona flejnë mijëra faqe dorëshkrimesh qi nuk e panë kurrë dritën e botimit. Sot, teknologjia na jep nji mundësi të dytë.</p>
       <br/>
       <h3 class="text-xl font-bold mb-2">Roli i AI</h3>
-      <p>Përmes modeleve gjuhësore si Gemini, ne po krijojmë nji bazë të dhanash qi jo vetëm i digjitalizon këto tekste, por edhe i kupton ato. Kjo na lejon me rindërtue fjalorë të tërë dialektorë qi rrezikonin me u harrue.</p>
+      <p>Përmes modeleve gjuhësore si Gemini, ne po krijojmë nji bazë të dhanash qi jo vetëm i digjitalizon këto tekste, por edhe i kupton ato. Kjo na lejon me rindërtue fjalorë të tërë të gjuhës qi rrezikonin me u harrue.</p>
       <br/>
       <p>Projekti "Gegenisht" synon me bâ këto thesare të qasshme për çdo shqiptar, kudo qi ndodhet.</p>
     `,

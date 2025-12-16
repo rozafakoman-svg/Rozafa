@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { PodcastEpisode, UserProfile, PodcastComment, Language } from '../types';
 import { PlayCircle, PauseCircle, Headphones, Mic, Share2, Clock, Calendar, PlusCircle, X, Send, MessageCircle, User } from './Icons';
@@ -32,7 +33,7 @@ const INITIAL_EPISODES: PodcastEpisode[] = [
   },
   {
     id: '3',
-    title: 'Dialektet dhe Muzikaliteti',
+    title: 'Gjuha dhe Muzikaliteti',
     description: 'Pse Gegenishtja tingëllon ashtu si tingëllon? Nji analizë e zanoreve hundore dhe paskajores.',
     duration: '18:45',
     date: '05 Dhetor 2023',

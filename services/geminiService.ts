@@ -255,7 +255,7 @@ export const fetchCrosswordPuzzle = async (): Promise<CrosswordData> => {
       STRICT REQUIREMENTS:
       1. Words MUST intersect correctly with common letters. This is critical.
       2. All words must be placed within a 10x10 grid (coordinates 0-9).
-      3. Words must be in Albanian (Geg dialect preferred).
+      3. Words must be in Albanian (Geg language preferred).
       4. Clues must be in English.
       
       Verify intersections before returning.`,
@@ -337,7 +337,7 @@ export const fetchGlossaryTerms = async (letter: string): Promise<GlossaryTerm[]
     const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `Generate a list of 12 distinct, authentic, and culturally significant words specifically in the Geg Albanian dialect (Northern Albania/Kosovo) that start with the letter "${letter}". 
+      contents: `Generate a list of 12 distinct, authentic, and culturally significant words specifically in the Geg language (Northern Albania/Kosovo) that start with the letter "${letter}". 
       
       STRICT GUIDELINES:
       1. DO NOT provide Standard Albanian words found in the 1972 unified dictionary unless the Geg form is identical (unlikely for cultural terms).

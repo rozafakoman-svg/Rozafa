@@ -13,7 +13,7 @@ const MOCK_POSTS: ForumPost[] = [
   {
     id: 'gjuha_ruhet_forum_1',
     title: 'Gjuha Ruhet Aty Ku Shkruhet',
-    content: 'Hapim këtë temë për me diskutue randsinë e të shkruemit në dialekt në epokën digjitale.\n\nA shkruani shpesh në gegënisht në rrjete sociale? \nA keni hasë vështirësi apo paragjykime kur e bëni këtë?\n\nNdani mendimet tueja dhe ndonji fragment të shkurtër qi keni shkrue ose lexue së fundmi.',
+    content: 'Hapim këtë temë për me diskutue randsinë e të shkruemit në gegënisht në epokën digjitale.\n\nA shkruani shpesh në gegënisht në rrjete sociale? \nA keni hasë vështirësi apo paragjykime kur e bëni këtë?\n\nNdani mendimet tueja dhe ndonji fragment të shkurtër qi keni shkrue ose lexue së fundmi.',
     author: 'Redaksia',
     authorRole: 'admin',
     date: 'Pinned',
@@ -60,7 +60,7 @@ const MOCK_POSTS: ForumPost[] = [
   {
     id: '1',
     title: 'Welcome to the Gegenisht Community Forum!',
-    content: 'This is a place to discuss the Geg dialect, ask questions about grammar, or share your favorite archaic words. Please be respectful and keep the conversation focused on language preservation.\n\nWe encourage you to:\n1. Search before posting.\n2. Be kind to learners.\n3. Cite sources when discussing history.',
+    content: 'This is a place to discuss the Geg language, ask questions about grammar, or share your favorite archaic words. Please be respectful and keep the conversation focused on language preservation.\n\nWe encourage you to:\n1. Search before posting.\n2. Be kind to learners.\n3. Cite sources when discussing history.',
     author: 'Admin',
     authorRole: 'admin',
     date: '1 hour ago',
@@ -74,7 +74,7 @@ const MOCK_POSTS: ForumPost[] = [
   {
     id: '2',
     title: 'Is "tuj" strictly Geg or used in Standard too?',
-    content: 'I noticed in the dictionary that "tuj" (duke) is marked as Geg. However, I hear people in Tirana use it often in casual speech. Is this a case of dialect bleeding into the standard informal register? I find it fascinating how the gerund form has evolved.',
+    content: 'I noticed in the dictionary that "tuj" (duke) is marked as Geg. However, I hear people in Tirana use it often in casual speech. Is this a case of Geg bleeding into the standard informal register? I find it fascinating how the gerund form has evolved.',
     author: 'Linguist_99',
     authorRole: 'user',
     date: '3 hours ago',
@@ -108,7 +108,7 @@ const MOCK_POSTS: ForumPost[] = [
     date: '2 days ago',
     upvotes: 34,
     downvotes: 2,
-    tags: ['Vocabulary', 'Dialects'],
+    tags: ['Vocabulary', 'Language'],
     comments: [
         { id: 'c3', postId: '4', author: 'Geg_Master', content: 'Mirdita and Mat tend to use Cuca. Kosova and Malesia e Madhe tend to use Çika. Same meaning.', date: '1 day ago', upvotes: 20 }
     ],
@@ -116,7 +116,7 @@ const MOCK_POSTS: ForumPost[] = [
   }
 ];
 
-const POPULAR_TAGS = ['Grammar', 'History', 'Vocabulary', 'Resources', 'Dialects', 'Translation', 'Manifest', 'Akademi'];
+const POPULAR_TAGS = ['Grammar', 'History', 'Vocabulary', 'Resources', 'Language', 'Translation', 'Manifest', 'Akademi'];
 
 const ForumPage: React.FC<ForumPageProps> = ({ lang, user, onReqAuth }) => {
   const [posts, setPosts] = useState<ForumPost[]>(MOCK_POSTS);

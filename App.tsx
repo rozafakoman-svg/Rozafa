@@ -39,8 +39,8 @@ const translations = {
     },
     hero: {
         title_main: "The Geg Dictionary",
-        subtitle_dict: "Preserving the richness of the Northern Albanian dialect.",
-        subtitle_thes: "Explore the nuances and synonyms of the Geg dialect."
+        subtitle_dict: "Preserving the richness of the Northern Albanian language.",
+        subtitle_thes: "Explore the nuances and synonyms of the Geg language."
     },
     footer: {
         explore: "Explore", community: "Community", project: "Project",
@@ -53,7 +53,7 @@ const translations = {
     about_title: "About Gegenisht",
     about_text_1: "Gegenisht is an open-source initiative...",
     about_mission: "Our Mission",
-    about_mission_text: "To revitalize the Geg dialect...",
+    about_mission_text: "To revitalize the Geg language...",
     about_contribute: "Contribute on GitHub"
   },
   geg: {
@@ -80,7 +80,7 @@ const translations = {
     about_title: "Rreth Gegenisht",
     about_text_1: "Gegenisht âsht nji nismë...",
     about_mission: "Misioni Jonë",
-    about_mission_text: "Me e ringjallë dialektin Geg...",
+    about_mission_text: "Me e ringjallë gjuhën Gege...",
     about_contribute: "Kontribuo në GitHub"
   }
 };
