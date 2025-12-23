@@ -1,8 +1,4 @@
 
-/**
- * Local Database Service for Offline Capability
- * Enhanced with Supabase Cloud Sync & Robust Data Mapping.
- */
 import { supabase, isRemoteActive } from './supabaseClient';
 
 const DB_NAME = 'GegenishtSecureDB';
@@ -19,9 +15,6 @@ export enum Stores {
   Alphabet = 'alphabet'
 }
 
-/**
- * Mapping helper to convert camelCase (App) to snake_case (DB)
- */
 const toSnake = (obj: any) => {
     if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
     const snake: any = {};
@@ -32,9 +25,6 @@ const toSnake = (obj: any) => {
     return snake;
 };
 
-/**
- * Mapping helper to convert snake_case (DB) to camelCase (App)
- */
 const toCamel = (obj: any) => {
     if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
     const camel: any = {};
@@ -68,16 +58,10 @@ export class AppDatabase {
       request.onsuccess = async () => {
         this.db = request.result;
         this.isInitialized = true;
-        console.log(`[DB] Local Engine Started (v${DB_VERSION})`);
-        
-        if (isRemoteActive()) {
-            console.log("[DB] Cloud Link Established. Ready for synchronization.");
-        }
         resolve();
       };
 
       request.onerror = () => {
-          console.error("[DB] Initialization Failed:", request.error);
           reject(request.error);
       };
     });
@@ -86,7 +70,6 @@ export class AppDatabase {
   async get<T>(storeName: Stores, key: string): Promise<T | null> {
     await this.init();
     
-    // 1. Try Local Cache First (Lightning fast)
     const localResult = await new Promise<T | null>((resolve) => {
       const transaction = this.db!.transaction(storeName, 'readonly');
       const store = transaction.objectStore(storeName);
@@ -97,7 +80,6 @@ export class AppDatabase {
 
     if (localResult) return localResult;
 
-    // 2. Try Remote Supabase (Global sync)
     const syncableStores = [Stores.Dictionary, Stores.Blog, Stores.Glossary, Stores.DailyData, Stores.Scores, Stores.Alphabet, Stores.Products];
     if (isRemoteActive() && syncableStores.includes(storeName)) {
         try {
@@ -131,10 +113,8 @@ export class AppDatabase {
         normalizedData.word = normalizedData.word.toLowerCase();
     }
 
-    // 1. Save Local (Offline-first approach)
     await this.putLocal(storeName, normalizedData);
 
-    // 2. Sync to Supabase in background
     const syncableStores = [Stores.Dictionary, Stores.Blog, Stores.Glossary, Stores.DailyData, Stores.Scores, Stores.Alphabet, Stores.Products];
     if (isRemoteActive() && syncableStores.includes(storeName)) {
         try {
@@ -142,8 +122,6 @@ export class AppDatabase {
             const { error } = await supabase!.from(storeName).upsert(snakeData);
             if (error) {
                 console.error(`[DB] Cloud Sync Failed for ${storeName}:`, error.message);
-            } else {
-                console.debug(`[DB] Cloud Sync Verified: ${storeName}`);
             }
         } catch (e: any) {
             console.warn(`[DB] Remote sync exception for ${storeName}`, e.message || e);
@@ -184,7 +162,7 @@ export class AppDatabase {
 
     if (isRemoteActive()) {
         const idCol = storeName === Stores.Dictionary ? 'word' : 'id';
-        supabase!.from(storeName).delete().eq(idCol, key.toLowerCase()).catch(e => console.error("[DB] Remote Delete Error", e));
+        supabase!.from(storeName).delete().eq(idCol, key.toLowerCase()).catch((e: any) => console.error("[DB] Remote Delete Error", e));
     }
     return pLocal;
   }
@@ -201,7 +179,6 @@ export class AppDatabase {
   }
 
   async verifyIntegrity(): Promise<boolean> {
-      // Basic check to ensure engine is responsive
       try {
           await this.init();
           return !!this.db;

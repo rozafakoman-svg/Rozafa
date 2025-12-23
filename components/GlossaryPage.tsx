@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { GlossaryTerm, DictionaryEntry, Language } from '../types';
-import { fetchGlossaryTerms, fetchWordDefinition } from '../services/geminiService';
+import { fetchGlossaryTerms, fetchWordDefinition, saveToDictionaryCache } from '../services/geminiService';
 import WordCard from './WordCard';
 import { Loader2, Book, ArrowRight, ArrowLeft, Filter, Search, X, AlertTriangle, RefreshCw } from './Icons';
 
@@ -71,6 +71,15 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
     setSelectedEntry(entry);
   };
 
+  const handleSaveEntry = async (entry: DictionaryEntry) => {
+      try {
+          await saveToDictionaryCache(entry.word, entry);
+          setSelectedEntry(entry);
+      } catch (e) {
+          console.error("Glossary save failed", e);
+      }
+  };
+
   const filteredTerms = terms.filter(term => {
     const matchesOrigin = originFilter === 'All' || term.origin?.toLowerCase().includes(originFilter.toLowerCase());
     const matchesSearch = term.word.toLowerCase().includes(localSearch.toLowerCase()) || 
@@ -95,6 +104,7 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
            lang={lang} 
            isEditing={isEditing} 
            onUpdateEntry={handleEntryUpdate}
+           onSaveEntry={handleSaveEntry}
          />
       </div>
     );

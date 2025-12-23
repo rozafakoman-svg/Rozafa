@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import DailyQuiz from './DailyQuiz';
 import CrosswordGame from './CrosswordGame';
@@ -63,7 +64,7 @@ const GamesDashboard: React.FC<GamesDashboardProps> = ({ isEditing, lang }) => {
           </div>
           {t.back}
         </button>
-        <DailyQuiz isEditing={isEditing} />
+        <DailyQuiz isEditing={isEditing} lang={lang} />
       </div>
     );
   }
@@ -121,8 +122,6 @@ const GamesDashboard: React.FC<GamesDashboardProps> = ({ isEditing, lang }) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up">
-      
-      {/* Featured / Daily Quiz - Large Card */}
       <div 
         onClick={() => setActiveGame('quiz')}
         className="col-span-1 md:col-span-2 lg:col-span-2 group relative bg-gradient-to-br from-indigo-600 to-violet-700 rounded-3xl p-8 text-white shadow-xl hover:shadow-2xl hover:scale-[1.01] transition-all cursor-pointer overflow-hidden border border-indigo-500/50"
@@ -153,7 +152,6 @@ const GamesDashboard: React.FC<GamesDashboardProps> = ({ isEditing, lang }) => {
         </div>
       </div>
 
-      {/* Crossword Card */}
       <div 
         onClick={() => setActiveGame('crossword')}
         className="group bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between h-full"
@@ -174,7 +172,6 @@ const GamesDashboard: React.FC<GamesDashboardProps> = ({ isEditing, lang }) => {
         </div>
       </div>
 
-      {/* Alphabet Card */}
       <div 
         onClick={() => setActiveGame('alphabet')}
         className="group bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between h-full"
@@ -194,7 +191,6 @@ const GamesDashboard: React.FC<GamesDashboardProps> = ({ isEditing, lang }) => {
         </div>
       </div>
 
-      {/* Bubble Pop Card */}
       <div 
         onClick={() => setActiveGame('bubblepop')}
         className="group bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between h-full"
@@ -214,14 +210,12 @@ const GamesDashboard: React.FC<GamesDashboardProps> = ({ isEditing, lang }) => {
         </div>
       </div>
 
-      {/* Coming Soon Card */}
       <div className="group bg-gray-50 dark:bg-gray-800/50 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 border-dashed relative flex flex-col justify-center items-center text-center h-full opacity-70 hover:opacity-100 transition-opacity">
          <div className="mb-3 text-gray-400 dark:text-gray-500">
             <Gamepad2 className="w-10 h-10 mx-auto" />
          </div>
          <h3 className="text-lg font-bold text-gray-500 dark:text-gray-400">{lang === 'geg' ? 'Lojëra t\'reja shpejt...' : 'More Games Coming Soon'}</h3>
       </div>
-
     </div>
   );
 };

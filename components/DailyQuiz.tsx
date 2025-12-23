@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { QuizQuestion, DictionaryEntry, Language } from '../types';
 import { fetchDailyQuiz } from '../services/geminiService';
-import { CheckCircle, XCircle, Loader2, Info, Trophy, RefreshCw, Share2, Zap, ArrowRight, Star, Activity } from './Icons';
+import { CheckCircle, XCircle, Loader2, Info, Trophy, RefreshCw, Share2, Zap, ArrowRight, Star, Activity, Edit3, Save } from './Icons';
 
 interface DailyQuizProps {
   isEditing?: boolean;
@@ -83,6 +83,20 @@ const DailyQuiz: React.FC<DailyQuizProps> = ({ isEditing = false, wotd, lang }) 
 
   const handleReset = () => {
       loadQuizSet();
+  };
+
+  const handleUpdateQuestion = (field: keyof QuizQuestion, value: any) => {
+      const newQuestions = [...questions];
+      newQuestions[currentIndex] = { ...newQuestions[currentIndex], [field]: value };
+      setQuestions(newQuestions);
+  };
+
+  const handleUpdateOption = (optIdx: number, value: string) => {
+      const newQuestions = [...questions];
+      const newOptions = [...newQuestions[currentIndex].options];
+      newOptions[optIdx] = value;
+      newQuestions[currentIndex] = { ...newQuestions[currentIndex], options: newOptions };
+      setQuestions(newQuestions);
   };
 
   if (loading) return (
@@ -184,16 +198,53 @@ const DailyQuiz: React.FC<DailyQuizProps> = ({ isEditing = false, wotd, lang }) 
                 </div>
 
                 <div className="p-8 pb-4">
-                    <div className="inline-flex items-center gap-2 text-indigo-500 mb-4">
-                        <Zap className="w-5 h-5 fill-current" />
-                        <span className="text-xs font-black uppercase tracking-widest">{t.quest} #{currentIndex + 1}</span>
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="inline-flex items-center gap-2 text-indigo-500">
+                            <Zap className="w-5 h-5 fill-current" />
+                            <span className="text-xs font-black uppercase tracking-widest">{t.quest} #{currentIndex + 1}</span>
+                        </div>
+                        {isEditing && (
+                            <span className="text-[10px] font-black text-red-500 uppercase bg-red-50 px-2 py-0.5 rounded">Question Editor</span>
+                        )}
                     </div>
-                    <h3 className="text-2xl font-serif font-bold text-gray-900 dark:text-white leading-tight">{currentQuestion.question}</h3>
+                    {isEditing ? (
+                        <textarea 
+                            value={currentQuestion.question}
+                            onChange={(e) => handleUpdateQuestion('question', e.target.value)}
+                            className="w-full p-2 text-xl font-serif font-bold bg-red-50/30 dark:bg-red-900/10 border-b border-red-200 dark:border-red-900/50 outline-none text-gray-900 dark:text-white"
+                        />
+                    ) : (
+                        <h3 className="text-2xl font-serif font-bold text-gray-900 dark:text-white leading-tight">{currentQuestion.question}</h3>
+                    )}
                 </div>
 
                 <div className="p-8 pt-0 flex-grow flex flex-col justify-start space-y-3">
                     {currentQuestion.options.map((option, idx) => {
                         let itemClass = "w-full p-5 rounded-[24px] text-left border-2 transition-all duration-300 font-bold flex justify-between items-center text-sm ";
+                        if (isEditing) {
+                            itemClass += idx === currentQuestion.correctAnswer 
+                                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-300"
+                                : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300";
+                            
+                            return (
+                                <div key={idx} className="flex gap-2 group/opt">
+                                    <div className={itemClass + " flex-grow"}>
+                                        <input 
+                                            value={option}
+                                            onChange={(e) => handleUpdateOption(idx, e.target.value)}
+                                            className="bg-transparent w-full outline-none"
+                                        />
+                                    </div>
+                                    <button 
+                                        onClick={() => handleUpdateQuestion('correctAnswer', idx)}
+                                        className={`p-3 rounded-xl border-2 transition-all ${idx === currentQuestion.correctAnswer ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-gray-200 text-gray-300 hover:border-emerald-200 opacity-0 group-hover/opt:opacity-100'}`}
+                                    >
+                                        <CheckCircle className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            );
+                        }
+
                         if (selectedOption === null) {
                             itemClass += "border-gray-50 dark:border-gray-700/50 bg-gray-50/30 dark:bg-gray-800/30 hover:border-indigo-400 text-gray-700 dark:text-gray-300 hover:scale-[1.02]";
                         } else {
@@ -220,15 +271,24 @@ const DailyQuiz: React.FC<DailyQuizProps> = ({ isEditing = false, wotd, lang }) 
                     })}
                 </div>
 
-                {selectedOption !== null && (
+                {(selectedOption !== null || isEditing) && (
                     <div className="p-8 pt-0 mt-auto animate-fade-in-up">
                         <div className="bg-indigo-50/50 dark:bg-indigo-900/20 rounded-3xl p-6 border border-indigo-100 dark:border-indigo-800/50 mb-6">
                             <h4 className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-[0.2em] mb-2 flex items-center gap-1.5">
                                 <Info className="w-3 h-3 fill-current" /> Linguistic Fact
                             </h4>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed italic">
-                                {currentQuestion.explanation}
-                            </p>
+                            {isEditing ? (
+                                <textarea 
+                                    value={currentQuestion.explanation}
+                                    onChange={(e) => handleUpdateQuestion('explanation', e.target.value)}
+                                    className="w-full p-2 text-sm bg-white dark:bg-gray-900 border border-indigo-200 dark:border-indigo-900 rounded-xl outline-none text-gray-700 dark:text-gray-300"
+                                    rows={2}
+                                />
+                            ) : (
+                                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed italic">
+                                    {currentQuestion.explanation}
+                                </p>
+                            )}
                         </div>
                         
                         <button 

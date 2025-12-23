@@ -9,10 +9,8 @@ interface VoiceTutorProps {
   onClose: () => void;
 }
 
-/**
- * LOCAL LINGUISTIC INSTRUCTIONS FOR BAC
- * These rules ensure absolute precision in Gheg language output.
- */
+type TutorStatus = 'idle' | 'connecting' | 'listening' | 'speaking' | 'feeding' | 'learning';
+
 const GEG_LOCAL_RULES = `
 UDHËZIMET E SHENJTA TË GEGËNISHTES (LOCAL RULES):
 1. FONETIKA: Përdor VETËM zanoret hundore (â, ê, î, ô, û). Shqiptoji ato me nji randsí të veçantë. Mos përdor 'ë' në fund të fjalëve nëse nuk âsht e domosdoshme.
@@ -25,11 +23,10 @@ UDHËZIMET E SHENJTA TË GEGËNISHTES (LOCAL RULES):
 const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
   const [isActive, setIsActive] = useState(false);
   const [activeTab, setActiveTab] = useState<'conversation' | 'teach' | 'feed'>('conversation');
-  const [status, setStatus] = useState<'idle' | 'connecting' | 'listening' | 'speaking' | 'feeding' | 'learning'>('idle');
+  const [status, setStatus] = useState<TutorStatus>('idle');
   const [heritageMode, setHeritageMode] = useState(true);
   const [feedProgress, setFeedProgress] = useState(0);
   
-  // Teaching Form State
   const [newWord, setNewWord] = useState({ word: '', pos: 'Emën', meaning: '', example: '' });
 
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -86,7 +83,7 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
     setStatus('feeding');
     try {
       const reader = new FileReader();
-      reader.onload = async (event) => {
+      reader.onload = async (event: ProgressEvent<FileReader>) => {
         const arrayBuffer = event.target?.result as ArrayBuffer;
         const tempCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         const audioBuffer = await tempCtx.decodeAudioData(arrayBuffer);
@@ -164,8 +161,9 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
               const source = inputAudioContextRef.current.createMediaStreamSource(mediaStreamRef.current);
               const processor = inputAudioContextRef.current.createScriptProcessor(4096, 1, 1);
               processorRef.current = processor;
-              processor.onaudioprocess = (e) => {
-                  if (status === 'feeding' || status === 'learning') return; 
+              processor.onaudioprocess = (e: AudioProcessingEvent) => {
+                  const currentStatus = status as TutorStatus;
+                  if (currentStatus === 'feeding' || currentStatus === 'learning') return; 
                   const inputData = e.inputBuffer.getChannelData(0);
                   const int16 = new Int16Array(inputData.length);
                   for (let i = 0; i < inputData.length; i++) {
@@ -211,8 +209,8 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
                 setStatus('listening');
             }
           },
-          onerror: (e) => stopSession(),
-          onclose: (e) => stopSession()
+          onerror: () => stopSession(),
+          onclose: () => stopSession()
         },
         config: {
           responseModalities: [Modality.AUDIO],

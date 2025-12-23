@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Language } from '../types';
 import { Info, MapPin, Globe, Sparkles, Anchor, Shield, ArrowRight, Zap, BookOpen, Mountain, CheckCircle, Castle, X, Landmark, Map as MapIcon, Filter, Eye, EyeOff, Users, Target, Waves } from './Icons';
@@ -9,7 +10,7 @@ interface City {
   hasCastle: boolean;
   isCoastal?: boolean;
   isMountainous?: boolean;
-  isCapital?: boolean; // Historical or cultural capital
+  isCapital?: boolean; 
   varietyDetail: string;
   varietyDetailGeg: string;
   isGeg: boolean;
@@ -25,13 +26,12 @@ interface RegionData {
   descriptionGeg: string;
   subVarieties: string[];
   features: string[];
-  areaEstimate: string; // in km2
-  speakerEstimate: string; // total speakers
-  centerCoords: [number, number]; // for reference
+  areaEstimate: string; 
+  speakerEstimate: string; 
+  centerCoords: [number, number]; 
 }
 
 const CITIES: City[] = [
-  // GEG CITIES (North & East)
   { name: 'Shkodër', coords: [42.0693, 19.5033], hasCastle: true, isCoastal: false, isCapital: true, isGeg: true, varietyDetail: "Northwestern Geg Variety (Malësia)", varietyDetailGeg: "Gegnishtja Veriperndimore (Malësía)" },
   { name: 'Prishtinë', coords: [42.6629, 21.1655], hasCastle: false, isMountainous: true, isCapital: true, isGeg: true, varietyDetail: "Northeastern Geg Variety (Kosovo)", varietyDetailGeg: "Gegnishtja Verilindore (Kosovë)" },
   { name: 'Prizren', coords: [42.2139, 20.7447], hasCastle: true, isMountainous: true, isCapital: true, isGeg: true, varietyDetail: "Northeastern Geg Variety (Dukagjin)", varietyDetailGeg: "Gegnishtja Verilindore (Dukagjin)" },
@@ -57,7 +57,6 @@ const CITIES: City[] = [
   { name: 'Plavë', coords: [42.5975, 19.9458], hasCastle: false, isMountainous: true, isGeg: true, varietyDetail: "Sandžak Geg", varietyDetailGeg: "Gegnishtja e Plavës" },
   { name: 'Preshevë', coords: [42.3067, 21.6497], hasCastle: false, isMountainous: false, isGeg: true, varietyDetail: "Eastern Geg", varietyDetailGeg: "Gegnishtja e Luginës" },
 
-  // TOSK CITIES (South)
   { name: 'Vlorë', coords: [40.4667, 19.4897], hasCastle: true, isCoastal: true, isCapital: true, isGeg: false, varietyDetail: "Labëria Tosk", varietyDetailGeg: "Toskërishtja e Labërisë" },
   { name: 'Berat', coords: [40.7058, 19.9522], hasCastle: true, isMountainous: true, isCapital: true, isGeg: false, varietyDetail: "Northern Tosk", varietyDetailGeg: "Toskërishtja Veriore" },
   { name: 'Gjirokastër', coords: [40.0758, 20.1389], hasCastle: true, isMountainous: true, isGeg: false, varietyDetail: "Labëria Tosk", varietyDetailGeg: "Toskërishtja e Labërisë" },
@@ -199,7 +198,7 @@ const LanguageMap: React.FC<{ lang: Language }> = ({ lang }) => {
         })
     });
     
-    marker.on('click', (e) => {
+    marker.on('click', (e: L.LeafletMouseEvent) => {
         L.DomEvent.stopPropagation(e);
         setSelectedCity(city);
         setHoveredRegion(city.isGeg ? REGIONS[0] : REGIONS[1]);

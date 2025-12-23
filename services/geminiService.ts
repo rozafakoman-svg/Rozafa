@@ -3,9 +3,6 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { DictionaryEntry, QuizQuestion, CrosswordData, AlphabetData, GlossaryTerm } from "../types";
 import { db, Stores } from "./db";
 
-/**
- * Utility to handle transient API errors with exponential backoff.
- */
 async function callWithRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
   let lastError: any;
   for (let i = 0; i < maxRetries; i++) {
@@ -34,7 +31,6 @@ const getAI = () => {
 
 export const saveToDictionaryCache = async (query: string, data: DictionaryEntry) => {
   try {
-    // This now syncs to Supabase automatically via the new db.put logic
     await db.put(Stores.Dictionary, data);
   } catch (e) {
     console.warn("Sync/Cache failed", e);
@@ -72,11 +68,9 @@ const dictionarySchema = {
 };
 
 export const fetchWordDefinition = async (query: string): Promise<DictionaryEntry> => {
-  // 1. Check DB (This calls our new Sync Manager which checks Local and Supabase)
   const cached = await db.get<DictionaryEntry>(Stores.Dictionary, query.toLowerCase());
   if (cached) return cached;
 
-  // 2. If not found anywhere, ask AI
   return callWithRetry(async () => {
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -94,7 +88,6 @@ export const fetchWordDefinition = async (query: string): Promise<DictionaryEntr
     if (!text) throw new Error("Empty response from model");
     const data = JSON.parse(text) as DictionaryEntry;
     
-    // 3. Save to Local + Supabase via our Sync Manager
     await saveToDictionaryCache(query, data);
     return data;
   });
@@ -316,9 +309,11 @@ export const fetchKidIllustration = async (prompt: string): Promise<string> => {
       }
     });
     
-    for (const part of response.candidates[0].content.parts) {
-      if (part.inlineData) {
-        return `data:image/png;base64,${part.inlineData.data}`;
+    if (response.candidates?.[0]?.content?.parts) {
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData) {
+          return `data:image/png;base64,${part.inlineData.data}`;
+        }
       }
     }
     throw new Error("No image generated");
@@ -340,9 +335,11 @@ export const fetchEtymologyImage = async (prompt: string): Promise<string> => {
       }
     });
     
-    for (const part of response.candidates[0].content.parts) {
-      if (part.inlineData) {
-        return `data:image/png;base64,${part.inlineData.data}`;
+    if (response.candidates?.[0]?.content?.parts) {
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData) {
+          return `data:image/png;base64,${part.inlineData.data}`;
+        }
       }
     }
     throw new Error("No image generated");

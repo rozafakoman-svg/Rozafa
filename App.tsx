@@ -2,11 +2,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   BookOpen, Menu, X, Globe, User, ShieldCheck, Sparkles, Heart, Sun, Moon,
-  Search, Book, AlignLeft, Clock, Headphones, FileText, Users, Type, Activity, Map as MapIcon, Mic
+  Search, Book, AlignLeft, Clock, Headphones, FileText, Users, Type, Activity, Map as MapIcon, Mic, Edit3
 } from './components/Icons';
 import { DictionaryEntry, UserProfile, Language, VaultStatus } from './types';
-import { fetchWordDefinition, fetchWordOfTheDay } from './services/geminiService';
-import { db } from './services/db';
+import { fetchWordDefinition, fetchWordOfTheDay, saveToDictionaryCache } from './services/geminiService';
+import { db, Stores } from './services/db';
 import SearchBar from './components/SearchBar';
 import WordCard from './components/WordCard';
 import GlossaryPage from './components/GlossaryPage';
@@ -49,6 +49,7 @@ const App: React.FC = () => {
   const [vaultStatus, setVaultStatus] = useState<VaultStatus>('locked');
   const [lastActivity, setLastActivity] = useState(Date.now());
   const [wotd, setWotd] = useState<DictionaryEntry | null>(null);
+  const [globalEditMode, setGlobalEditMode] = useState(false);
 
   const [searchState, setSearchState] = useState<{
     isLoading: boolean;
@@ -57,6 +58,8 @@ const App: React.FC = () => {
   }>({ isLoading: false, error: null, data: null });
 
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
+
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     db.init().catch(console.error);
@@ -121,6 +124,20 @@ const App: React.FC = () => {
     }
   };
 
+  const handleSaveEntry = async (entry: DictionaryEntry) => {
+      try {
+          await saveToDictionaryCache(entry.word, entry);
+          if (searchState.data?.word.toLowerCase() === entry.word.toLowerCase()) {
+              setSearchState(prev => ({ ...prev, data: entry }));
+          }
+          if (wotd?.word.toLowerCase() === entry.word.toLowerCase()) {
+              setWotd(entry);
+          }
+      } catch (e) {
+          console.error("Failed to save entry:", e);
+      }
+  };
+
   const navItems: {id: View, label: string, labelGeg: string, icon: React.ElementType}[] = [
     { id: 'dictionary', label: 'Dictionary', labelGeg: 'Fjalori', icon: Search },
     { id: 'map', label: 'Linguistic Map', labelGeg: 'Harta', icon: MapIcon },
@@ -164,6 +181,16 @@ const App: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
+               {isAdmin && (
+                 <button 
+                   onClick={() => setGlobalEditMode(!globalEditMode)}
+                   className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${globalEditMode ? 'bg-red-600 text-white shadow-lg' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}
+                 >
+                   <Edit3 className="w-3 h-3" />
+                   {globalEditMode ? 'Live Edit: ON' : 'Live Edit: OFF'}
+                 </button>
+               )}
+
                <div className="hidden lg:block mr-2">
                   <ConnectionStatus />
                </div>
@@ -202,7 +229,13 @@ const App: React.FC = () => {
             <>
               <SearchBar onSearch={handleSearch} isLoading={searchState.isLoading} lang={lang} history={searchHistory} />
               {searchState.data ? (
-                <WordCard entry={searchState.data} lang={lang} onSearch={handleSearch} />
+                <WordCard 
+                  entry={searchState.data} 
+                  lang={lang} 
+                  onSearch={handleSearch} 
+                  isEditing={globalEditMode}
+                  onSaveEntry={handleSaveEntry}
+                />
               ) : (
                 <div className="space-y-16 animate-fade-in">
                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -213,7 +246,14 @@ const App: React.FC = () => {
                                     <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400">{lang === 'geg' ? 'Fjala e Ditës' : 'Word of the Day'}</h2>
                                 </div>
                                 {wotd ? (
-                                    <WordCard entry={wotd} lang={lang} initialTab="definitions" onSearch={handleSearch} />
+                                    <WordCard 
+                                      entry={wotd} 
+                                      lang={lang} 
+                                      initialTab="definitions" 
+                                      onSearch={handleSearch} 
+                                      isEditing={globalEditMode}
+                                      onSaveEntry={handleSaveEntry}
+                                    />
                                 ) : (
                                     <div className="h-64 bg-white dark:bg-gray-800 rounded-3xl animate-pulse border border-gray-100 dark:border-gray-800"></div>
                                 )}
@@ -225,7 +265,7 @@ const App: React.FC = () => {
                                     <ShieldCheck className="w-5 h-5 text-blue-500" />
                                     <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400">{lang === 'geg' ? 'Sfidë Ditore' : 'Daily Challenge'}</h2>
                                 </div>
-                                <DailyQuiz wotd={wotd} lang={lang} />
+                                <DailyQuiz wotd={wotd} lang={lang} isEditing={globalEditMode} />
                             </section>
                       </div>
                    </div>
@@ -239,7 +279,7 @@ const App: React.FC = () => {
                    </section>
 
                    <section className="pt-8 border-t border-gray-100 dark:border-gray-800">
-                        <GlossaryPage lang={lang} isEditing={false} />
+                        <GlossaryPage lang={lang} isEditing={globalEditMode} />
                    </section>
                 </div>
               )}
@@ -249,16 +289,16 @@ const App: React.FC = () => {
           {currentView === 'map' && <LanguageMap lang={lang} />}
           {currentView === 'thesaurus' && <ThesaurusDashboard onSearch={handleSearch} lang={lang} />}
           {currentView === 'admin' && <AdminDashboard lang={lang} onBack={() => setCurrentView('dictionary')} />}
-          {currentView === 'glossary' && <GlossaryPage lang={lang} isEditing={false} />}
+          {currentView === 'glossary' && <GlossaryPage lang={lang} isEditing={globalEditMode} />}
           {currentView === 'history' && <HistoryPage lang={lang} />}
           {currentView === 'podcast' && <PodcastPage lang={lang} user={user} />}
-          {currentView === 'blog' && <BlogPage lang={lang} isEditing={false} />}
+          {currentView === 'blog' && <BlogPage lang={lang} isEditing={globalEditMode} />}
           {currentView === 'support' && <SupportPage lang={lang} user={user} onUpdateUser={setUser} onReqAuth={() => setAuthModalOpen(true)} />}
           {currentView === 'community' && <CommunityPage lang={lang} isAdmin={user?.role === 'admin'} onAdminClick={() => setCurrentView('admin')} user={user} onReqAuth={() => setAuthModalOpen(true)} />}
           {currentView === 'shop' && <ShopPage lang={lang} cartItems={[]} onAddToCart={() => {}} onRemoveFromCart={() => {}} onClearCart={() => {}} />}
           {currentView === 'forum' && <ForumPage lang={lang} user={user} onReqAuth={() => setAuthModalOpen(true)} />}
           {currentView === 'interjections' && <InterjectionsPage lang={lang} />}
-          {currentView === 'alphabet' && <AlphabetPage lang={lang} isEditing={false} />}
+          {currentView === 'alphabet' && <AlphabetPage lang={lang} isEditing={globalEditMode} />}
         </div>
       </main>
 
