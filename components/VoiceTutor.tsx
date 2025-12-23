@@ -145,12 +145,7 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
     updateStatus('connecting');
     setErrorMessage(null);
     
-    if (!process.env.API_KEY) {
-        setErrorMessage(isGeg ? "Mungon Celësi i Inteligjencës (API Key)." : "API Key is missing in environment.");
-        updateStatus('error');
-        return;
-    }
-
+    // GUIDELINE COMPLIANCE: Assume API_KEY exists. Removing custom guard that caused the error.
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const outCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     const inCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
@@ -176,7 +171,6 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
               const processor = inputAudioContextRef.current.createScriptProcessor(4096, 1, 1);
               processorRef.current = processor;
               processor.onaudioprocess = (e: AudioProcessingEvent) => {
-                  // Using ref to check current status to avoid stale closures
                   if (statusRef.current === 'feeding' || statusRef.current === 'learning' || statusRef.current === 'idle') return; 
                   
                   const inputData = e.inputBuffer.getChannelData(0);
@@ -228,7 +222,13 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
           },
           onerror: (e) => {
               console.error("Live AI Error:", e);
-              setErrorMessage(isGeg ? "Lidhja me Inteligjencën dështoi." : "Failed to establish AI link.");
+              // Handle generic errors from SDK
+              const msg = e.toString();
+              if (msg.includes('403') || msg.includes('API_KEY_INVALID')) {
+                 setErrorMessage(isGeg ? "Celësi i Inteligjencës nuk asht valid." : "Invalid API Key detected.");
+              } else {
+                 setErrorMessage(isGeg ? "Lidhja me Inteligjencën dështoi." : "Failed to establish AI link.");
+              }
               updateStatus('error');
           },
           onclose: () => stopSession()
@@ -245,7 +245,7 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
       sessionPromiseRef.current = sessionPromise;
     } catch (err: any) {
       console.error("Session start error:", err);
-      setErrorMessage(err.message || (isGeg ? "S'munda me hapë mikrofonin." : "Microphone access denied."));
+      setErrorMessage(err.message || (isGeg ? "S'munda me hapë lidhjen." : "Could not open connection."));
       updateStatus('error');
     }
   };
@@ -264,17 +264,17 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-12 animate-fade-in overflow-hidden">
+    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-12 animate-fade-in overflow-hidden">
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600 rounded-full blur-[120px] transition-all duration-1000 ${status === 'speaking' ? 'scale-125 opacity-40' : 'scale-100 opacity-20'}`}></div>
       </div>
 
-      <button onClick={onClose} className="absolute top-8 right-8 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all z-50 shadow-xl">
+      <button onClick={onClose} className="absolute top-8 right-8 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all z-[210] shadow-xl">
         <X className="w-6 h-6" />
       </button>
 
       {isActive && (
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 flex gap-2 p-1.5 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-[210] flex gap-2 p-1.5 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
             <button onClick={() => setActiveTab('conversation')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'conversation' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>
                 {isGeg ? 'Bisedë' : 'Talk'}
             </button>
@@ -320,6 +320,7 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
                     <span className="font-black uppercase text-xs tracking-widest">{isGeg ? 'GABIM TEKNIK' : 'SYSTEM ERROR'}</span>
                 </div>
                 <p className="text-red-400 font-medium">{errorMessage}</p>
+                <button onClick={() => updateStatus('idle')} className="mt-4 text-[10px] font-black uppercase text-white/40 hover:text-white transition-colors underline tracking-widest">Retry Connection</button>
             </div>
         )}
 
@@ -381,46 +382,10 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
             </div>
         )}
 
-        {activeTab === 'feed' && (
-            <div className="w-full max-w-md bg-white/5 backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/10 shadow-2xl animate-fade-in-up">
-                <div className="flex items-center gap-3 mb-8">
-                    <div className="p-3 bg-emerald-500/20 rounded-2xl text-emerald-500">
-                        <Upload className="w-6 h-6" />
-                    </div>
-                    <div className="text-left">
-                        <h3 className="text-xl font-bold text-white leading-tight">{isGeg ? 'Analiza e Arkivës' : 'Archive Analysis'}</h3>
-                        <p className="text-xs text-slate-500 uppercase tracking-widest font-black">Krahasimi me Udhëzimet</p>
-                    </div>
-                </div>
-
-                {status === 'feeding' && (
-                    <div className="mb-8">
-                        <div className="flex justify-between text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2">
-                            <span>Ingesting...</span>
-                            <span>{feedProgress}%</span>
-                        </div>
-                        <div className="h-2 bg-slate-900 rounded-full overflow-hidden border border-white/5">
-                            <div className="h-full bg-emerald-500 transition-all duration-300" style={{ width: `${feedProgress}%` }}></div>
-                        </div>
-                    </div>
-                )}
-
-                <input type="file" accept="audio/*" className="hidden" ref={fileInputRef} onChange={handleFileUpload} />
-                <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={status === 'feeding'}
-                    className="w-full py-10 border-2 border-dashed border-white/10 rounded-[2rem] text-slate-400 hover:text-white hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all flex flex-col items-center gap-4"
-                >
-                    <RefreshCw className={`w-10 h-10 ${status === 'feeding' ? 'animate-spin text-emerald-500' : ''}`} />
-                    <span className="font-bold text-sm">{isGeg ? 'Zgjidh rregjistrimin lokal' : 'Select local recording'}</span>
-                </button>
-            </div>
-        )}
-
         <div className="w-full mt-12 space-y-6">
             {!isActive ? (
                 <button onClick={startSession} disabled={status === 'connecting'} className="w-full sm:w-auto px-12 py-5 bg-white text-slate-950 rounded-2xl font-black text-xl hover:bg-indigo-50 transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50">
-                    <Play className="w-6 h-6 fill-current" />
+                    {status === 'connecting' ? <Loader2 className="w-6 h-6 animate-spin" /> : <Play className="w-6 h-6 fill-current" />}
                     {status === 'connecting' ? (isGeg ? 'Tuj u lidhë...' : 'Connecting...') : (isGeg ? 'Hap Konakun' : 'Enter Room')}
                 </button>
             ) : (
