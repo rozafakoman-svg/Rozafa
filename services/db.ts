@@ -1,4 +1,3 @@
-
 import { supabase, isRemoteActive } from './supabaseClient';
 
 const DB_NAME = 'GegenishtSecureDB';
@@ -162,7 +161,12 @@ export class AppDatabase {
 
     if (isRemoteActive()) {
         const idCol = storeName === Stores.Dictionary ? 'word' : 'id';
-        supabase!.from(storeName).delete().eq(idCol, key.toLowerCase()).catch((e: any) => console.error("[DB] Remote Delete Error", e));
+        // Updated to use .then() to avoid TS2551 error on catch property for PostgrestFilterBuilder
+        supabase!.from(storeName).delete().eq(idCol, key.toLowerCase()).then(({ error }) => {
+            if (error) {
+                console.error("[DB] Remote Delete Error", error.message);
+            }
+        });
     }
     return pLocal;
   }
