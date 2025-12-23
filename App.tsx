@@ -305,7 +305,7 @@ const App: React.FC = () => {
       {/* Floating Action Button for Voice Practice */}
       <button 
         onClick={() => setVoiceTutorOpen(true)}
-        className="fixed bottom-24 right-6 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40 group"
+        className="fixed bottom-24 right-6 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group"
       >
         <Mic className="w-8 h-8" />
         <div className="absolute right-full mr-4 bg-slate-900 text-white px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">

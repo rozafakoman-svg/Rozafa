@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
-import { Mic, X, Volume2, Headphones, Sparkles, Loader2, StopCircle, Play, ScrollText, Anchor, Upload, FileText, CheckCircle, RefreshCw, Book, Edit3, Send, ShieldCheck } from './Icons';
+import { Mic, X, Volume2, Headphones, Sparkles, Loader2, StopCircle, Play, ScrollText, Anchor, Upload, FileText, CheckCircle, RefreshCw, Book, Edit3, Send, ShieldCheck, AlertTriangle } from './Icons';
 import { Language } from '../types';
 
 interface VoiceTutorProps {
@@ -9,7 +9,7 @@ interface VoiceTutorProps {
   onClose: () => void;
 }
 
-type TutorStatus = 'idle' | 'connecting' | 'listening' | 'speaking' | 'feeding' | 'learning';
+type TutorStatus = 'idle' | 'connecting' | 'listening' | 'speaking' | 'feeding' | 'learning' | 'error';
 
 const GEG_LOCAL_RULES = `
 UDHËZIMET E SHENJTA TË GEGËNISHTES (LOCAL RULES):
@@ -24,7 +24,7 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
   const [isActive, setIsActive] = useState(false);
   const [activeTab, setActiveTab] = useState<'conversation' | 'teach' | 'feed'>('conversation');
   const [status, setStatus] = useState<TutorStatus>('idle');
-  const [heritageMode, setHeritageMode] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [feedProgress, setFeedProgress] = useState(0);
   
   const [newWord, setNewWord] = useState({ word: '', pos: 'Emën', meaning: '', example: '' });
@@ -37,8 +37,14 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
   const sessionPromiseRef = useRef<Promise<any> | null>(null);
   const sourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const statusRef = useRef<TutorStatus>('idle');
 
   const isGeg = lang === 'geg';
+
+  const updateStatus = (newStatus: TutorStatus) => {
+    statusRef.current = newStatus;
+    setStatus(newStatus);
+  };
 
   const decode = (base64: string) => {
     const binaryString = atob(base64);
@@ -80,7 +86,7 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
     const file = e.target.files?.[0];
     if (!file || !isActive || !sessionPromiseRef.current) return;
 
-    setStatus('feeding');
+    updateStatus('feeding');
     try {
       const reader = new FileReader();
       reader.onload = async (event: ProgressEvent<FileReader>) => {
@@ -104,12 +110,12 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
           await new Promise(r => setTimeout(r, 5));
         }
         setFeedProgress(100);
-        setTimeout(() => { setStatus('listening'); setFeedProgress(0); }, 800);
+        setTimeout(() => { updateStatus('listening'); setFeedProgress(0); }, 800);
         tempCtx.close();
       };
       reader.readAsArrayBuffer(file);
     } catch (err) {
-      setStatus('listening');
+      updateStatus('listening');
     }
   };
 
@@ -117,7 +123,7 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
     e.preventDefault();
     if (!newWord.word || !isActive || !sessionPromiseRef.current) return;
 
-    setStatus('learning');
+    updateStatus('learning');
     const instruction = `UDHËZIM LINGUISTIK DHE LOKAL: Mbaj mend fjalën e re "${newWord.word}". Kuptimi: "${newWord.meaning}". Shembull: "${newWord.example}". 
     Zbato me rreptësi rregullat e t'folunit qi i kemi vendosë në fillim. Vërtetoqi ma mësove fjalën tuj e shqiptue si nji burrë malcie.`;
 
@@ -130,13 +136,21 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
     setTimeout(() => {
         setNewWord({ word: '', pos: 'Emën', meaning: '', example: '' });
         setActiveTab('conversation');
+        updateStatus('listening');
     }, 1000);
   };
 
   const startSession = async () => {
-    if (status !== 'idle') return;
-    setStatus('connecting');
+    if (statusRef.current !== 'idle' && statusRef.current !== 'error') return;
+    updateStatus('connecting');
+    setErrorMessage(null);
     
+    if (!process.env.API_KEY) {
+        setErrorMessage(isGeg ? "Mungon Celësi i Inteligjencës (API Key)." : "API Key is missing in environment.");
+        updateStatus('error');
+        return;
+    }
+
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const outCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     const inCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
@@ -144,10 +158,10 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
     audioContextRef.current = outCtx;
     inputAudioContextRef.current = inCtx;
 
-    await outCtx.resume();
-    await inCtx.resume();
-    
     try {
+      await outCtx.resume();
+      await inCtx.resume();
+      
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
       
@@ -156,14 +170,15 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
         callbacks: {
           onopen: () => {
             setIsActive(true);
-            setStatus('listening');
+            updateStatus('listening');
             if (inputAudioContextRef.current && mediaStreamRef.current) {
               const source = inputAudioContextRef.current.createMediaStreamSource(mediaStreamRef.current);
               const processor = inputAudioContextRef.current.createScriptProcessor(4096, 1, 1);
               processorRef.current = processor;
               processor.onaudioprocess = (e: AudioProcessingEvent) => {
-                  const currentStatus = status as TutorStatus;
-                  if (currentStatus === 'feeding' || currentStatus === 'learning') return; 
+                  // Using ref to check current status to avoid stale closures
+                  if (statusRef.current === 'feeding' || statusRef.current === 'learning' || statusRef.current === 'idle') return; 
+                  
                   const inputData = e.inputBuffer.getChannelData(0);
                   const int16 = new Int16Array(inputData.length);
                   for (let i = 0; i < inputData.length; i++) {
@@ -183,7 +198,7 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
             const audioData = parts?.find(p => p.inlineData && p.inlineData.data)?.inlineData?.data;
             
             if (audioData && audioContextRef.current) {
-                setStatus('speaking');
+                updateStatus('speaking');
                 try {
                     const audioBuffer = await decodeAudioData(decode(audioData), audioContextRef.current, 24000);
                     const source = audioContextRef.current.createBufferSource();
@@ -197,7 +212,9 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
                     nextStartTimeRef.current += audioBuffer.duration;
                     source.onended = () => {
                         sourcesRef.current.delete(source);
-                        if (sourcesRef.current.size === 0) setStatus('listening');
+                        if (sourcesRef.current.size === 0 && statusRef.current === 'speaking') {
+                            updateStatus('listening');
+                        }
                     };
                     sourcesRef.current.add(source);
                 } catch (err) {}
@@ -206,10 +223,14 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
                 sourcesRef.current.forEach(s => { try { s.stop(); } catch(e) {} });
                 sourcesRef.current.clear();
                 nextStartTimeRef.current = 0;
-                setStatus('listening');
+                updateStatus('listening');
             }
           },
-          onerror: () => stopSession(),
+          onerror: (e) => {
+              console.error("Live AI Error:", e);
+              setErrorMessage(isGeg ? "Lidhja me Inteligjencën dështoi." : "Failed to establish AI link.");
+              updateStatus('error');
+          },
           onclose: () => stopSession()
         },
         config: {
@@ -222,8 +243,10 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
         }
       });
       sessionPromiseRef.current = sessionPromise;
-    } catch (err) {
-      setStatus('idle');
+    } catch (err: any) {
+      console.error("Session start error:", err);
+      setErrorMessage(err.message || (isGeg ? "S'munda me hapë mikrofonin." : "Microphone access denied."));
+      updateStatus('error');
     }
   };
 
@@ -236,7 +259,8 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
     audioContextRef.current = null; inputAudioContextRef.current = null;
     sourcesRef.current.forEach(s => { try { s.stop(); } catch(e) {} });
     sourcesRef.current.clear(); nextStartTimeRef.current = 0;
-    setIsActive(false); setStatus('idle');
+    setIsActive(false); 
+    updateStatus('idle');
   };
 
   return (
@@ -275,7 +299,7 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
                         {isGeg ? 'Konaku i ' : 'The Room of '}<span className="text-indigo-400">Bacës</span>
                     </h1>
                     <p className="text-slate-400 text-lg max-w-md mx-auto italic font-serif leading-relaxed">
-                        {status === 'listening' ? (isGeg ? 'Folni lirshëm, Baca asht tui ju ndigjue...' : 'Speak freely, Bac is listening...') : (isGeg ? 'Ndëgjoni fjalën e plakut t\'urtë.' : 'Listen to the wise elder.')}
+                        {status === 'listening' ? (isGeg ? 'Folni lirshëm, Baca asht tui ju ndigjue...' : 'Speak freely, Bac is listening...') : status === 'speaking' ? (isGeg ? 'Ndëgjoni fjalën e plakut t\'urtë.' : 'Listen to the wise elder.') : (isGeg ? 'Mirë se ju pruni Zoti!' : 'Welcome to the heritage room!')}
                     </p>
                 </div>
 
@@ -287,6 +311,16 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
                     </div>
                 </div>
             </>
+        )}
+
+        {status === 'error' && errorMessage && (
+            <div className="mb-8 p-6 bg-red-500/10 border border-red-500/20 rounded-2xl animate-fade-in max-w-md">
+                <div className="flex items-center gap-3 text-red-500 mb-2 justify-center">
+                    <AlertTriangle className="w-6 h-6" />
+                    <span className="font-black uppercase text-xs tracking-widest">{isGeg ? 'GABIM TEKNIK' : 'SYSTEM ERROR'}</span>
+                </div>
+                <p className="text-red-400 font-medium">{errorMessage}</p>
+            </div>
         )}
 
         {activeTab === 'teach' && (
@@ -387,7 +421,7 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
             {!isActive ? (
                 <button onClick={startSession} disabled={status === 'connecting'} className="w-full sm:w-auto px-12 py-5 bg-white text-slate-950 rounded-2xl font-black text-xl hover:bg-indigo-50 transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50">
                     <Play className="w-6 h-6 fill-current" />
-                    {isGeg ? 'Hap Konakun' : 'Enter Room'}
+                    {status === 'connecting' ? (isGeg ? 'Tuj u lidhë...' : 'Connecting...') : (isGeg ? 'Hap Konakun' : 'Enter Room')}
                 </button>
             ) : (
                 activeTab === 'conversation' && (
@@ -399,8 +433,8 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
             )}
             
             <div className="flex items-center justify-center gap-4 text-slate-500 font-bold uppercase text-[10px] tracking-[0.3em]">
-                <div className={`w-2 h-2 rounded-full ${status === 'listening' ? 'bg-emerald-500 animate-pulse' : status === 'speaking' ? 'bg-indigo-500' : 'bg-slate-700'}`}></div>
-                {status === 'connecting' ? 'Establishing Context...' : status === 'listening' ? 'Bac is listening' : status === 'speaking' ? 'Bac is interpreting' : status === 'learning' ? 'Applying Local Rules' : 'System Ready'}
+                <div className={`w-2 h-2 rounded-full ${status === 'listening' ? 'bg-emerald-500 animate-pulse' : status === 'speaking' ? 'bg-indigo-500' : status === 'error' ? 'bg-red-500' : 'bg-slate-700'}`}></div>
+                {status === 'connecting' ? 'Establishing Context...' : status === 'listening' ? 'Bac is listening' : status === 'speaking' ? 'Bac is interpreting' : status === 'learning' ? 'Applying Local Rules' : status === 'error' ? 'Session Failed' : 'System Ready'}
             </div>
         </div>
       </div>
