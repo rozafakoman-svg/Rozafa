@@ -15,13 +15,15 @@ root.render(
   </React.StrictMode>
 );
 
-// Register Service Worker
+// Register Service Worker using a relative path to avoid origin mismatch in sandboxed environments
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(registration => {
+    // Using a relative path './sw.js' instead of '/sw.js' to ensure it respects the current origin
+    navigator.serviceWorker.register('./sw.js', { scope: './' }).then(registration => {
       console.log('SW registered: ', registration);
     }).catch(registrationError => {
-      console.log('SW registration failed: ', registrationError);
+      // In some preview environments, service workers are intentionally blocked
+      console.warn('SW registration skipped or failed:', registrationError.message);
     });
   });
 }

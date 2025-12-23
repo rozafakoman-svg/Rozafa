@@ -1,3 +1,4 @@
+
 export type Language = 'geg' | 'eng';
 
 export interface ExampleSentence {
@@ -13,6 +14,9 @@ export interface DictionaryEntry {
   definitionEnglish: string;
   definitionStandard: string;
   etymology: string;
+  etymologyImage?: string; // AI-generated illustration of origin
+  frequency?: number; // 0 to 100 hypothetical use frequency
+  usageNote?: string; // Short context about how often it's used
   synonyms: string[];
   antonyms?: string[];
   relatedWords?: string[];
@@ -21,9 +25,31 @@ export interface DictionaryEntry {
   culturalNote?: string;
   dialectRegion?: string;
   grammarNotes?: string[];
-  customAudio?: string; // URL/Blob for user uploaded audio
+  customAudio?: string; 
   pronunciationNote?: string;
+  isSealed?: boolean; // Security: entries can be sealed/encrypted
 }
+
+// Security & Compliance Types
+export interface SecurityAudit {
+  id: string;
+  timestamp: string;
+  event: string;
+  status: 'passed' | 'warning' | 'failed';
+  operator: string;
+  details: string;
+}
+
+export interface SystemLog {
+  id: string;
+  timestamp: string;
+  level: 'info' | 'secure' | 'danger';
+  message: string;
+  action: string;
+  immutableHash: string; // Proof of integrity
+}
+
+export type VaultStatus = 'locked' | 'unlocked' | 'sealing' | 'quantum_secure';
 
 export interface GlossaryTerm {
   word: string;
@@ -35,7 +61,7 @@ export interface GlossaryTerm {
 export interface QuizQuestion {
   question: string;
   options: string[];
-  correctAnswer: number; // index 0-3
+  correctAnswer: number; 
   explanation: string;
 }
 
@@ -45,7 +71,6 @@ export interface SearchState {
   data: DictionaryEntry | null;
 }
 
-// Crossword Types
 export interface CrosswordWord {
   word: string;
   clue: string;
@@ -61,7 +86,6 @@ export interface CrosswordData {
   words: CrosswordWord[];
 }
 
-// Alphabet Game Types
 export interface AlphabetData {
   letter: string;
   word: string;
@@ -71,21 +95,27 @@ export interface AlphabetData {
   imagePrompt: string;
 }
 
-// Alphabet Reference Page Types
 export interface AlphabetLetter {
   id: string;
   char: string;
-  isNasal: boolean; // To highlight Geg specific nasals like Â
-  isDigraph: boolean; // For Ll, Nj, Xh, etc.
+  isNasal: boolean; 
+  isDigraph: boolean; 
   ipa: string;
   exampleWord: string;
   exampleTranslation: string;
   audioUrl?: string;
-  imageUrl?: string; // For an illustration of the example word
-  description: string; // Linguistic description
+  imageUrl?: string; 
+  description: string; 
 }
 
-// Podcast Types
+export interface GameScore {
+    id: string;
+    name: string;
+    score: number;
+    date: string;
+    mode: 'zen' | 'challenge';
+}
+
 export interface PodcastComment {
   id: string;
   user: string;
@@ -99,19 +129,18 @@ export interface PodcastEpisode {
   description: string;
   duration: string;
   date: string;
-  topic: string; // e.g., History, Literature, Folklore
-  audioUrl?: string; // Placeholder for real audio
+  topic: string; 
+  audioUrl?: string; 
   isLive?: boolean;
   comments: PodcastComment[];
   host?: string;
 }
 
-// Blog Types
 export interface BlogPost {
   id: string;
   title: string;
   excerpt: string;
-  content: string; // Simple HTML/Text
+  content: string; 
   author: string;
   date: string;
   readTime: string;
@@ -119,7 +148,6 @@ export interface BlogPost {
   imageUrl?: string;
 }
 
-// Forum Types
 export interface ForumComment {
   id: string;
   postId: string;
@@ -145,7 +173,6 @@ export interface ForumPost {
   pinned?: boolean;
 }
 
-// Community & Contribution Types
 export type ContributionType = 'report_error' | 'suggest_edit' | 'add_word';
 
 export interface PendingContribution {
@@ -153,7 +180,7 @@ export interface PendingContribution {
   type: ContributionType;
   user: string;
   word?: string;
-  details: string; // The proposed change or report reason
+  details: string; 
   timestamp: string;
   status: 'pending' | 'approved' | 'rejected';
 }
@@ -162,7 +189,7 @@ export interface Badge {
   id: string;
   name: string;
   nameGeg: string;
-  iconName: string; // We'll map this to actual Icon components
+  iconName: string; 
   description: string;
   descriptionGeg: string;
   color: string;
@@ -172,9 +199,9 @@ export interface Badge {
 export interface UserProfile {
   id: string;
   name: string;
-  email: string; // Added for auth
+  email: string; 
   role: string;
-  tier?: string; // For support tiers
+  tier?: string; 
   level: number;
   levelTitle: string;
   levelTitleGeg: string;
@@ -183,9 +210,10 @@ export interface UserProfile {
   badges: Badge[];
   contributions: number;
   joinedDate: string;
+  mfaEnabled?: boolean;
+  lastLoginSecurityAudit?: string;
 }
 
-// Shop Types
 export interface Product {
   id: string;
   name: string;
@@ -197,19 +225,17 @@ export interface Product {
   color: string;
 }
 
-// Financial Types
 export interface FinancialRecord {
   month: string;
-  revenue: number; // Shop + Donations
-  expenses: number; // Server costs, AI API costs
-  profit: number;
+  revenue: number; 
+  expenses: number; 
+  profit: number; 
   transactions: number;
 }
 
-// Interjection Types
 export interface InterjectionEntry {
   word: string;
-  origin: 'Turkish' | 'Slavic' | 'Latin/Italian';
+  origin: 'Turkish' | 'Slavic' | 'Latin/Italian' | 'International/Albanized' | 'Native Geg';
   meaning: string;
   usage: string;
   example: string;

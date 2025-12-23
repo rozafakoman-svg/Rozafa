@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { GlossaryTerm, DictionaryEntry, Language } from '../types';
 import { fetchGlossaryTerms, fetchWordDefinition } from '../services/geminiService';
 import WordCard from './WordCard';
-import { Loader2, Book, ArrowRight, ArrowLeft, Filter, Search, X } from './Icons';
+import { Loader2, Book, ArrowRight, ArrowLeft, Filter, Search, X, AlertTriangle, RefreshCw } from './Icons';
 
 interface GlossaryPageProps {
   lang: Language;
@@ -22,6 +22,7 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
   const [selectedLetter, setSelectedLetter] = useState('A');
   const [terms, setTerms] = useState<GlossaryTerm[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [selectedEntry, setSelectedEntry] = useState<DictionaryEntry | null>(null);
   const [loadingEntry, setLoadingEntry] = useState(false);
   const [originFilter, setOriginFilter] = useState<OriginFilter>('All');
@@ -29,23 +30,29 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
 
   const isGeg = lang === 'geg';
 
-  useEffect(() => {
-    const loadTerms = async () => {
-      setLoading(true);
-      setTerms([]);
-      setSelectedEntry(null);
-      // Reset filters when changing letters
-      setLocalSearch(''); 
-      try {
-        const data = await fetchGlossaryTerms(selectedLetter);
-        setTerms(data);
-      } catch (e) {
-        console.error("Glossary error", e);
-      } finally {
-        setLoading(false);
+  const loadTerms = async (letter: string) => {
+    setLoading(true);
+    setError(null);
+    setTerms([]);
+    setSelectedEntry(null);
+    setLocalSearch(''); 
+    try {
+      const data = await fetchGlossaryTerms(letter);
+      setTerms(data);
+    } catch (e: any) {
+      console.error("Glossary error", e);
+      if (e.message?.includes('429') || JSON.stringify(e).includes('429')) {
+          setError(isGeg ? "Kemi arritur limitin e kërkesave për momentin. Ju lutem provoni përsëri pas pak." : "API rate limit reached. Please try again in a few moments.");
+      } else {
+          setError(isGeg ? "Ndodhi nji gabim gjatë ngarkimit të fjalorthit." : "An error occurred while loading the glossary.");
       }
-    };
-    loadTerms();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTerms(selectedLetter);
   }, [selectedLetter]);
 
   const handleTermClick = async (word: string) => {
@@ -64,7 +71,6 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
     setSelectedEntry(entry);
   };
 
-  // Filter Logic: Origin AND Local Search string
   const filteredTerms = terms.filter(term => {
     const matchesOrigin = originFilter === 'All' || term.origin?.toLowerCase().includes(originFilter.toLowerCase());
     const matchesSearch = term.word.toLowerCase().includes(localSearch.toLowerCase()) || 
@@ -124,7 +130,6 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
          </p>
        </div>
 
-       {/* Sticky Alphabet Navigation */}
        <div className="sticky top-16 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-y border-gray-200 dark:border-gray-800 mb-8 shadow-sm">
           <div className="max-w-7xl mx-auto">
              <div className="flex items-center gap-1 sm:gap-2 p-2 sm:p-4 overflow-x-auto no-scrollbar scroll-smooth">
@@ -148,10 +153,7 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
           </div>
        </div>
 
-       {/* Controls Bar: Search & Filter */}
        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 px-4">
-          
-          {/* Local Search Input */}
           <div className="relative w-full md:w-auto md:min-w-[300px]">
              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
              <input 
@@ -171,7 +173,6 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
              )}
           </div>
 
-          {/* Filter Pills */}
           <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 no-scrollbar">
              <div className="flex items-center gap-2 mr-2 text-gray-400 text-sm font-medium flex-shrink-0">
                 <Filter className="w-4 h-4" />
@@ -192,11 +193,26 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
           </div>
        </div>
 
-       {/* Content Area */}
        {loading ? (
          <div className="flex flex-col items-center justify-center py-32">
             <Loader2 className="w-10 h-10 text-teal-600 dark:text-teal-500 animate-spin mb-4" />
             <p className="text-gray-400 dark:text-gray-500 font-medium">{isGeg ? 'Duke ngarkue fjalët...' : 'Loading words...'}</p>
+         </div>
+       ) : error ? (
+         <div className="flex flex-col items-center justify-center py-20 px-4 text-center animate-fade-in">
+            <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-6 text-red-500 border border-red-100 dark:border-red-800">
+               <AlertTriangle className="w-10 h-10" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{isGeg ? 'U kërkue shumë shpejt' : 'Rate Limit Exceeded'}</h3>
+            <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8 leading-relaxed">
+               {error}
+            </p>
+            <button 
+              onClick={() => loadTerms(selectedLetter)}
+              className="flex items-center gap-2 bg-teal-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-teal-700 transition-all shadow-lg active:scale-95"
+            >
+               <RefreshCw className="w-5 h-5" /> {isGeg ? 'Provo përsëri' : 'Retry Load'}
+            </button>
          </div>
        ) : (
          <div className="min-h-[400px]">

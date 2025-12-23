@@ -10,7 +10,12 @@ import {
   ArrowBigUp, ArrowBigDown, MessageSquare, MoreHorizontal, Pin, Send, Trash2, Circle, Download, Book, Menu, Sun, Moon,
   Github, Twitter, Facebook, Instagram, Linkedin, Youtube,
   Mountain, Home, CloudRain, Briefcase, Coffee,
-  Flame, Hash, Anchor, Users, LogOut
+  Flame, Hash, Anchor, Users, LogOut, Eye, EyeOff,
+  MousePointer2, Target, Plus, Tag, Settings, Wallet, Map,
+  ShieldCheck, Key, Fingerprint, Activity, FileLock2, Server, Terminal,
+  Castle, Landmark, Waves,
+  // Added Play and StopCircle icons to fix import errors in VoiceTutor
+  Play, StopCircle
 } from 'lucide-react';
 
 export { 
@@ -23,5 +28,10 @@ export {
   ArrowBigUp, ArrowBigDown, MessageSquare, MoreHorizontal, Pin, Send, Trash2, Circle, Download, Book, Menu, Sun, Moon,
   Github, Twitter, Facebook, Instagram, Linkedin, Youtube,
   Mountain, Home, CloudRain, Briefcase, Coffee,
-  Flame, Hash, Anchor, Users, LogOut
+  Flame, Hash, Anchor, Users, LogOut, Eye, EyeOff,
+  MousePointer2, Target, Plus, Tag, Settings, Wallet, Map,
+  ShieldCheck, Key, Fingerprint, Activity, FileLock2, Server, Terminal,
+  Castle, Landmark, Waves,
+  // Added Play and StopCircle icons to fix export errors
+  Play, StopCircle
 };

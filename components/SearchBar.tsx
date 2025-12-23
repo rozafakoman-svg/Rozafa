@@ -14,7 +14,6 @@ interface DictionaryItem {
   type: 'geg' | 'std' | 'eng';
 }
 
-// Extended dictionary with types
 const MOCK_DICTIONARY: DictionaryItem[] = [
   { word: "shpi", type: "geg" },
   { word: "shtëpi", type: "std" },
@@ -100,15 +99,18 @@ const MOCK_DICTIONARY: DictionaryItem[] = [
   { word: "hâna", type: "geg" },
   { word: "hëna", type: "std" },
   { word: "moon", type: "eng" },
-  { word: "kênë", type: "geg" },
-  { word: "qenë", type: "std" },
+  { word: "me kênë", type: "geg" },
+  { word: "me qenë", type: "std" },
   { word: "been", type: "eng" },
   { word: "me punue", type: "geg" },
-  { word: "për të punuar", type: "std" },
+  { word: "me punuar", type: "std" },
   { word: "to work", type: "eng" },
   { word: "me shkue", type: "geg" },
-  { word: "për të shkuar", type: "std" },
+  { word: "me shkuar", type: "std" },
   { word: "to go", type: "eng" },
+  { word: "me dashtë", type: "geg" },
+  { word: "me dashur", type: "std" },
+  { word: "to love", type: "eng" },
 ];
 
 const levenshtein = (s: string, t: string) => {
@@ -138,63 +140,43 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, lang, histor
   const [didYouMean, setDidYouMean] = useState<DictionaryItem | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Filter suggestions as user types or populate random words if empty
   useEffect(() => {
     if (!query.trim()) {
       setDidYouMean(null);
-      // Get random 5 Geg words from dictionary excluding history
       const pool = MOCK_DICTIONARY.filter(item => item.type === 'geg' && !history.includes(item.word));
-      // Shuffle
       const shuffled = [...pool].sort(() => 0.5 - Math.random());
       setFilteredSuggestions(shuffled.slice(0, 5));
       return;
     }
     
     const lowerQuery = query.toLowerCase();
-    
-    // 1. Find exact matches (contains)
     const matches = MOCK_DICTIONARY.filter(
       item => item.word.toLowerCase().includes(lowerQuery) && !history.includes(item.word)
     );
 
-    // 2. Sort Matches: Priority 1: Type (Geg > Std > Eng), Priority 2: StartsWith
     matches.sort((a, b) => {
-        // Priority score: Geg = 3, Std = 2, Eng = 1
         const getScore = (type: string) => type === 'geg' ? 3 : type === 'std' ? 2 : 1;
         const scoreA = getScore(a.type);
         const scoreB = getScore(b.type);
-        
-        if (scoreA !== scoreB) return scoreB - scoreA; // Higher score first
-
-        // StartsWith logic
+        if (scoreA !== scoreB) return scoreB - scoreA;
         const startsA = a.word.toLowerCase().startsWith(lowerQuery);
         const startsB = b.word.toLowerCase().startsWith(lowerQuery);
         if (startsA && !startsB) return -1;
         if (!startsA && startsB) return 1;
-
-        // Alphabetical fallback
         return a.word.localeCompare(b.word);
     });
 
     setFilteredSuggestions(matches.slice(0, 5));
 
-    // 3. Did You Mean Logic (Fuzzy Search)
-    // Only trigger if we have very few matches (<= 1) to avoid noise
     if (matches.length <= 1) {
        let closest: DictionaryItem | null = null;
        let minDist = Infinity;
-       
-       // Filter candidates that are roughly same length (+/- 2 chars) to optimize
        const candidates = MOCK_DICTIONARY.filter(
            item => Math.abs(item.word.length - lowerQuery.length) <= 2 && !history.includes(item.word)
        );
-
        for (const item of candidates) {
-          // Skip if it's already in matches
           if (matches.some(m => m.word === item.word)) continue;
-
           const dist = levenshtein(lowerQuery, item.word.toLowerCase());
-          // Threshold: <= 2 edits allow for simple typos
           if (dist < minDist && dist > 0 && dist <= 2) {
              minDist = dist;
              closest = item;
@@ -207,7 +189,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, lang, histor
 
   }, [query, history]);
 
-  // Handle click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -239,10 +220,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, lang, histor
   const buttonText = lang === 'geg' ? "Lyp" : "Search";
   const didYouMeanText = lang === 'geg' ? "Mos lypët:" : "Did you mean:";
 
-  // Determine what to show in dropdown
   const showDropdown = isFocused && (history.length > 0 || filteredSuggestions.length > 0 || didYouMean);
-  
-  // Filter history based on query if present
   const displayHistory = query 
     ? history.filter(h => h.toLowerCase().includes(query.toLowerCase())) 
     : history;
@@ -255,7 +233,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, lang, histor
 
   const getTypeBadge = (type: string) => {
       if (type === 'geg') return <span className="bg-red-100 dark:bg-red-900/50 text-albanian-red dark:text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">GEG</span>;
-      if (type === 'std') return <span className="bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">STD</span>;
+      if (type === 'std') return <span className="bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">STD '72</span>;
       if (type === 'eng') return <span className="bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">ENG</span>;
       return null;
   };
@@ -280,7 +258,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, lang, histor
           disabled={isLoading}
         />
         <button 
-          type="submit"
+          type="submit" 
           disabled={isLoading || !query.trim()}
           className="absolute inset-y-2 right-2 px-6 bg-albanian-red text-white rounded-xl font-medium hover:bg-red-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-40"
         >
@@ -288,12 +266,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, lang, histor
         </button>
       </form>
       
-      {/* Autocomplete / History Dropdown */}
       {showDropdown && (
         <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border-2 border-t-0 border-gray-100 dark:border-gray-700 rounded-b-2xl shadow-xl z-20 overflow-hidden animate-fade-in origin-top">
            <div className="py-2">
-              
-              {/* History Section */}
               {displayHistory.length > 0 && (
                  <div className="mb-2">
                     <div className="px-4 py-2 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-2">
@@ -311,8 +286,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, lang, histor
                     ))}
                  </div>
               )}
-
-              {/* Did You Mean Section */}
               {didYouMean && (
                   <div className="px-4 py-2 bg-yellow-50/50 dark:bg-yellow-900/30 border-y border-yellow-100 dark:border-yellow-900/50 mb-2">
                       <button 
@@ -327,8 +300,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, lang, histor
                       </button>
                   </div>
               )}
-
-              {/* Suggestions Section */}
               {filteredSuggestions.length > 0 && (
                  <div>
                     <div className={`px-4 py-2 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider ${displayHistory.length > 0 ? 'border-t border-gray-50 dark:border-gray-700 mt-2 pt-4' : ''} flex items-center gap-2`}>
@@ -347,12 +318,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, lang, histor
                           {!query.trim() && <ArrowRight className="w-3 h-3 text-gray-300 dark:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />}
                        </button>
                     ))}
-                 </div>
-              )}
-
-              {displayHistory.length === 0 && filteredSuggestions.length === 0 && !didYouMean && query && (
-                 <div className="px-4 py-6 text-center text-gray-400 dark:text-gray-500 italic text-sm">
-                    {lang === 'geg' ? 'S\'u gjetën sugjerime' : 'No suggestions found'}
                  </div>
               )}
            </div>

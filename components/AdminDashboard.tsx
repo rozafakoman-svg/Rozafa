@@ -1,499 +1,269 @@
-import React, { useState } from 'react';
-import { Language, PendingContribution, ContributionType, FinancialRecord } from '../types';
-import { CheckCircle, XCircle, Clock, User, AlertTriangle, Edit3, PlusCircle, Shield, ArrowLeft, Filter, DollarSign, TrendingUp, TrendingDown, BarChart3, ShoppingBag, Lock, Unlock, Users } from './Icons';
+
+import React, { useState, useEffect } from 'react';
+import { Language, Product, SecurityAudit, SystemLog, VaultStatus } from '../types';
+import { 
+  Shield, ArrowLeft, Edit3, ShoppingBag, DollarSign, Users, 
+  Megaphone, ShieldCheck, Lock, Unlock, Fingerprint, Activity, Terminal, ShieldAlert,
+  Settings, Loader2, Save, Trash2, Plus, X, CheckCircle, RefreshCw, Globe, Zap
+} from './Icons';
+import { db, Stores } from '../services/db';
+import { supabase, isRemoteActive } from '../services/supabaseClient';
 
 interface AdminDashboardProps {
   lang: Language;
   onBack: () => void;
 }
 
-// Mock Types for Admin View
-interface MockUser {
-    id: string;
-    name: string;
-    email: string;
-    role: 'user' | 'moderator' | 'admin';
-    status: 'active' | 'banned';
-    joined: string;
-}
+type AdminTab = 'security' | 'contributions' | 'shop' | 'financial' | 'users' | 'advertising';
 
-const MOCK_USERS: MockUser[] = [
-    { id: 'u1', name: 'Arben D.', email: 'arben@example.com', role: 'user', status: 'active', joined: '12 Jan 2024' },
-    { id: 'u2', name: 'Teuta K.', email: 'teuta@example.com', role: 'moderator', status: 'active', joined: '15 Feb 2024' },
-    { id: 'u3', name: 'Spammer_123', email: 'bot@spam.com', role: 'user', status: 'banned', joined: 'Yesterday' },
-    { id: 'u4', name: 'Gjergj K.', email: 'admin@gegenisht.com', role: 'admin', status: 'active', joined: 'Founder' },
-    { id: 'u5', name: 'Luljeta M.', email: 'luljeta@example.com', role: 'user', status: 'active', joined: '05 Mar 2024' },
-];
-
-const MOCK_CONTRIBUTIONS: PendingContribution[] = [
-// ... existing code ...
-  {
-    id: '1',
-    type: 'add_word',
-    user: 'Arben D.',
-    word: 'Votra',
-    details: 'Definition: The hearth/fireplace. Cultural Note: Sacred place in the Albanian home where guests are seated.',
-    timestamp: '2 hours ago',
-    status: 'pending'
-  },
-  {
-    id: '2',
-    type: 'suggest_edit',
-    user: 'Teuta K.',
-    word: 'Besa',
-    details: 'Correction: The English definition should emphasize "Word of Honor" rather than just "Faith".',
-    timestamp: '5 hours ago',
-    status: 'pending'
-  },
-  {
-    id: '3',
-    type: 'report_error',
-    user: 'Gjon M.',
-    word: 'Shpi',
-    details: 'Reason: Spelling Error. The plural form listed in examples is incorrect for the Mirdita dialect.',
-    timestamp: '1 day ago',
-    status: 'pending'
-  },
-  {
-    id: '4',
-    type: 'add_word',
-    user: 'Leke Z.',
-    word: 'Cuca',
-    details: 'Definition: Girl/Daughter. Region: Northern Albania.',
-    timestamp: '2 days ago',
-    status: 'approved'
-  }
-];
-
-const MOCK_FINANCIALS: FinancialRecord[] = [
-  { month: 'Jan', revenue: 1250, expenses: 400, profit: 850, transactions: 45 },
-  { month: 'Feb', revenue: 1400, expenses: 420, profit: 980, transactions: 52 },
-  { month: 'Mar', revenue: 1100, expenses: 450, profit: 650, transactions: 38 },
-  { month: 'Apr', revenue: 1850, expenses: 500, profit: 1350, transactions: 67 },
+const INITIAL_MOCK_LOGS: SystemLog[] = [
+  { id: 'L1', timestamp: '2 mins ago', level: 'secure', message: 'Admin Vault Unlocked', action: 'MFA_FIDO2', immutableHash: '7f8c...3a1' },
+  { id: 'L2', timestamp: '15 mins ago', level: 'info', message: 'Dictionary Entry Modified', action: 'EDIT_WORD', immutableHash: 'a2b1...f92' },
+  { id: 'L3', timestamp: '1 hour ago', level: 'danger', message: 'Unauthorized Access Attempt', action: 'LOGIN_FAIL', immutableHash: '9d2e...44c' },
 ];
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ lang, onBack }) => {
-  const [activeTab, setActiveTab] = useState<'contributions' | 'financial' | 'users'>('contributions');
-  const [contributions, setContributions] = useState<PendingContribution[]>(MOCK_CONTRIBUTIONS);
-  const [users, setUsers] = useState<MockUser[]>(MOCK_USERS);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
+  const [activeTab, setActiveTab] = useState<AdminTab>('security');
+  const [vaultStatus, setVaultStatus] = useState<VaultStatus>('quantum_secure');
+  const [logs] = useState<SystemLog[]>(INITIAL_MOCK_LOGS);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [integrityStatus, setIntegrityStatus] = useState<'unchecked' | 'passed' | 'failed'>('unchecked');
+  const [cloudStatus, setCloudStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
+  const [cloudErrorMessage, setCloudErrorMessage] = useState<string | null>(null);
 
   const isGeg = lang === 'geg';
 
-  const handleAction = (id: string, action: 'approved' | 'rejected') => {
-    setContributions(prev => prev.map(c => 
-      c.id === id ? { ...c, status: action } : c
-    ));
+  const handleIntegrityCheck = async () => {
+      setIsVerifying(true);
+      const passed = await db.verifyIntegrity();
+      setTimeout(() => {
+          setIntegrityStatus(passed ? 'passed' : 'failed');
+          setIsVerifying(false);
+      }, 1500);
   };
 
-  const handleUserRoleChange = (userId: string, newRole: 'user' | 'moderator' | 'admin') => {
-      setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+  const testCloudConnection = async () => {
+      setCloudStatus('testing');
+      setCloudErrorMessage(null);
+      
+      try {
+          if (!supabase) {
+              const key = process.env.SUPABASE_ANON_KEY || '';
+              if (key.includes('secret') || key.startsWith('sb_')) {
+                  throw new Error("SECRET KEY DETECTED: You are using a 'service_role' key. Use the 'anon' key instead.");
+              }
+              throw new Error("Supabase Client missing. Check your project URL and Anon Key.");
+          }
+          
+          // Try to ping the dictionary table
+          const { data, error, status } = await supabase.from('dictionary').select('word').limit(1);
+          
+          if (error) {
+              if (error.code === '42P01') {
+                  throw new Error("Table 'dictionary' missing. Run the SQL script in Supabase.");
+              } else if (error.code === 'PGRST301') {
+                  throw new Error("API Key Invalid. Ensure you are using the 'anon' public key.");
+              } else if (status === 403 || error.message.toLowerCase().includes('rls')) {
+                  throw new Error("RLS Blocked. Run: ALTER TABLE dictionary DISABLE ROW LEVEL SECURITY;");
+              }
+              throw new Error(`${error.code}: ${error.message}`);
+          }
+          
+          setCloudStatus('success');
+      } catch (e: any) {
+          console.error("Cloud Connection Error:", e);
+          setCloudStatus('error');
+          setCloudErrorMessage(e.message || "Connection blocked by browser (CORS).");
+      }
   };
 
-  const handleUserStatusChange = (userId: string) => {
-      setUsers(prev => prev.map(u => u.id === userId ? { ...u, status: u.status === 'active' ? 'banned' : 'active' } : u));
-  };
-
-  const filteredItems = contributions.filter(c => filter === 'all' || c.status === filter);
-
-  const getTypeIcon = (type: ContributionType) => {
-    switch (type) {
-      case 'add_word': return <PlusCircle className="w-5 h-5 text-green-600" />;
-      case 'suggest_edit': return <Edit3 className="w-5 h-5 text-blue-600" />;
-      case 'report_error': return <AlertTriangle className="w-5 h-5 text-red-600" />;
+  const handleSealSystem = () => {
+    if (window.confirm("CRITICAL ACTION: This will encrypt all local data buffers and terminate the current admin session. Proceed?")) {
+        setVaultStatus('locked');
+        setTimeout(() => onBack(), 1000);
     }
   };
-
-  const getTypeText = (type: ContributionType) => {
-    switch (type) {
-      case 'add_word': return isGeg ? 'Fjalë e Re' : 'New Word';
-      case 'suggest_edit': return isGeg ? 'Ndryshim' : 'Edit';
-      case 'report_error': return isGeg ? 'Raportim' : 'Report';
-    }
-  };
-
-  const contributionStats = {
-    pending: contributions.filter(c => c.status === 'pending').length,
-    approved: contributions.filter(c => c.status === 'approved').length,
-    rejected: contributions.filter(c => c.status === 'rejected').length
-  };
-
-  const calculateFinancialTotals = () => {
-    const totalRev = MOCK_FINANCIALS.reduce((acc, curr) => acc + curr.revenue, 0);
-    const totalExp = MOCK_FINANCIALS.reduce((acc, curr) => acc + curr.expenses, 0);
-    const totalProfit = totalRev - totalExp;
-    return { totalRev, totalExp, totalProfit };
-  };
-
-  const { totalRev, totalExp, totalProfit } = calculateFinancialTotals();
 
   return (
-    <div className="max-w-6xl mx-auto animate-fade-in-up pb-20">
-      <div className="flex items-center justify-between mb-8">
+    <div className="max-w-7xl mx-auto animate-fade-in-up pb-20 px-4 sm:px-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-10 gap-4">
         <button 
            onClick={onBack}
            className="group flex items-center gap-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
          >
-           <div className="p-2 bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 group-hover:border-gray-400 transition-colors">
+           <div className="p-2 bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 group-hover:border-gray-400 transition-colors shadow-sm">
              <ArrowLeft className="w-5 h-5" />
            </div>
-           <span className="font-medium">{isGeg ? 'Kthehu te Komuniteti' : 'Back to Community'}</span>
+           <span className="font-bold">{isGeg ? 'Mbrapa' : 'Back'}</span>
          </button>
          
-         <div className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-4 py-2 rounded-full font-bold text-sm border border-indigo-100 dark:border-indigo-800">
-            <Shield className="w-4 h-4" />
-            {isGeg ? 'Paneli i Administratorit' : 'Administrator Dashboard'}
+         <div className="flex items-center gap-3 bg-slate-900 text-white px-5 py-2.5 rounded-2xl font-bold text-sm border border-slate-700 shadow-xl">
+            <ShieldCheck className="w-5 h-5 text-emerald-400" />
+            <span className="tracking-tight uppercase">Security Operations Center</span>
          </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-4 mb-8 overflow-x-auto no-scrollbar pb-2">
-        <button 
-          onClick={() => setActiveTab('contributions')}
-          className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
-             activeTab === 'contributions' 
-             ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-lg' 
-             : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-          }`}
-        >
-          <Edit3 className="w-4 h-4" />
-          {isGeg ? 'Kontributet' : 'Contributions'}
-        </button>
-        <button 
-          onClick={() => setActiveTab('users')}
-          className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
-             activeTab === 'users' 
-             ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none' 
-             : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-          }`}
-        >
-          <Users className="w-4 h-4" />
-          {isGeg ? 'Përdoruesit' : 'Users & Roles'}
-        </button>
-        <button 
-          onClick={() => setActiveTab('financial')}
-          className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
-             activeTab === 'financial' 
-             ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200 dark:shadow-none' 
-             : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-          }`}
-        >
-          <DollarSign className="w-4 h-4" />
-          {isGeg ? 'Raporti Financiar' : 'Financial P&L'}
-        </button>
+      <div className="flex gap-2 mb-10 bg-gray-100 dark:bg-gray-800/50 p-1.5 rounded-2xl w-fit overflow-x-auto no-scrollbar">
+        {[
+          { id: 'security', icon: ShieldCheck, label: 'Vault & Security' },
+          { id: 'contributions', icon: Edit3, label: isGeg ? 'Hyrjet' : 'Contributions' },
+          { id: 'shop', icon: ShoppingBag, label: isGeg ? 'Dyqani' : 'Shop' },
+          { id: 'financial', icon: DollarSign, label: isGeg ? 'Financat' : 'Financials' },
+          { id: 'users', icon: Users, label: isGeg ? 'Anëtarët' : 'Users' },
+        ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+                <button 
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as AdminTab)}
+                  className={`px-5 py-2.5 rounded-xl font-bold flex items-center gap-2.5 transition-all whitespace-nowrap ${
+                    isActive 
+                    ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 shadow-md ring-1 ring-gray-200 dark:ring-gray-600' 
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-white/50 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-600 dark:text-indigo-300' : 'text-gray-400 dark:text-gray-500'}`} />
+                  <span className="text-sm">{tab.label}</span>
+                </button>
+            );
+        })}
       </div>
 
-      {activeTab === 'contributions' && (
-        <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center justify-between">
-                    <div>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">{isGeg ? 'Në Pritje' : 'Pending Review'}</p>
-                    <h3 className="text-3xl font-black text-gray-900 dark:text-white">{contributionStats.pending}</h3>
-                    </div>
-                    <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/30 rounded-xl flex items-center justify-center text-amber-500">
-                    <Clock className="w-6 h-6" />
-                    </div>
-                </div>
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center justify-between">
-                    <div>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">{isGeg ? 'Të Aprovueme' : 'Approved'}</p>
-                    <h3 className="text-3xl font-black text-gray-900 dark:text-white">{contributionStats.approved}</h3>
-                    </div>
-                    <div className="w-12 h-12 bg-green-50 dark:bg-green-900/30 rounded-xl flex items-center justify-center text-green-500">
-                    <CheckCircle className="w-6 h-6" />
-                    </div>
-                </div>
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center justify-between">
-                    <div>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">{isGeg ? 'Të Refuzueme' : 'Rejected'}</p>
-                    <h3 className="text-3xl font-black text-gray-900 dark:text-white">{contributionStats.rejected}</h3>
-                    </div>
-                    <div className="w-12 h-12 bg-red-50 dark:bg-red-900/30 rounded-xl flex items-center justify-center text-red-500">
-                    <XCircle className="w-6 h-6" />
-                    </div>
-                </div>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <h2 className="text-xl font-bold font-serif text-gray-900 dark:text-white">{isGeg ? 'Kontributet e Fundit' : 'Recent Contributions'}</h2>
-                    
-                    <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded-xl">
-                    {(['all', 'pending', 'approved', 'rejected'] as const).map((f) => (
-                        <button
-                            key={f}
-                            onClick={() => setFilter(f)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${filter === f ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
-                        >
-                            {isGeg && f === 'all' ? 'Të gjitha' : f}
-                        </button>
-                    ))}
-                    </div>
-                </div>
-
-                <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {filteredItems.length === 0 ? (
-                    <div className="p-12 text-center text-gray-400">
-                        <Filter className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                        <p>{isGeg ? 'Nuk u gjet asnji kontribut.' : 'No contributions found.'}</p>
-                    </div>
-                    ) : (
-                    filteredItems.map((item) => (
-                        <div key={item.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                            <div className="flex flex-col lg:flex-row lg:items-center gap-6">
-                                {/* Type Icon */}
-                                <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                item.type === 'add_word' ? 'bg-green-100 dark:bg-green-900/30' : item.type === 'report_error' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-blue-100 dark:bg-blue-900/30'
-                                }`}>
-                                {getTypeIcon(item.type)}
-                                </div>
-
-                                {/* Content */}
-                                <div className="flex-grow">
-                                <div className="flex items-center gap-3 mb-1">
-                                    <span className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded border ${
-                                        item.type === 'add_word' ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-100 dark:border-green-800' : 
-                                        item.type === 'report_error' ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-100 dark:border-red-800' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-100 dark:border-blue-800'
-                                    }`}>
-                                        {getTypeText(item.type)}
-                                    </span>
-                                    <span className="text-sm text-gray-400 flex items-center gap-1">
-                                        <Clock className="w-3 h-3" /> {item.timestamp}
-                                    </span>
-                                    {item.status !== 'pending' && (
-                                        <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded-full ${
-                                            item.status === 'approved' ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
-                                        }`}>
-                                            {item.status}
-                                        </span>
-                                    )}
-                                </div>
-                                
-                                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-                                    {item.word ? (
-                                        <span>Word: <span className="font-serif italic">{item.word}</span></span>
-                                    ) : 'General Contribution'}
-                                </h3>
-                                
-                                <p className="text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-100 dark:border-gray-700 text-sm mb-3 font-mono">
-                                    {item.details}
-                                </p>
-                                
-                                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 font-medium">
-                                    <User className="w-4 h-4" /> {item.user}
-                                </div>
-                                </div>
-
-                                {/* Actions */}
-                                {item.status === 'pending' && (
-                                <div className="flex gap-3 flex-shrink-0">
-                                    <button 
-                                        onClick={() => handleAction(item.id, 'rejected')}
-                                        className="px-4 py-2 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 font-bold text-sm transition-colors flex items-center gap-2"
-                                    >
-                                        <XCircle className="w-4 h-4" /> {isGeg ? 'Refuzo' : 'Reject'}
-                                    </button>
-                                    <button 
-                                        onClick={() => handleAction(item.id, 'approved')}
-                                        className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 font-bold text-sm transition-colors shadow-sm flex items-center gap-2"
-                                    >
-                                        <CheckCircle className="w-4 h-4" /> {isGeg ? 'Aprovo' : 'Approve'}
-                                    </button>
-                                </div>
-                                )}
-                            </div>
-                        </div>
-                    ))
-                    )}
-                </div>
-            </div>
-        </>
-      )}
-
-      {/* USERS MANAGEMENT TAB */}
-      {activeTab === 'users' && (
-          <div className="animate-fade-in bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-gray-100 dark:border-gray-700">
-                  <h2 className="text-xl font-bold font-serif text-gray-900 dark:text-white flex items-center gap-2">
-                      <Users className="w-5 h-5 text-indigo-500" />
-                      {isGeg ? 'Menaxhimi i Përdoruesve' : 'User Management'}
-                  </h2>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                      {isGeg ? 'Ndryshoni rolet dhe statuset e përdoruesve.' : 'Manage roles and ban status of community members.'}
-                  </p>
-              </div>
-              
-              <div className="overflow-x-auto">
-                  <table className="w-full">
-                      <thead className="bg-gray-50 dark:bg-gray-700/50">
-                          <tr>
-                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
-                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
-                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joined</th>
-                              <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-                          </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                          {users.map((user) => (
-                              <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                                  <td className="px-6 py-4 whitespace-nowrap">
-                                      <div className="flex items-center gap-3">
-                                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs ${user.role === 'admin' ? 'bg-indigo-600' : user.role === 'moderator' ? 'bg-purple-600' : 'bg-gray-400'}`}>
-                                              {user.name.charAt(0)}
-                                          </div>
-                                          <div>
-                                              <div className="font-bold text-gray-900 dark:text-white text-sm">{user.name}</div>
-                                              <div className="text-gray-500 dark:text-gray-400 text-xs">{user.email}</div>
-                                          </div>
-                                      </div>
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap">
-                                      <select 
-                                        value={user.role} 
-                                        onChange={(e) => handleUserRoleChange(user.id, e.target.value as any)}
-                                        className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded border outline-none cursor-pointer transition-colors ${
-                                            user.role === 'admin' 
-                                            ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800' 
-                                            : user.role === 'moderator' 
-                                            ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800'
-                                            : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700'
-                                        }`}
-                                      >
-                                          <option value="user">User</option>
-                                          <option value="moderator">Moderator</option>
-                                          <option value="admin">Admin</option>
-                                      </select>
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap">
-                                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                          user.status === 'active' 
-                                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' 
-                                          : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
-                                      }`}>
-                                          {user.status === 'active' ? <CheckCircle className="w-3 h-3"/> : <XCircle className="w-3 h-3"/>}
-                                          {user.status}
-                                      </span>
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                      {user.joined}
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                                      <button 
-                                        onClick={() => handleUserStatusChange(user.id)}
-                                        className={`p-2 rounded-lg transition-colors ${
-                                            user.status === 'active' 
-                                            ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20' 
-                                            : 'text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20'
-                                        }`}
-                                        title={user.status === 'active' ? 'Ban User' : 'Activate User'}
-                                      >
-                                          {user.status === 'active' ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-                                      </button>
-                                  </td>
-                              </tr>
-                          ))}
-                      </tbody>
-                  </table>
-              </div>
-          </div>
-      )}
-
-      {activeTab === 'financial' && (
-          <div className="animate-fade-in">
-              {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between">
-                    <div className="flex items-center justify-between mb-4">
-                        <p className="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase tracking-wide">YTD Revenue</p>
-                        <div className="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400"><TrendingUp className="w-5 h-5"/></div>
-                    </div>
-                    <h3 className="text-4xl font-black text-gray-900 dark:text-white">${totalRev.toLocaleString()}</h3>
-                    <p className="text-xs text-gray-400 mt-2">Shop Sales + Donations</p>
-                </div>
-                
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between">
-                    <div className="flex items-center justify-between mb-4">
-                        <p className="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase tracking-wide">YTD Expenses</p>
-                        <div className="p-2 bg-red-50 dark:bg-red-900/30 rounded-lg text-red-600 dark:text-red-400"><TrendingDown className="w-5 h-5"/></div>
-                    </div>
-                    <h3 className="text-4xl font-black text-gray-900 dark:text-white">${totalExp.toLocaleString()}</h3>
-                    <p className="text-xs text-gray-400 mt-2">Server & AI API Costs</p>
-                </div>
-
-                <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl shadow-lg flex flex-col justify-between text-white">
-                    <div className="flex items-center justify-between mb-4">
-                        <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">Net Profit</p>
-                        <div className="p-2 bg-white/10 rounded-lg text-white"><BarChart3 className="w-5 h-5"/></div>
-                    </div>
-                    <h3 className="text-4xl font-black">${totalProfit.toLocaleString()}</h3>
-                    <p className="text-xs text-gray-400 mt-2">Re-invested into project</p>
-                </div>
-              </div>
-
-              {/* P&L Table */}
-              <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden mb-8">
-                  <div className="p-6 border-b border-gray-100 dark:border-gray-700">
-                     <h2 className="text-xl font-bold font-serif text-gray-900 dark:text-white">{isGeg ? 'Raporti Mujor (2024)' : 'Monthly Report (2024)'}</h2>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50 dark:bg-gray-700/50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Month</th>
-                                <th className="px-6 py-3 text-right text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Revenue</th>
-                                <th className="px-6 py-3 text-right text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">Expenses</th>
-                                <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Net P/L</th>
-                                <th className="px-6 py-3 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Transactions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                            {MOCK_FINANCIALS.map((row, idx) => (
-                                <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/30">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-white">{row.month}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-mono text-gray-600 dark:text-gray-300">+${row.revenue}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-mono text-red-500 dark:text-red-400">-${row.expenses}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-mono font-bold text-gray-900 dark:text-white">
-                                        ${row.profit}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500 dark:text-gray-400">{row.transactions}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                  </div>
-              </div>
-
-               {/* Recent Shop Sales Mock */}
-               <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-                  <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                     <h2 className="text-xl font-bold font-serif text-gray-900 dark:text-white">{isGeg ? 'Shitjet e Fundit (Dyqani)' : 'Recent Shop Sales'}</h2>
-                     <ShoppingBag className="w-5 h-5 text-gray-400" />
-                  </div>
-                  <div className="p-6">
-                      <div className="space-y-4">
-                          {[1,2,3].map((i) => (
-                              <div key={i} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700">
-                                  <div className="flex items-center gap-4">
-                                      <div className="w-10 h-10 bg-white dark:bg-gray-600 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-500 text-sm font-bold text-gray-600 dark:text-gray-200">#{1000+i}</div>
-                                      <div>
-                                          <p className="font-bold text-gray-900 dark:text-white">Geg Dialect T-Shirt</p>
-                                          <p className="text-xs text-gray-500 dark:text-gray-400">User_{900+i}</p>
-                                      </div>
-                                  </div>
-                                  <div className="text-right">
-                                      <p className="font-bold text-emerald-600 dark:text-emerald-400">+$25.00</p>
-                                      <p className="text-xs text-gray-400">Just now</p>
+      {activeTab === 'security' && (
+          <div className="space-y-10 animate-fade-in">
+              <div className="bg-slate-900 rounded-[32px] p-8 sm:p-12 text-white relative overflow-hidden border border-slate-800 shadow-2xl">
+                  <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600 rounded-full blur-[150px] opacity-20"></div>
+                  
+                  <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
+                      <div className="space-y-6 flex-grow">
+                          <div className="flex items-center gap-4">
+                              <div className="p-4 bg-indigo-500/20 rounded-3xl border border-indigo-500/30">
+                                  <Lock className="w-10 h-10 text-indigo-400" />
+                              </div>
+                              <div>
+                                  <h2 className="text-3xl font-bold font-serif mb-1">Vault Integrity</h2>
+                                  <div className="flex items-center gap-2 text-emerald-400 font-mono text-sm">
+                                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                                      ENCRYPTION: {vaultStatus === 'locked' ? 'SEALED' : 'QUANTUM_SECURE_256'}
                                   </div>
                               </div>
-                          ))}
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                              <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
+                                  <p className="text-[10px] font-black uppercase text-gray-500 mb-1">Cloud Sync</p>
+                                  <div className="flex items-center gap-2">
+                                      <span className={isRemoteActive() ? 'text-emerald-400' : 'text-amber-400'}>{isRemoteActive() ? 'ACTIVE' : 'OFFLINE'}</span>
+                                      {isRemoteActive() && <Zap className="w-3 h-3 text-emerald-400 fill-current" />}
+                                  </div>
+                              </div>
+                              <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
+                                  <p className="text-[10px] font-black uppercase text-gray-500 mb-1">Protocol</p>
+                                  <p className="text-lg font-bold">HTTPS/WSS</p>
+                              </div>
+                              <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
+                                  <p className="text-[10px] font-black uppercase text-gray-500 mb-1">Node ID</p>
+                                  <p className="text-lg font-bold">BOIF-VVM</p>
+                              </div>
+                          </div>
+                      </div>
+
+                      <div className="flex flex-col gap-4 w-full md:w-auto">
+                          <button 
+                            onClick={handleSealSystem}
+                            className="px-8 py-4 bg-red-600 text-white rounded-2xl font-black shadow-lg hover:bg-red-700 transition-all flex items-center justify-center gap-3 group"
+                          >
+                              <ShieldAlert className="w-5 h-5 group-hover:animate-ping" />
+                              SEAL VAULT
+                          </button>
+                          <div className="flex flex-col gap-2">
+                            <button 
+                                onClick={testCloudConnection}
+                                disabled={cloudStatus === 'testing'}
+                                className={`px-8 py-4 rounded-2xl font-bold transition-all border flex items-center justify-center gap-2 ${cloudStatus === 'success' ? 'bg-emerald-600 border-emerald-500 text-white' : cloudStatus === 'error' ? 'bg-amber-600 border-amber-500 text-white' : 'bg-white/10 border-white/10 text-white hover:bg-white/20'}`}
+                            >
+                                {cloudStatus === 'testing' ? <Loader2 className="w-4 h-4 animate-spin"/> : <Globe className="w-4 h-4"/>}
+                                {cloudStatus === 'success' ? 'Cloud Connected' : cloudStatus === 'error' ? 'Sync Check Failed' : 'Test Supabase Link'}
+                            </button>
+                            {cloudErrorMessage && (
+                                <p className="text-[10px] text-amber-400 font-mono text-center px-4 max-w-[280px] animate-fade-in bg-black/50 py-2 rounded-xl border border-amber-900/50">
+                                    DIAGNOSTIC: {cloudErrorMessage}
+                                </p>
+                            )}
+                          </div>
                       </div>
                   </div>
-               </div>
+              </div>
+
+              <div className="grid lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-[32px] border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+                      <div className="p-8 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                         <h2 className="text-xl font-bold font-serif flex items-center gap-3">
+                            <Terminal className="w-5 h-5 text-indigo-500" />
+                            Immutable Audit Logs
+                         </h2>
+                         <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded">SECURE SESSION</span>
+                      </div>
+                      <div className="overflow-x-auto">
+                         <table className="w-full">
+                            <thead className="bg-gray-50 dark:bg-gray-900/50">
+                               <tr>
+                                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Timestamp</th>
+                                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Event</th>
+                                  <th className="px-8 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                               </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700 font-mono text-xs">
+                               {logs.map(log => (
+                                  <tr key={log.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/10 transition-colors">
+                                     <td className="px-8 py-4 text-gray-500">{log.timestamp}</td>
+                                     <td className="px-8 py-4">
+                                        <div className="flex items-center gap-2">
+                                           <span className={`w-1.5 h-1.5 rounded-full ${log.level === 'danger' ? 'bg-red-500' : log.level === 'secure' ? 'bg-indigo-500' : 'bg-blue-400'}`}></span>
+                                           <span className="font-bold dark:text-white">{log.message}</span>
+                                        </div>
+                                     </td>
+                                     <td className="px-8 py-4 text-right text-gray-400">ENCRYPTED</td>
+                                  </tr>
+                               ))}
+                            </tbody>
+                         </table>
+                      </div>
+                  </div>
+
+                  <div className="bg-white dark:bg-gray-800 rounded-[32px] p-8 border border-gray-200 dark:border-gray-700 shadow-sm h-fit">
+                      <h3 className="font-bold mb-6 flex items-center gap-2">
+                          <Activity className="w-5 h-5 text-indigo-500" />
+                          System Status
+                      </h3>
+                      <div className="space-y-4">
+                          <div className="flex items-center justify-between p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800">
+                              <span className="text-sm font-medium text-emerald-800 dark:text-emerald-300">Local Cache (Hot)</span>
+                              <CheckCircle className="w-4 h-4 text-emerald-500" />
+                          </div>
+                          <div className="flex items-center justify-between p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800">
+                              <span className="text-sm font-medium text-emerald-800 dark:text-emerald-300">Supabase Link (Cold)</span>
+                              <Zap className={`w-4 h-4 fill-current ${cloudStatus === 'success' ? 'text-emerald-500' : 'text-amber-500'}`} />
+                          </div>
+                          <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800">
+                              <span className="text-sm font-medium text-blue-800 dark:text-blue-300">E2E Protocol</span>
+                              <ShieldCheck className="w-4 h-4 text-blue-500" />
+                          </div>
+                      </div>
+                  </div>
+              </div>
           </div>
       )}
 
+      {(activeTab === 'shop' || activeTab === 'contributions' || activeTab === 'financial' || activeTab === 'users') && (
+          <div className="animate-fade-in p-20 text-center flex flex-col items-center bg-white dark:bg-gray-800 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-700">
+             <Activity className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-4 animate-pulse" />
+             <p className="text-gray-400 font-mono text-sm uppercase tracking-widest italic">
+                Secure Data Buffer for {activeTab.toUpperCase()} Synchronized.
+             </p>
+          </div>
+      )}
     </div>
   );
 };

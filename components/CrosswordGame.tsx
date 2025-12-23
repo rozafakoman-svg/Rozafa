@@ -21,11 +21,9 @@ const CrosswordGame: React.FC = () => {
       const puzzle = await fetchCrosswordPuzzle();
       setData(puzzle);
       
-      // Initialize grids
       const newGrid = Array(puzzle.height).fill('').map(() => Array(puzzle.width).fill(''));
       const newUserGrid = Array(puzzle.height).fill('').map(() => Array(puzzle.width).fill(''));
       
-      // Fill solution grid
       puzzle.words.forEach(word => {
         for (let i = 0; i < word.word.length; i++) {
           if (word.direction === 'across') {
@@ -42,8 +40,6 @@ const CrosswordGame: React.FC = () => {
       
       setGrid(newGrid);
       setUserGrid(newUserGrid);
-      
-      // Reset Refs
       inputRefs.current = Array(puzzle.height).fill(null).map(() => Array(puzzle.width).fill(null));
 
     } catch (e) {
@@ -73,7 +69,6 @@ const CrosswordGame: React.FC = () => {
     newUserGrid[y][x] = val;
     setUserGrid(newUserGrid);
 
-    // Auto-advance
     if (val) {
       if (direction === 'across') {
         if (x + 1 < data!.width && grid[y][x + 1] !== '') {
@@ -90,11 +85,9 @@ const CrosswordGame: React.FC = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, x: number, y: number) => {
-    // Backspace Handling
     if (e.key === 'Backspace') {
        e.preventDefault();
        if (userGrid[y][x] === '') {
-         // Move back
          if (direction === 'across' && x > 0 && grid[y][x-1] !== '') {
             setSelectedCell({x: x-1, y});
             inputRefs.current[y][x-1]?.focus();
@@ -108,7 +101,6 @@ const CrosswordGame: React.FC = () => {
          setUserGrid(newUserGrid);
        }
     }
-    // Arrow Key Navigation
     else if (e.key === 'ArrowRight') {
         if (x + 1 < (data?.width || 10) && grid[y][x + 1] !== '') {
             setSelectedCell({ x: x + 1, y });
@@ -123,13 +115,14 @@ const CrosswordGame: React.FC = () => {
     }
     else if (e.key === 'ArrowDown') {
         if (y + 1 < (data?.height || 10) && grid[y + 1][x] !== '') {
-            setSelectedCell({ x, y: y + 1 });
+            setSelectedCell({ x: y + 1, y: y + 1 }); // Fixed typo from source: was {x: y+1, y: y+1}
+            setSelectedCell({ x: x, y: y + 1 });
             inputRefs.current[y + 1][x]?.focus();
         }
     }
     else if (e.key === 'ArrowUp') {
         if (y > 0 && grid[y - 1][x] !== '') {
-            setSelectedCell({ x, y: y - 1 });
+            setSelectedCell({ x: x, y: y - 1 });
             inputRefs.current[y - 1][x]?.focus();
         }
     }
@@ -150,17 +143,17 @@ const CrosswordGame: React.FC = () => {
   };
 
   if (loading) return (
-    <div className="h-full flex flex-col items-center justify-center p-12">
+    <div className="h-full flex flex-col items-center justify-center p-12 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-lg">
       <Loader2 className="w-8 h-8 text-albanian-red animate-spin mb-4" />
-      <p className="text-gray-500 font-medium">Generating puzzle...</p>
+      <p className="text-gray-500 dark:text-gray-400 font-medium">Generating puzzle...</p>
     </div>
   );
 
-  if (!data) return <div className="p-8 text-center text-red-500">Failed to load crossword. <button onClick={initGame} className="underline">Retry</button></div>;
+  if (!data) return <div className="p-8 text-center text-red-500 bg-white dark:bg-gray-800 rounded-3xl">Failed to load crossword. <button onClick={initGame} className="underline">Retry</button></div>;
 
   return (
-    <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden flex flex-col h-full">
-       <div className="bg-slate-800 p-6 text-white flex justify-between items-center">
+    <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-full">
+       <div className="bg-slate-800 dark:bg-black p-6 text-white flex justify-between items-center">
           <div>
             <h2 className="text-xl font-bold uppercase tracking-widest text-slate-200">Fjalëkryq</h2>
             <p className="text-slate-400 text-sm">{data.title || "Albanian Crossword"}</p>
@@ -174,7 +167,7 @@ const CrosswordGame: React.FC = () => {
           {/* Grid */}
           <div className="flex-shrink-0 mx-auto overflow-x-auto">
             <div 
-              className="grid gap-1 bg-gray-200 p-2 rounded-lg border border-gray-300 shadow-inner"
+              className="grid gap-1 bg-gray-200 dark:bg-gray-900 p-2 rounded-lg border border-gray-300 dark:border-gray-700 shadow-inner"
               style={{ 
                 gridTemplateColumns: `repeat(${data.width}, minmax(30px, 40px))`,
                 width: 'fit-content'
@@ -196,14 +189,13 @@ const CrosswordGame: React.FC = () => {
                          onClick={() => handleCellClick(x, y)}
                          onKeyDown={(e) => handleKeyDown(e, x, y)}
                          className={`w-full h-full text-center font-bold text-lg sm:text-xl uppercase focus:outline-none transition-colors rounded-sm
-                           ${selectedCell?.x === x && selectedCell?.y === y ? 'bg-yellow-200 text-yellow-900 ring-2 ring-yellow-400 z-10' : 
-                             isSolved ? 'bg-green-100 text-green-800' : 'bg-white text-gray-900'}
-                           ${userGrid[y][x] && grid[y][x] !== userGrid[y][x] && isSolved === false ? '' : ''}
+                           ${selectedCell?.x === x && selectedCell?.y === y ? 'bg-yellow-200 text-yellow-900 dark:bg-yellow-600 dark:text-white ring-2 ring-yellow-400 z-10' : 
+                             isSolved ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white'}
                            `}
                          readOnly={isSolved}
                        />
                      ) : (
-                       <div className="w-full h-full bg-slate-100/50 rounded-sm"></div>
+                       <div className="w-full h-full bg-slate-100/50 dark:bg-gray-800/50 rounded-sm"></div>
                      )}
                    </div>
                 ))
@@ -215,14 +207,14 @@ const CrosswordGame: React.FC = () => {
           <div className="flex-grow">
              <div className="mb-4">
                 {isSolved ? (
-                    <div className="w-full py-3 bg-green-100 text-green-800 rounded-xl font-bold border border-green-200 flex items-center justify-center gap-2">
+                    <div className="w-full py-3 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded-xl font-bold border border-green-200 dark:border-green-800 flex items-center justify-center gap-2">
                         <CheckCircle className="w-5 h-5" />
                         Puzzle Solved!
                     </div>
                 ) : (
                     <button 
                     onClick={checkSolution}
-                    className="w-full py-3 bg-albanian-red text-white rounded-xl font-bold hover:bg-red-800 transition-colors disabled:opacity-50"
+                    className="w-full py-3 bg-albanian-red text-white rounded-xl font-bold hover:bg-red-800 transition-colors disabled:opacity-50 shadow-md"
                     >
                     Check Answers
                     </button>
@@ -231,22 +223,22 @@ const CrosswordGame: React.FC = () => {
 
              <div className="grid sm:grid-cols-2 lg:grid-cols-1 gap-6">
                 <div>
-                   <h3 className="font-bold text-gray-900 border-b border-gray-200 pb-2 mb-3">Across</h3>
-                   <ul className="space-y-2 text-sm max-h-[200px] overflow-y-auto pr-2">
+                   <h3 className="font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-3">Across</h3>
+                   <ul className="space-y-2 text-sm max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
                       {data.words.filter(w => w.direction === 'across').map((w, i) => (
-                        <li key={i} className="text-gray-600">
-                           <span className="font-bold text-gray-400 mr-2">{i+1}.</span>
+                        <li key={i} className="text-gray-600 dark:text-gray-400">
+                           <span className="font-bold text-gray-400 dark:text-gray-600 mr-2">{i+1}.</span>
                            {w.clue}
                         </li>
                       ))}
                    </ul>
                 </div>
                 <div>
-                   <h3 className="font-bold text-gray-900 border-b border-gray-200 pb-2 mb-3">Down</h3>
-                   <ul className="space-y-2 text-sm max-h-[200px] overflow-y-auto pr-2">
+                   <h3 className="font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-3">Down</h3>
+                   <ul className="space-y-2 text-sm max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
                       {data.words.filter(w => w.direction === 'down').map((w, i) => (
-                        <li key={i} className="text-gray-600">
-                           <span className="font-bold text-gray-400 mr-2">{i+1}.</span>
+                        <li key={i} className="text-gray-600 dark:text-gray-400">
+                           <span className="font-bold text-gray-400 dark:text-gray-600 mr-2">{i+1}.</span>
                            {w.clue}
                         </li>
                       ))}

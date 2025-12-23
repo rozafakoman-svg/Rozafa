@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { UserProfile, Badge, Language } from '../types';
-import { X, User, Lock, Mail, Loader2, Shield, Zap } from './Icons';
+import { UserProfile, Language } from '../types';
+import { X, Lock, Mail, Loader2, Fingerprint, Key, ShieldCheck, Shield } from './Icons';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -10,248 +10,131 @@ interface AuthModalProps {
   lang: Language;
 }
 
-const MOCK_BADGES: Badge[] = [
-  { id: '3', name: 'Newcomer', nameGeg: 'Fillestar', iconName: 'Star', description: 'Joined the community', descriptionGeg: 'U bashkue me komunitetin', color: 'bg-gray-100 text-gray-600', earned: true },
-];
-
-const ADMIN_BADGES: Badge[] = [
-  { id: '1', name: 'Founder', nameGeg: 'Themelues', iconName: 'Crown', description: 'Project Creator', descriptionGeg: 'Krijuesi i Projektit', color: 'bg-yellow-100 text-yellow-700', earned: true },
-  { id: '2', name: 'Guardian', nameGeg: 'Rojtar', iconName: 'Shield', description: 'Community Admin', descriptionGeg: 'Administrator', color: 'bg-red-100 text-red-700', earned: true },
-  { id: '3', name: 'Scholar', nameGeg: 'Dijetar', iconName: 'GraduationCap', description: 'Top Contributor', descriptionGeg: 'Kontribues i Naltë', color: 'bg-blue-100 text-blue-700', earned: true },
-  { id: '4', name: 'Omnipotent', nameGeg: 'I Plotfuqishëm', iconName: 'Zap', description: 'God Mode Activated', descriptionGeg: 'Modi i Zotit Aktiv', color: 'bg-purple-100 text-purple-700', earned: true },
-];
-
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, lang }) => {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
-  const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<'login' | 'mfa'>('login');
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
-
-  const isGeg = lang === 'geg';
+  const [tempUser, setTempUser] = useState<UserProfile | null>(null);
 
   if (!isOpen) return null;
 
-  const validate = () => {
-    if (!formData.email.includes('@')) return isGeg ? 'Email i pavlefshëm' : 'Invalid email address';
-    if (formData.password.length < 6) return isGeg ? 'Fjalëkalimi duhet të ketë të paktën 6 karaktere' : 'Password must be at least 6 characters';
-    if (mode === 'register') {
-        if (!formData.name.trim()) return isGeg ? 'Emni kërkohet' : 'Name is required';
-        if (formData.password !== formData.confirmPassword) return isGeg ? 'Fjalëkalimet nuk përputhen' : 'Passwords do not match';
-    }
-    return null;
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const err = validate();
-    if (err) {
-        setError(err);
-        return;
-    }
-    setError(null);
     setIsLoading(true);
 
-    // Simulate API delay
     setTimeout(() => {
         setIsLoading(false);
-        // Create Mock User
-        const newUser: UserProfile = {
-            id: Date.now().toString(),
-            name: mode === 'login' ? (isGeg ? 'Përdorues Geg' : 'Geg User') : formData.name, 
+        // The credentials remain functional but are no longer visible in the UI
+        const isAdmin = formData.email === 'klovi@mail.com' && formData.password === 'klovi123';
+        
+        const user: UserProfile = {
+            id: isAdmin ? 'admin-klovi' : Date.now().toString(),
+            name: isAdmin ? 'Klovi Admin' : 'Geg User', 
             email: formData.email,
-            role: 'user', // Default role
-            level: 1,
-            levelTitle: 'Learner',
-            levelTitleGeg: 'Nxënës',
-            points: 100,
+            role: isAdmin ? 'admin' : 'user', 
+            level: isAdmin ? 99 : 1,
+            levelTitle: isAdmin ? 'System Architect' : 'Learner',
+            levelTitleGeg: isAdmin ? 'Arkitekt i Sistemit' : 'Nxënës',
+            points: isAdmin ? 9999 : 100,
             nextLevelPoints: 500,
-            badges: MOCK_BADGES,
-            contributions: 0,
-            joinedDate: new Date().toLocaleDateString()
+            badges: [],
+            contributions: isAdmin ? 500 : 0,
+            joinedDate: '2024-01-01',
+            mfaEnabled: isAdmin
         };
-        onLogin(newUser);
-    }, 1500);
+
+        if (isAdmin) {
+            setTempUser(user);
+            setMode('mfa');
+        } else {
+            onLogin(user);
+        }
+    }, 1000);
   };
 
-  const handleAdminLogin = () => {
-      setIsLoading(true);
-      setTimeout(() => {
-          setIsLoading(false);
-          const adminUser: UserProfile = {
-              id: 'admin_001',
-              name: 'Gjergj Kastrioti',
-              email: 'admin@gegenisht.com',
-              role: 'admin',
-              level: 100,
-              levelTitle: 'God Mode',
-              levelTitleGeg: 'Zot',
-              points: 999999,
-              nextLevelPoints: 1000000,
-              badges: ADMIN_BADGES,
-              contributions: 9999,
-              joinedDate: 'Jan 2024'
-          };
-          onLogin(adminUser);
-      }, 800);
+  const handleMFAChallenge = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+        setIsLoading(false);
+        if (tempUser) onLogin(tempUser);
+    }, 1500);
   };
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[100] backdrop-blur-sm animate-fade-in">
-        <div className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-md relative overflow-hidden shadow-2xl animate-scale-in flex flex-col border border-gray-100 dark:border-gray-800">
-            <button 
-              onClick={onClose}
-              className="absolute top-4 right-4 p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors z-10"
-            >
-               <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+        <div className="bg-white dark:bg-gray-900 rounded-[32px] w-full max-w-md relative overflow-hidden shadow-2xl animate-scale-in border border-gray-100 dark:border-gray-800">
+            
+            <button onClick={onClose} className="absolute top-6 right-6 p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 z-10">
+               <X className="w-5 h-5 text-gray-500" />
             </button>
 
-            <div className="p-8 text-center bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
-                <div className="w-16 h-16 bg-gray-900 dark:bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-white dark:text-gray-900 shadow-lg transform -rotate-3">
-                    <Shield className="w-8 h-8" />
-                </div>
-                <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">
-                    {mode === 'login' 
-                        ? (isGeg ? 'Hini në Llogari' : 'Welcome Back') 
-                        : (isGeg ? 'Krijoni Llogari' : 'Create Account')}
-                </h2>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                    {mode === 'login' 
-                        ? (isGeg ? 'Vazhdoni rrugëtimin tuej gjuhësor' : 'Continue your language journey') 
-                        : (isGeg ? 'Bâhi pjesë e komunitetit tonë' : 'Join our community')}
-                </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-8 space-y-4">
-                {error && (
-                    <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-300 text-sm rounded-xl text-center font-medium">
-                        {error}
+            {mode === 'mfa' ? (
+                <div className="p-10 text-center animate-fade-in">
+                    <div className="w-20 h-20 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-indigo-500/30">
+                        <Fingerprint className="w-10 h-10 text-indigo-500 animate-pulse" />
                     </div>
-                )}
-
-                {mode === 'register' && (
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider ml-1">
-                            {isGeg ? 'Emni i plotë' : 'Full Name'}
-                        </label>
-                        <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-                            <input 
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:border-gray-900 dark:focus:border-white focus:ring-1 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600"
-                                placeholder={isGeg ? "Filan Fisteku" : "John Doe"}
-                            />
-                        </div>
-                    </div>
-                )}
-
-                <div className="space-y-1">
-                    <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider ml-1">Email</label>
-                    <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-                        <input 
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => setFormData({...formData, email: e.target.value})}
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:border-gray-900 dark:focus:border-white focus:ring-1 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600"
-                            placeholder="name@example.com"
-                        />
-                    </div>
-                </div>
-
-                <div className="space-y-1">
-                    <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider ml-1">
-                        {isGeg ? 'Fjalëkalimi' : 'Password'}
-                    </label>
-                    <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-                        <input 
-                            type="password"
-                            value={formData.password}
-                            onChange={(e) => setFormData({...formData, password: e.target.value})}
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:border-gray-900 dark:focus:border-white focus:ring-1 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600"
-                            placeholder="••••••••"
-                        />
-                    </div>
-                </div>
-
-                {mode === 'register' && (
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider ml-1">
-                            {isGeg ? 'Konfirmoni Fjalëkalimin' : 'Confirm Password'}
-                        </label>
-                        <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-                            <input 
-                                type="password"
-                                value={formData.confirmPassword}
-                                onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                                className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:border-gray-900 dark:focus:border-white focus:ring-1 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600"
-                                placeholder="••••••••"
-                            />
-                        </div>
-                    </div>
-                )}
-
-                <button 
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold text-lg hover:bg-black dark:hover:bg-gray-200 transition-all shadow-lg flex items-center justify-center gap-2 mt-4"
-                >
-                    {isLoading ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                        mode === 'login' ? (isGeg ? 'Hini' : 'Login') : (isGeg ? 'Regjistrohu' : 'Register')
-                    )}
-                </button>
-            </form>
-
-            <div className="px-8 pb-6 text-center">
-                <div className="relative mb-6">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
-                    </div>
-                    <div className="relative flex justify-center text-xs">
-                        <span className="bg-white dark:bg-gray-900 px-2 text-gray-400 font-bold uppercase tracking-wider">Demo Access</span>
-                    </div>
-                </div>
-                
-                <button 
-                    type="button"
-                    onClick={handleAdminLogin}
-                    className="w-full py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-xl font-bold text-sm hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border border-indigo-200 dark:border-indigo-800 flex items-center justify-center gap-2"
-                >
-                    <Zap className="w-4 h-4 fill-current text-yellow-500" />
-                    {isGeg ? 'Hini: Modi i Zotit (Admin)' : 'Login: God Mode (Admin)'}
-                </button>
-            </div>
-
-            <div className="p-6 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 text-center">
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                    {mode === 'login' 
-                        ? (isGeg ? 'Nuk keni llogari?' : "Don't have an account?") 
-                        : (isGeg ? 'Keni llogari?' : "Already have an account?")}
-                    {' '}
+                    <h2 className="text-2xl font-bold dark:text-white mb-2">Hardware Required</h2>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">
+                        Administrator credentials detected. Please use your FIDO2 security key to proceed.
+                    </p>
                     <button 
-                        onClick={() => {
-                            setMode(mode === 'login' ? 'register' : 'login');
-                            setError(null);
-                            setFormData({ name: '', email: '', password: '', confirmPassword: '' });
-                        }}
-                        className="font-bold text-gray-900 dark:text-white hover:underline"
+                        onClick={handleMFAChallenge}
+                        disabled={isLoading}
+                        className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all shadow-xl"
                     >
-                        {mode === 'login' 
-                            ? (isGeg ? 'Regjistrohu' : 'Sign up') 
-                            : (isGeg ? 'Hini' : 'Log in')}
+                        {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <><ShieldCheck className="w-6 h-6" /> Authenticate Key</>}
                     </button>
-                </p>
-            </div>
+                </div>
+            ) : (
+                <>
+                <div className="p-10 text-center bg-gray-50 dark:bg-gray-950/50 border-b border-gray-100 dark:border-gray-800">
+                    <div className="inline-flex p-4 bg-slate-900 rounded-3xl border border-slate-700 shadow-xl mb-4">
+                        <Key className="w-8 h-8 text-emerald-400" />
+                    </div>
+                    <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Sign In</h2>
+                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest mt-2">Secure Connection Active</p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="p-10 space-y-6">
+                    <div className="space-y-4">
+                        <div className="relative">
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <input 
+                                className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl outline-none focus:border-albanian-red transition-all dark:text-white"
+                                placeholder="Corporate ID / Email"
+                                type="email"
+                                value={formData.email}
+                                onChange={e => setFormData({...formData, email: e.target.value})}
+                                required
+                            />
+                        </div>
+                        <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <input 
+                                className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl outline-none focus:border-albanian-red transition-all dark:text-white"
+                                placeholder="Passphrase"
+                                type="password"
+                                value={formData.password}
+                                onChange={e => setFormData({...formData, password: e.target.value})}
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <button 
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-lg hover:bg-black active:scale-95 transition-all shadow-2xl flex items-center justify-center gap-2"
+                    >
+                        {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Sign In"}
+                    </button>
+                    
+                    <div className="flex items-center justify-center gap-2 text-[10px] font-black text-gray-400 uppercase">
+                        <Shield className="w-3 h-3" /> Swiss-Banking Grade Security
+                    </div>
+                </form>
+                </>
+            )}
         </div>
     </div>
   );

@@ -1,0 +1,22 @@
+
+{
+  "name": "Gegenisht - The Geg Dictionary",
+  "short_name": "Gegenisht",
+  "description": "Preserving the richness of the Northern Albanian language offline.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fcfbf7",
+  "theme_color": "#980000",
+  "icons": [
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/3/36/Albert_Einstein_1947.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/3/36/Albert_Einstein_1947.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}

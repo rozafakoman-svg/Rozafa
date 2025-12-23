@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ScrollText, ShieldAlert, BookOpen, GraduationCap, ArrowRight, Shield, Anchor } from './Icons';
 import { Language } from '../types';
@@ -7,50 +8,49 @@ interface HistoryPageProps {
 }
 
 const translations = {
-// ... existing code ...
   eng: {
     hero_badge: "The Silent Years (1944–1990)",
     hero_title: "The Suppression of a Voice",
-    hero_desc: "How a totalitarian regime tried to silence the Geg literary tradition and impose a unified standard for political control.",
+    hero_desc: "How a totalitarian regime tried to silence the Geg people's literary tradition and impose a unified standard for political control.",
     sec_1_title: "The Iron Curtain Falls",
-    sec_1_p1: "On <strong>November 29, 1944</strong>, the communist partisans took control of Albania, initiating one of the most isolationist and repressive totalitarian regimes in modern history. Under the leadership of Enver Hoxha, the country was sealed off from the world.",
-    sec_1_p2: "This date marked the beginning of a systematic persecution of intellectuals, clergy, and writers—particularly those from the Catholic North (Geg region)—who were seen as threats to the new ideology. The rich literary tradition of Shkodra and the north was immediately targeted.",
+    sec_1_p1: "On <strong>November 29, 1944</strong>, the communist partisans took control of Albania, initiating one of the most isolationist and repressive totalitarian regimes in modern history. Under the leadership of Enver Hoxha, the Geg people's cultural autonomy was immediately threatened.",
+    sec_1_p2: "This date marked the beginning of a systematic persecution of intellectuals, clergy, and writers—particularly those belonging to the <strong>Geg community</strong>—who were seen as threats to the new ideology. The rich literary tradition of the Geg people was immediately targeted for erasure.",
     sec_2_title: "The Congress of Orthography",
     sec_2_p1: "In 1972, the regime convened the \"Congress of Orthography\" in Tirana to establish a unified \"Standard Albanian\" language.",
-    sec_2_p2: "While officially presented as a unifying national project, the standardization was heavily biased towards the <strong>Tosk dialect</strong> (spoken in the south, the leader's region). The <strong>Geg language</strong>—spoken by the majority of Albanians—was effectively demoted to a \"dialect\" and banned from official use, schools, and media.",
+    sec_2_p2: "While officially presented as a unifying national project, the standardization was heavily biased towards the <strong>Tosk tradition</strong>. The <strong>Geg language</strong>—the native tongue of the Geg people—was effectively marginalized and removed from official use, schools, and media.",
     sec_2_li1: "<strong>Literary Erasure:</strong> Works by Geg masters like Gjergj Fishta (the \"Albanian Homer\") were banned.",
-    sec_2_li2: "<strong>Forced Assimilation:</strong> Northern writers were forced to write in Standard Tosk or face censorship.",
-    sec_2_li3: "<strong>Political Tool:</strong> Language became a tool of control, stripping the north of its cultural identity and political power.",
-    sec_2_p3: "This was not merely a linguistic reform but a calculated political act to consolidate power and erase the cultural memory of the north, which historically held strong anti-communist sentiments.",
+    sec_2_li2: "<strong>Forced Assimilation:</strong> Geg writers were forced to write in Standard Tosk or face censorship.",
+    sec_2_li3: "<strong>Political Tool:</strong> Language became a tool of control, stripping the Geg people of their cultural identity and historical voice.",
+    sec_2_p3: "This was not merely a linguistic reform but a calculated political act to consolidate power and erase the cultural memory of the Geg people, who historically held strong anti-totalitarian sentiments.",
     sec_3_title: "Prisons of the Mind and Body",
-    sec_3_p1: "The suppression of language went hand-in-hand with physical atrocities. Notorious prisons like <strong>Spaç</strong> and <strong>Burrel</strong> became the graveyards of the nation's intelligentsia.",
-    sec_3_p2: "Writers like <strong>At Zef Pllumi</strong> (author of <em>Live to Tell</em>) spent decades in labor camps merely for their religious and cultural beliefs. Others were executed without trial. The regime sought to create a \"New Man\" stripped of past, religion, and regional identity.",
-    sec_3_quote: "\"They wanted to kill our words so we could not speak, but they forgot that roots grow deepest in the dark.\"",
+    sec_3_p1: "The suppression of language went hand-in-hand with physical atrocities. Notorious prisons like <strong>Spaç</strong> and <strong>Burrel</strong> became the graveyards of the Geg intelligentsia.",
+    sec_3_p2: "Geg thinkers like <strong>At Zef Pllumi</strong> (author of <em>Live to Tell</em>) spent decades in labor camps merely for their religious and cultural beliefs. The regime sought to create a \"New Man\" stripped of Geg heritage, religion, and ancestral identity.",
+    sec_3_quote: "\"They wanted to kill our words so we could not speak, but they forgot that the Geg roots grow deepest in the dark.\"",
     sec_4_title: "The Fall and Rebirth",
-    sec_4_p1: "With the fall of the regime in the early 1990s, the \"forbidden works\" began to resurface. The Geg literary tradition, preserved in secret manuscripts and oral memory, exploded back into life.",
-    sec_4_p2: "Today, we acknowledge Standard Albanian as the official language of the state, but we honor <strong>Geg</strong> as a distinct, vibrant, and equal language of the Albanian people—one that survived half a century of silence."
+    sec_4_p1: "With the fall of the regime in the early 1990s, the \"forbidden works\" of the Geg people began to resurface. The Geg literary tradition, preserved in secret manuscripts and oral memory, exploded back into life.",
+    sec_4_p2: "Today, we acknowledge Standard Albanian as the official language of the state, but we honor <strong>Geg</strong> as the living language of the Geg people—one that survived half a century of institutional silence."
   },
   geg: {
     hero_badge: "Vitet e Heshtjes (1944–1990)",
     hero_title: "Shtypja e nji Zâni",
-    hero_desc: "Si regjimi totalitar u mundue me heshtë traditën letrare Gege dhe me imponue nji standard për kontroll politik dhe me shketerrue Gjuhen Shqipe.",
+    hero_desc: "Si regjimi totalitar u mundue me heshtë traditën letrare të popullit Geg dhe me imponue nji standard për kontroll politik.",
     sec_1_title: "Perdja e Hekurt Bie",
-    sec_1_p1: "Më <strong>29 Nandor 1944</strong>, partizanët komunistë morën kontrollin e Shqipnisë, tuj fillue nji nga regjimet totalitare ma izoluese dhe shtypëse në historinë moderne. Nën udhëheqjen e Enver Hoxhës, vendi u mbyll nga bota.",
-    sec_1_p2: "Kjo datë shënoi fillimin e nji persekutimi sistematik të intelektualëve, klerit dhe shkrimtarëve—veçanërisht atyne nga Veriu Katolik (krahina Gege)—qi shiheshin si kërcënim për ideologjinë e re. Tradita e pasun letrare e Shkodrës dhe e veriut u shënjestrua menjiherë.",
+    sec_1_p1: "Më <strong>29 Nandor 1944</strong>, partizanët komunistë morën kontrollin e Shqipnisë, tuj fillue nji nga regjimet totalitare ma shtypëse. Autonomia kulturore e popullit Geg u rrezikue menjiherë.",
+    sec_1_p2: "Kjo datë shënoi fillimin e nji persekutimi sistematik të intelektualëve, klerit dhe shkrimtarëve—veçanërisht atyne nga <strong>bashkësia Gege</strong>—qi shiheshin si kërcënim për ideologjinë e re. Tradita e pasun letrare e Gegëve u shënjestrua për asgjësim.",
     sec_2_title: "Kongresi i Drejtshkrimit",
     sec_2_p1: "Në 1972, regjimi mblodhi \"Kongresin e Drejtshkrimit\" në Tiranë për me vendosë nji gjuhë të unifikueme \"Standarde Shqipe\".",
-    sec_2_p2: "Ndërsa zyrtarisht u paraqit si nji projekt kombëtar bashkues, standardizimi ishte randë i anshëm drejt <strong>dialektit toskë</strong> (i folun në jug, krahina e udhëheqësit). <strong>Gjuha Gege</strong>—e folun nga shumica e shqiptarëve—u zhvlerësue efektivisht në nji \"dialekt\" dhe u ndalue nga përdorimi zyrtar, shkollat dhe mediat.",
-    sec_2_li1: "<strong>Fshirja Letrare:</strong> Veprat e mjeshtrave Gegë si Gjergj Fishta (\"Homeri Shqiptar\") u ndaluen.",
-    sec_2_li2: "<strong>Asimilimi i Detyruem:</strong> Shkrimtarët e veriut u detyruen me shkrue në Standardin Tosk ose përballeshin me censurë.",
-    sec_2_li3: "<strong>Mjet Politik:</strong> Gjuha u bâ mjet kontrolli, tuj zhveshë veriun nga identiteti i tij kulturor dhe fuqia politike.",
-    sec_2_p3: "Kjo nuk ishte thjesht nji reformë gjuhësore, por nji akt politik i llogaritun për me konsolidue pushtetin dhe me fshi kujtesën kulturore të veriut, i cili historikisht kishte ndjenja të forta antikomuniste.",
+    sec_2_p2: "Ndërsa zyrtarisht u paraqit si projekt bashkues, standardizimi ishte randë i anshëm drejt traditës toske. <strong>Gjuha Gege</strong>—gjuha amtare e popullit Geg—u margjinalizue efektivisht dhe u ndalue nga përdorimi zyrtar.",
+    sec_2_li1: "<strong>Fshirja Letrare:</strong> Veprat e mjeshtrave Gegë si Gjergj Fishta u ndaluen.",
+    sec_2_li2: "<strong>Asimilimi i Detyruem:</strong> Shkrimtarët Gegë u detyruen me shkrue në Standardin Tosk ose përballeshin me censurë.",
+    sec_2_li3: "<strong>Mjet Politik:</strong> Gjuha u bâ mjet kontrolli, tuj zhveshë Gegët nga identiteti i tyne kulturor dhe zâni historik.",
+    sec_2_p3: "Kjo nuk ishte thjesht nji reformë gjuhësore, por nji akt politik i llogaritun për me fshi kujtesën kulturore të popullit Geg.",
     sec_3_title: "Burgjet e Mendjes dhe Trupit",
-    sec_3_p1: "Shtypja e gjuhës shkoi dorë për dore me mizoritë fizike. Burgjet famëkeqe si <strong>Spaç</strong> dhe <strong>Burrel</strong> u bânë varrezat e inteligjencës së kombit.",
-    sec_3_p2: "Shkrimtarë si <strong>At Zef Pllumi</strong> (autori i <em>Rrno vetëm për me tregue</em>) kaluen dekada në kampe pune thjesht për besimet e tyne fetare dhe kulturore. Të tjerë u ekzekutuen pa gjyq. Regjimi kërkonte me krijue \"Njeriun e Ri\" të zhveshun nga e kaluemja, feja dhe identiteti rajonal.",
-    sec_3_quote: "\"Deshtën me na vra fjalët qi mos me mujtë me folë, por harruen qi rranjët rriten ma thellë në terr.\"",
+    sec_3_p1: "Shtypja e gjuhës shkoi dorë për dore me mizoritë fizike. Burgjet si <strong>Spaç</strong> dhe <strong>Burrel</strong> u bânë varrezat e inteligjencës Gege.",
+    sec_3_p2: "Mendimtarët Gegë si <strong>At Zef Pllumi</strong> kaluen dekada në kampe pune. Regjimi kërkonte me krijue nji \"Njeri të Ri\" të zhveshun nga trashëgimia Gege, feja dhe identiteti i tyne.",
+    sec_3_quote: "\"Deshtën me na vra fjalët qi mos me mujtë me folë, por harruen qi rranjët e Gegnisë rriten ma thellë në terr.\"",
     sec_4_title: "Randa dhe Rilindja",
-    sec_4_p1: "Me rënien e regjimit në fillim të viteve 1990, \"veprat e ndalueme\" filluen me dalë në dritë. Tradita letrare Gege, e ruajtun në dorëshkrime të fshehta dhe kujtesën gojore, shpërtheu përsëri në jetë.",
-    sec_4_p2: "Sot, na e njohim Shqipen Standarde si gjuhën zyrtare të shtetit, por e nderojmë <strong>Gegenishten</strong> si nji gjuhë të veçantë, të gjallë dhe të barabartë të popullit shqiptar—nji gjuhë qi i mbijetoi gjysëm shekulli heshtje."
+    sec_4_p1: "Me rënien e regjimit në fillim të viteve 1990, veprat e ndalueme të popullit Geg filluen me dalë në dritë.",
+    sec_4_p2: "Sot, na e njohim Shqipen Standarde si gjuhën zyrtare, por e nderojmë <strong>Gegenishten</strong> si gjuhën e gjallë të popullit Geg—nji gjuhë qi i mbijetoi gjysëm shekulli heshtje."
   }
 };
 
