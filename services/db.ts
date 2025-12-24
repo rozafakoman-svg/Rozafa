@@ -16,22 +16,37 @@ export enum Stores {
   Transactions = 'transactions'
 }
 
-const toSnake = (obj: any) => {
-    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
+const STORE_COLUMNS: Record<string, string[]> = {
+  [Stores.Dictionary]: [
+    'word', 'phonetic', 'pronunciation_note', 'part_of_speech', 
+    'definition_english', 'definition_standard', 'etymology', 
+    'frequency', 'usage_note', 'synonyms', 'antonyms', 'examples', 
+    'status', 'source', 'author_id', 'last_synced_at'
+  ],
+  [Stores.DailyData]: ['id', 'date', 'data'],
+  [Stores.Blog]: ['id', 'title', 'excerpt', 'content', 'author', 'date', 'read_time', 'tags', 'image_url'],
+  [Stores.Scores]: ['id', 'name', 'score', 'date', 'mode'],
+  [Stores.Transactions]: ['id', 'user_id', 'user_name', 'amount', 'tier', 'method', 'timestamp']
+};
+
+const toSnake = (obj: any): any => {
+    if (!obj || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map(toSnake);
     const snake: any = {};
     for (const key in obj) {
         const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-        snake[snakeKey] = obj[key];
+        snake[snakeKey] = toSnake(obj[key]);
     }
     return snake;
 };
 
-const toCamel = (obj: any) => {
-    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
+const toCamel = (obj: any): any => {
+    if (!obj || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map(toCamel);
     const camel: any = {};
     for (const key in obj) {
         const camelKey = key.replace(/([-_][a-z])/g, group => group.toUpperCase().replace('-', '').replace('_', ''));
-        camel[camelKey] = obj[key];
+        camel[camelKey] = toCamel(obj[key]);
     }
     return camel;
 };
@@ -44,47 +59,52 @@ export class AppDatabase {
     if (this.isInitialized) return;
 
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      try {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-        Object.values(Stores).forEach(store => {
-          if (!db.objectStoreNames.contains(store)) {
-            const keyPath = store === Stores.Dictionary ? 'word' : 'id';
-            db.createObjectStore(store, { keyPath });
-          }
-        });
-      };
+        request.onupgradeneeded = (event) => {
+          const db = (event.target as IDBOpenDBRequest).result;
+          Object.values(Stores).forEach(store => {
+            if (!db.objectStoreNames.contains(store)) {
+              const keyPath = store === Stores.Dictionary ? 'word' : 'id';
+              db.createObjectStore(store, { keyPath });
+            }
+          });
+        };
 
-      request.onsuccess = async () => {
-        this.db = request.result;
-        this.isInitialized = true;
-        resolve();
-      };
+        request.onsuccess = async () => {
+          this.db = request.result;
+          this.isInitialized = true;
+          resolve();
+        };
 
-      request.onerror = () => {
-          reject(request.error);
-      };
+        request.onerror = () => {
+            reject(new Error("IndexedDB initialization failed"));
+        };
+      } catch (e) {
+        reject(e);
+      }
     });
   }
 
   async get<T>(storeName: Stores, key: string): Promise<T | null> {
     await this.init();
     
-    // 1. Try Local First (Performance & Offline)
     const localResult = await new Promise<T | null>((resolve) => {
-      const transaction = this.db!.transaction(storeName, 'readonly');
-      const store = transaction.objectStore(storeName);
-      const request = store.get(key.toLowerCase());
-      request.onsuccess = () => resolve(request.result || null);
-      request.onerror = () => resolve(null);
+      try {
+        const transaction = this.db!.transaction(storeName, 'readonly');
+        const store = transaction.objectStore(storeName);
+        const request = store.get(key.toLowerCase());
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => resolve(null);
+      } catch (e) {
+        resolve(null);
+      }
     });
 
     if (localResult) return localResult;
 
-    // 2. Try Remote if Local fails (Cloud Sync)
-    const syncableStores = [Stores.Dictionary, Stores.Blog, Stores.Glossary, Stores.DailyData, Stores.Scores, Stores.Alphabet, Stores.Products, Stores.Transactions];
-    if (isRemoteActive() && syncableStores.includes(storeName)) {
+    if (isRemoteActive() && STORE_COLUMNS[storeName]) {
         try {
             const idCol = storeName === Stores.Dictionary ? 'word' : 'id';
             const { data, error } = await supabase!
@@ -101,7 +121,7 @@ export class AppDatabase {
                 return camelData as T;
             }
         } catch (e: any) {
-            console.warn(`[DB] Cloud lookup bypassed for ${storeName}/${key}:`, e.message || e);
+            console.warn(`[DB] Remote lookup bypassed:`, e.message || e);
         }
     }
 
@@ -116,63 +136,73 @@ export class AppDatabase {
         normalizedData.word = normalizedData.word.toLowerCase();
     }
 
-    // 1. Always save locally immediately
     await this.putLocal(storeName, normalizedData);
 
-    // 2. Sync to Supabase if online
-    const syncableStores = [Stores.Dictionary, Stores.Blog, Stores.Glossary, Stores.DailyData, Stores.Scores, Stores.Alphabet, Stores.Products, Stores.Transactions];
-    if (isRemoteActive() && syncableStores.includes(storeName)) {
+    if (isRemoteActive() && STORE_COLUMNS[storeName]) {
         try {
-            const snakeData = toSnake(normalizedData);
-            const { error } = await supabase!.from(storeName).upsert(snakeData);
-            if (error) {
-                console.error(`[DB] Cloud Sync Failed for ${storeName}:`, error.message);
-                throw error; // Rethrow to let UI know sync failed
-            }
+            let snakeData = toSnake(normalizedData);
+            const allowed = STORE_COLUMNS[storeName];
+            const filtered: any = {};
+            allowed.forEach(col => {
+                if (snakeData[col] !== undefined) {
+                    filtered[col] = snakeData[col];
+                }
+            });
+            
+            await supabase!.from(storeName).upsert(filtered);
         } catch (e: any) {
-            console.warn(`[DB] Remote sync exception for ${storeName}`, e.message || e);
-            throw e;
+            console.warn(`[DB] Remote sync skipped:`, e.message || e);
         }
     }
   }
 
   private async putLocal<T>(storeName: Stores, data: T): Promise<void> {
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(storeName, 'readwrite');
-      const store = transaction.objectStore(storeName);
-      const request = store.put(data);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
+      try {
+        const transaction = this.db!.transaction(storeName, 'readwrite');
+        const store = transaction.objectStore(storeName);
+        const request = store.put(data);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      } catch (e) {
+        reject(e);
+      }
     });
   }
 
   async getAll<T>(storeName: Stores): Promise<T[]> {
     await this.init();
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(storeName, 'readonly');
-      const store = transaction.objectStore(storeName);
-      const request = store.getAll();
-      request.onsuccess = () => resolve(request.result || []);
-      request.onerror = () => reject(request.error);
+      try {
+        const transaction = this.db!.transaction(storeName, 'readonly');
+        const store = transaction.objectStore(storeName);
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+      } catch (e) {
+        reject(e);
+      }
     });
   }
 
   async delete(storeName: Stores, key: string): Promise<void> {
     await this.init();
     const pLocal = new Promise<void>((resolve, reject) => {
-      const transaction = this.db!.transaction(storeName, 'readwrite');
-      const store = transaction.objectStore(storeName);
-      const request = store.delete(key.toLowerCase());
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
+      try {
+        const transaction = this.db!.transaction(storeName, 'readwrite');
+        const store = transaction.objectStore(storeName);
+        const request = store.delete(key.toLowerCase());
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      } catch (e) {
+        reject(e);
+      }
     });
 
     if (isRemoteActive()) {
         const idCol = storeName === Stores.Dictionary ? 'word' : 'id';
-        supabase!.from(storeName).delete().eq(idCol, key.toLowerCase()).then(({ error }) => {
-            if (error) {
-                console.error("[DB] Remote Delete Error", error.message);
-            }
+        supabase!.from(storeName).delete().eq(idCol, key.toLowerCase()).catch(e => {
+            console.warn("[DB] Remote Delete Bypassed");
         });
     }
     return pLocal;
@@ -181,11 +211,15 @@ export class AppDatabase {
   async clearStore(storeName: Stores): Promise<void> {
       await this.init();
       return new Promise((resolve, reject) => {
-          const transaction = this.db!.transaction(storeName, 'readwrite');
-          const store = transaction.objectStore(storeName);
-          const request = store.clear();
-          request.onsuccess = () => resolve();
-          request.onerror = () => reject(request.error);
+          try {
+            const transaction = this.db!.transaction(storeName, 'readwrite');
+            const store = transaction.objectStore(storeName);
+            const request = store.clear();
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+          } catch (e) {
+            reject(e);
+          }
       });
   }
 

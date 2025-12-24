@@ -1,8 +1,10 @@
 
 export type Language = 'geg' | 'eng';
 
-// Added View type for central navigation state management across components
-export type View = 'dictionary' | 'glossary' | 'thesaurus' | 'history' | 'podcast' | 'blog' | 'support' | 'community' | 'shop' | 'interjections' | 'alphabet' | 'forum' | 'admin' | 'map';
+// Central navigation state management
+export type View = 'dictionary' | 'glossary' | 'thesaurus' | 'history' | 'podcast' | 'blog' | 'support' | 'community' | 'shop' | 'interjections' | 'alphabet' | 'forum' | 'admin' | 'map' | 'faq';
+
+export type ModuleSettings = Record<string, boolean>;
 
 export interface ExampleSentence {
   original: string;
@@ -12,81 +14,63 @@ export interface ExampleSentence {
 
 export interface DictionaryEntry {
   word: string;
-  phonetic: string;
+  phonetic?: string;
+  pronunciationNote?: string;
   partOfSpeech: string;
   definitionEnglish: string;
   definitionStandard: string;
-  etymology: string;
-  etymologyImage?: string; // AI-generated illustration of origin
-  frequency?: number; // 0 to 100 hypothetical use frequency
-  usageNote?: string; // Short context about how often it's used
+  etymology?: string;
+  frequency: number;
+  usageNote: string;
   synonyms: string[];
-  antonyms?: string[];
+  antonyms: string[];
+  examples: ExampleSentence[];
   relatedWords?: string[];
   relatedPhrases?: string[];
-  examples: ExampleSentence[];
-  culturalNote?: string;
-  dialectRegion?: string;
-  grammarNotes?: string[];
-  customAudio?: string; 
-  pronunciationNote?: string;
-  isSealed?: boolean; // Security: entries can be sealed/encrypted
+  customAudio?: string;
+  status?: 'pending' | 'approved';
+  source?: 'ai' | 'user' | 'bulk';
+  authorId?: string;
+  lastSyncedAt?: string;
 }
 
-// Security & Compliance Types
-export interface SecurityAudit {
+export interface UserProfile {
   id: string;
-  timestamp: string;
-  event: string;
-  status: 'passed' | 'warning' | 'failed';
-  operator: string;
-  details: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'user';
+  level: number;
+  levelTitle: string;
+  levelTitleGeg: string;
+  points: number;
+  nextLevelPoints: number;
+  badges: Badge[];
+  contributions: number;
+  joinedDate: string;
+  tier?: string;
+  mfaEnabled?: boolean;
 }
 
-export interface SystemLog {
-  id: string;
-  timestamp: string;
-  level: 'info' | 'secure' | 'danger';
-  message: string;
-  action: string;
-  immutableHash: string; // Proof of integrity
-}
-
-export type VaultStatus = 'locked' | 'unlocked' | 'sealing' | 'quantum_secure';
-
-export interface GlossaryTerm {
-  word: string;
-  definition: string;
-  partOfSpeech: string;
-  origin?: string;
-}
+export type VaultStatus = 'locked' | 'unlocked' | 'quantum_secure';
 
 export interface QuizQuestion {
   question: string;
   options: string[];
-  correctAnswer: number; 
+  correctAnswer: number;
   explanation: string;
-}
-
-export interface SearchState {
-  isLoading: boolean;
-  error: string | null;
-  data: DictionaryEntry | null;
-}
-
-export interface CrosswordWord {
-  word: string;
-  clue: string;
-  startX: number;
-  startY: number;
-  direction: 'across' | 'down';
 }
 
 export interface CrosswordData {
   title: string;
   width: number;
   height: number;
-  words: CrosswordWord[];
+  words: {
+    word: string;
+    clue: string;
+    startX: number;
+    startY: number;
+    direction: string;
+  }[];
 }
 
 export interface AlphabetData {
@@ -98,25 +82,25 @@ export interface AlphabetData {
   imagePrompt: string;
 }
 
-export interface AlphabetLetter {
-  id: string;
-  char: string;
-  isNasal: boolean; 
-  isDigraph: boolean; 
-  ipa: string;
-  exampleWord: string;
-  exampleTranslation: string;
-  audioUrl?: string;
-  imageUrl?: string; 
-  description: string; 
+export interface GlossaryTerm {
+  word: string;
+  definition: string;
+  partOfSpeech: string;
+  origin?: string;
 }
 
-export interface GameScore {
-    id: string;
-    name: string;
-    score: number;
-    date: string;
-    mode: 'zen' | 'challenge';
+export type ContributionType = 'add_word' | 'suggest_edit' | 'report_error';
+
+export interface PodcastEpisode {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  date: string;
+  topic: string;
+  isLive?: boolean;
+  comments: PodcastComment[];
+  host?: string;
 }
 
 export interface PodcastComment {
@@ -126,39 +110,89 @@ export interface PodcastComment {
   timestamp: string;
 }
 
-export interface PodcastEpisode {
-  id: string;
-  title: string;
-  description: string;
-  duration: string;
-  date: string;
-  topic: string; 
-  audioUrl?: string; 
-  isLive?: boolean;
-  comments: PodcastComment[];
-  host?: string;
-}
-
 export interface BlogPost {
   id: string;
   title: string;
   excerpt: string;
-  content: string; 
+  content: string;
   author: string;
   date: string;
+  timestamp: number;
   readTime: string;
   tags: string[];
   imageUrl?: string;
 }
 
-export interface ForumComment {
+export interface Badge {
   id: string;
-  postId: string;
-  author: string;
-  role?: 'admin' | 'moderator' | 'user';
-  content: string;
-  date: string;
-  upvotes: number;
+  name: string;
+  nameGeg: string;
+  iconName: string;
+  description: string;
+  descriptionGeg: string;
+  color: string;
+  earned: boolean;
+}
+
+export interface Transaction {
+  id: string;
+  userId: string;
+  userName: string;
+  amount: number;
+  tier: string;
+  method: 'stripe' | 'paypal';
+  timestamp: string;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  nameGeg: string;
+  description: string;
+  price: number;
+  category: string;
+  imageIcon: string;
+  imageUrl?: string;
+  imagePrompt?: string;
+  color?: string;
+  rating?: number;
+  reviews?: number;
+}
+
+export interface SecurityAudit {
+  id: string;
+  event: string;
+  timestamp: string;
+  severity: 'low' | 'medium' | 'high';
+}
+
+export interface SystemLog {
+  id: string;
+  message: string;
+  timestamp: string;
+  type: 'info' | 'error' | 'warning';
+}
+
+export interface InterjectionEntry {
+  word: string;
+  origin: string;
+  meaning: string;
+  usage: string;
+  example: string;
+  tags: string[];
+}
+
+export interface AlphabetLetter {
+  id: string;
+  char: string;
+  isNasal: boolean;
+  isDigraph: boolean;
+  ipa: string;
+  exampleWord: string;
+  exampleTranslation: string;
+  description: string;
+  imageUrl?: string;
+  audioUrl?: string;
 }
 
 export interface ForumPost {
@@ -176,81 +210,20 @@ export interface ForumPost {
   pinned?: boolean;
 }
 
-export type ContributionType = 'report_error' | 'suggest_edit' | 'add_word';
-
-export interface PendingContribution {
+export interface ForumComment {
   id: string;
-  type: ContributionType;
-  user: string;
-  word?: string;
-  details: string; 
-  timestamp: string;
-  status: 'pending' | 'approved' | 'rejected';
+  postId: string;
+  author: string;
+  content: string;
+  date: string;
+  upvotes: number;
+  role?: 'admin' | 'moderator' | 'user';
 }
 
-export interface Badge {
+export interface GameScore {
   id: string;
   name: string;
-  nameGeg: string;
-  iconName: string; 
-  description: string;
-  descriptionGeg: string;
-  color: string;
-  earned: boolean;
-}
-
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string; 
-  role: string;
-  tier?: string; 
-  level: number;
-  levelTitle: string;
-  levelTitleGeg: string;
-  points: number;
-  nextLevelPoints: number;
-  badges: Badge[];
-  contributions: number;
-  joinedDate: string;
-  mfaEnabled?: boolean;
-  lastLoginSecurityAudit?: string;
-}
-
-export interface Product {
-  id: string;
-  name: string;
-  nameGeg: string;
-  description: string;
-  price: number;
-  category: 'souvenir' | 'digital' | 'apparel' | 'corporate';
-  imageIcon: string; 
-  color: string;
-}
-
-export interface Transaction {
-  id: string;
-  userId: string;
-  userName: string;
-  amount: number;
-  tier: string;
-  method: 'stripe' | 'paypal';
-  timestamp: string;
-}
-
-export interface FinancialRecord {
-  month: string;
-  revenue: number; 
-  expenses: number; 
-  profit: number; 
-  transactions: number;
-}
-
-export interface InterjectionEntry {
-  word: string;
-  origin: 'Turkish' | 'Slavic' | 'Latin/Italian' | 'International/Albanized' | 'Native Geg';
-  meaning: string;
-  usage: string;
-  example: string;
-  tags: string[];
+  score: number;
+  date: string;
+  mode: 'zen' | 'challenge';
 }

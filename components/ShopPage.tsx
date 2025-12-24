@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Product, Language } from '../types';
-/* Added ArrowLeft to imports to fix find name error */
-import { ShoppingBag, Star, CheckCircle, Loader2, Package, Sparkles, Crown, Megaphone, ShoppingCart, Filter, Heart, X, Search, ArrowRight, Trash2, CreditCard, Lock, ArrowLeft } from './Icons';
+import { ShoppingBag, Star, CheckCircle, Loader2, Package, Sparkles, Crown, Megaphone, ShoppingCart, Filter, Heart, X, Search, ArrowRight, Trash2, CreditCard, Lock, ArrowLeft, Image as ImageIcon } from './Icons';
 import { db, Stores } from '../services/db';
+import { fetchProductVisual } from '../services/geminiService';
 
 interface ShopPageProps {
   lang: Language;
@@ -15,7 +15,7 @@ interface ShopPageProps {
 
 type CheckoutStep = 'cart' | 'method' | 'stripe' | 'paypal' | 'processing' | 'success';
 
-const INITIAL_MOCK_PRODUCTS: (Product & { rating: number, reviews: number })[] = [
+const INITIAL_MOCK_PRODUCTS: Product[] = [
   {
     id: 'p1',
     name: 'Geg Language T-Shirt',
@@ -24,6 +24,7 @@ const INITIAL_MOCK_PRODUCTS: (Product & { rating: number, reviews: number })[] =
     price: 25.00,
     category: 'apparel',
     imageIcon: 'tshirt',
+    imagePrompt: 'A premium black t-shirt with white text saying "Flas Gegnisht" in an elegant font, folded neatly on a white surface.',
     color: 'bg-gradient-to-br from-red-50 to-red-100 text-red-600',
     rating: 4.8,
     reviews: 124
@@ -36,18 +37,20 @@ const INITIAL_MOCK_PRODUCTS: (Product & { rating: number, reviews: number })[] =
     price: 15.00,
     category: 'souvenir',
     imageIcon: 'mug',
+    imagePrompt: 'A minimalist white ceramic coffee mug with a traditional Albanian Besa eagle symbol etched in black, studio lighting.',
     color: 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-600',
     rating: 4.9,
     reviews: 89
   },
   {
     id: 'p5',
-    name: 'Lahuta e Malcis (Special Ed.)',
-    nameGeg: 'Lahuta e Malcís (Botim Special)',
+    name: 'Lahuta e Malcís',
+    nameGeg: 'Lahuta e Malcís',
     description: 'Hardcover collector\'s edition of Fishta\'s masterpiece with modern Geg commentary and illustrations.',
-    price: 45.00,
+    price: 99.00,
     category: 'souvenir',
     imageIcon: 'book',
+    imagePrompt: 'A luxurious hardcover book titled "Lahuta e Malcís" with gold foil ornaments on the cover, premium leather texture.',
     color: 'bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600',
     rating: 5.0,
     reviews: 210
@@ -61,15 +64,12 @@ const ShopPage: React.FC<ShopPageProps> = ({ lang, cartItems, onAddToCart, onRem
   const [activeCategory, setActiveCategory] = useState<'all' | 'apparel' | 'souvenir' | 'digital' | 'corporate'>('all');
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
+  const [isGeneratingVisuals, setIsGeneratingVisuals] = useState(false);
   
-  // Checkout State Machine
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>('cart');
-  
-  // Simulated Card Data
   const [cardData, setCardData] = useState({ name: '', number: '', expiry: '', cvc: '' });
 
-  /* Categories definition for filtering display */
   const categories = [
     { id: 'all', label: isGeg ? 'Të Gjitha' : 'All' },
     { id: 'apparel', label: isGeg ? 'Veshje' : 'Apparel' },
@@ -86,16 +86,44 @@ const ShopPage: React.FC<ShopPageProps> = ({ lang, cartItems, onAddToCart, onRem
     setIsLoading(true);
     try {
       const stored = await db.getAll<Product>(Stores.Products);
-      if (stored.length === 0) {
-        setProducts(INITIAL_MOCK_PRODUCTS);
-      } else {
-        setProducts(stored);
+      let activeProducts = stored.length === 0 ? INITIAL_MOCK_PRODUCTS : stored;
+      
+      const missingMocks = INITIAL_MOCK_PRODUCTS.filter(m => !activeProducts.find(ap => ap.id === m.id));
+      if (missingMocks.length > 0) {
+          activeProducts = [...activeProducts, ...missingMocks];
+      }
+
+      setProducts(activeProducts);
+      
+      // Auto-generate missing visuals in background
+      const missingVisuals = activeProducts.filter(p => !p.imageUrl && p.imagePrompt);
+      if (missingVisuals.length > 0) {
+          generateMissingVisuals(missingVisuals);
       }
     } catch (e) {
       setProducts(INITIAL_MOCK_PRODUCTS);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const generateMissingVisuals = async (targetProducts: Product[]) => {
+      setIsGeneratingVisuals(true);
+      for (const product of targetProducts) {
+          try {
+              if (product.imagePrompt) {
+                  const url = await fetchProductVisual(product.imagePrompt);
+                  const updatedProduct = { ...product, imageUrl: url };
+                  await db.put(Stores.Products, updatedProduct);
+                  setProducts(prev => prev.map(p => p.id === product.id ? updatedProduct : p));
+                  // Throttling to respect rate limits
+                  await new Promise(r => setTimeout(r, 1000));
+              }
+          } catch (e) {
+              console.warn(`Visual generation failed for ${product.id}`, e);
+          }
+      }
+      setIsGeneratingVisuals(false);
   };
 
   const filteredProducts = activeCategory === 'all' 
@@ -130,7 +158,6 @@ const ShopPage: React.FC<ShopPageProps> = ({ lang, cartItems, onAddToCart, onRem
 
   const processPaypalPayment = () => {
       setCheckoutStep('processing');
-      // Simulated Redirect Experience
       setTimeout(() => {
           setCheckoutStep('success');
           onClearCart();
@@ -141,15 +168,6 @@ const ShopPage: React.FC<ShopPageProps> = ({ lang, cartItems, onAddToCart, onRem
       setIsCartOpen(false);
       setCheckoutStep('cart');
       setCardData({ name: '', number: '', expiry: '', cvc: '' });
-  };
-
-  const renderProductIcon = (type: string) => {
-    switch (type) {
-      case 'tshirt': return <Package className="w-10 h-10" />;
-      case 'mug': return <ShoppingBag className="w-10 h-10" />;
-      case 'book': return <ShoppingBag className="w-10 h-10" />;
-      default: return <ShoppingBag className="w-10 h-10" />;
-    }
   };
 
   return (
@@ -177,251 +195,190 @@ const ShopPage: React.FC<ShopPageProps> = ({ lang, cartItems, onAddToCart, onRem
 
       {isCartOpen && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-fade-in">
-           <div className="bg-white dark:bg-gray-900 w-full max-md h-full shadow-2xl flex flex-col animate-slide-in-right relative">
-              <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                 <div className="flex items-center gap-2">
-                    {checkoutStep !== 'cart' && checkoutStep !== 'success' && (
-                        <button onClick={() => setCheckoutStep('method')} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full mr-2">
-                            <ArrowLeft className="w-5 h-5"/>
-                        </button>
-                    )}
-                    <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        {checkoutStep === 'cart' && <><ShoppingCart className="w-6 h-6 text-emerald-600" /> {isGeg ? 'Shporta' : 'Your Cart'}</>}
-                        {checkoutStep === 'method' && <><Lock className="w-6 h-6 text-indigo-600" /> {isGeg ? 'Pagesa' : 'Checkout'}</>}
-                        {checkoutStep === 'stripe' && <><CreditCard className="w-6 h-6 text-indigo-600" /> {isGeg ? 'Karta' : 'Pay by Card'}</>}
-                        {checkoutStep === 'paypal' && <><Package className="w-6 h-6 text-blue-600" /> {isGeg ? 'PayPal' : 'PayPal Checkout'}</>}
-                    </h2>
-                 </div>
-                 <button onClick={closeCart} className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-                    <X className="w-5 h-5 text-gray-500" />
+           <div className="bg-white dark:bg-gray-900 w-full max-w-md h-full shadow-2xl flex flex-col overflow-hidden">
+              <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                 <h3 className="text-xl font-bold dark:text-white flex items-center gap-2">
+                    <ShoppingCart className="w-5 h-5 text-emerald-600" /> {isGeg ? 'Shporta Juej' : 'Your Cart'}
+                 </h3>
+                 <button onClick={closeCart} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+                    <X className="w-6 h-6 text-gray-500" />
                  </button>
               </div>
 
-              {/* STEP: CART VIEW */}
-              {checkoutStep === 'cart' && (
-                  <>
-                    <div className="flex-grow overflow-y-auto p-6 space-y-4">
-                        {cartProducts.length === 0 ? (
-                            <div className="text-center py-12">
-                            <ShoppingBag className="w-16 h-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
-                            <p className="text-gray-500 dark:text-gray-400 font-medium">{isGeg ? 'Shporta âsht e zbrazët.' : 'Your cart is empty.'}</p>
-                            </div>
-                        ) : (
-                            cartProducts.map((item, index) => (
-                            <div key={`${item.id}-${index}`} className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700 group">
-                                <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-white ${item.color?.split(' ')[0] || 'bg-indigo-500'}`}>
-                                    <ShoppingBag className="w-6 h-6" /> 
+              <div className="flex-grow overflow-y-auto p-6">
+                 {checkoutStep === 'cart' ? (
+                    cartProducts.length === 0 ? (
+                       <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
+                          <Package className="w-16 h-16 mb-4" />
+                          <p className="font-bold">{isGeg ? 'Shporta asht e zbrazët' : 'Cart is empty'}</p>
+                       </div>
+                    ) : (
+                       <div className="space-y-6">
+                          {cartProducts.map((p, idx) => (
+                             <div key={idx} className="flex gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
+                                <div className="w-20 h-20 bg-white dark:bg-gray-700 rounded-xl overflow-hidden shrink-0 border border-gray-100 dark:border-gray-600">
+                                   {p.imageUrl ? (
+                                      <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                                   ) : (
+                                      <div className="w-full h-full flex items-center justify-center text-gray-300"><Package className="w-8 h-8" /></div>
+                                   )}
                                 </div>
-                                <div className="flex-grow min-w-0">
-                                    <h4 className="font-bold text-gray-900 dark:text-white truncate text-sm">{isGeg ? item.nameGeg : item.name}</h4>
-                                    <p className="text-emerald-600 font-bold text-xs">${item.price.toFixed(2)}</p>
+                                <div className="flex-grow">
+                                   <h4 className="font-bold dark:text-white">{isGeg ? p.nameGeg : p.name}</h4>
+                                   <div className="text-emerald-600 font-black">€{p.price.toFixed(2)}</div>
                                 </div>
-                                <button onClick={() => onRemoveFromCart(item.id)} className="p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-4 h-4" /></button>
-                            </div>
-                            ))
-                        )}
-                    </div>
-                    <div className="p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-                        <div className="flex justify-between items-center mb-6">
-                            <span className="text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider text-sm">{isGeg ? 'Totali' : 'Total'}</span>
-                            <span className="text-3xl font-black text-gray-900 dark:text-white">${totalPrice.toFixed(2)}</span>
-                        </div>
-                        <button 
-                            onClick={startCheckoutFlow} 
-                            disabled={cartItems.length === 0} 
-                            className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform disabled:opacity-50"
-                        >
-                           {isGeg ? 'Shko te Pagesa' : 'Continue to Payment'} <ArrowRight className="w-5 h-5"/>
-                        </button>
-                    </div>
-                  </>
-              )}
-
-              {/* STEP: PAYMENT METHOD SELECTION */}
-              {checkoutStep === 'method' && (
-                  <div className="p-8 space-y-6 flex-grow animate-fade-in">
-                      <p className="text-sm text-gray-500 mb-2">{isGeg ? 'Zgjidhni mënyrën e pagesës:' : 'Select payment method:'}</p>
-                      
-                      <button 
-                        onClick={() => setCheckoutStep('stripe')}
-                        className="w-full p-6 border-2 border-gray-100 dark:border-gray-800 rounded-2xl flex items-center justify-between hover:border-indigo-500 dark:hover:border-indigo-400 hover:bg-indigo-50/30 transition-all group"
-                      >
-                          <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
-                                  <CreditCard className="w-6 h-6"/>
-                              </div>
-                              <div className="text-left">
-                                  <p className="font-bold dark:text-white">{isGeg ? 'Kartë Krediti' : 'Credit / Debit Card'}</p>
-                                  <p className="text-xs text-gray-400">Visa, Mastercard, Amex</p>
-                              </div>
+                                <button onClick={() => onRemoveFromCart(p.id)} className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg self-start">
+                                   <Trash2 className="w-4 h-4" />
+                                </button>
+                             </div>
+                          ))}
+                       </div>
+                    )
+                 ) : checkoutStep === 'method' ? (
+                    <div className="space-y-4 pt-10">
+                       <button onClick={() => setCheckoutStep('stripe')} className="w-full p-6 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-2xl flex items-center gap-4 hover:border-emerald-500 transition-all group">
+                          <div className="p-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl text-emerald-600 group-hover:scale-110 transition-transform"><CreditCard className="w-6 h-6" /></div>
+                          <div className="text-left">
+                             <div className="font-bold dark:text-white">Stripe / Card</div>
+                             <div className="text-xs text-gray-400">Secure credit card payment</div>
                           </div>
-                          <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-indigo-500"/>
-                      </button>
-
-                      <button 
-                        onClick={() => setCheckoutStep('paypal')}
-                        className="w-full p-6 border-2 border-gray-100 dark:border-gray-800 rounded-2xl flex items-center justify-between hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50/30 transition-all group"
-                      >
-                          <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 bg-[#003087] rounded-xl flex items-center justify-center text-white shadow-lg">
-                                  <Package className="w-6 h-6"/>
-                              </div>
-                              <div className="text-left">
-                                  <p className="font-bold dark:text-white">PayPal</p>
-                                  <p className="text-xs text-gray-400">Fast and secure</p>
-                              </div>
+                       </button>
+                       <button onClick={processPaypalPayment} className="w-full p-6 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-2xl flex items-center gap-4 hover:border-[#003087] transition-all group">
+                          <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-[#003087] group-hover:scale-110 transition-transform"><Package className="w-6 h-6" /></div>
+                          <div className="text-left">
+                             <div className="font-bold dark:text-white">PayPal</div>
+                             <div className="text-xs text-gray-400">Checkout with your account</div>
                           </div>
-                          <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-blue-500"/>
-                      </button>
-                      
-                      <div className="pt-10 flex flex-col items-center gap-2 opacity-50">
-                         <div className="flex items-center gap-1 text-[10px] font-black uppercase text-gray-400 tracking-widest">
-                            <Lock className="w-3 h-3" /> Secure SSL Checkout
-                         </div>
-                         <p className="text-[10px] text-gray-400 max-w-[200px] text-center">All transactions are encrypted and processed securely by our global partners.</p>
-                      </div>
-                  </div>
-              )}
+                       </button>
+                    </div>
+                 ) : checkoutStep === 'stripe' ? (
+                    <form onSubmit={processStripePayment} className="space-y-6 pt-6">
+                       <div className="space-y-1">
+                          <label className="text-xs font-black uppercase text-gray-400 tracking-widest">Card Number</label>
+                          <input required className="w-full p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-emerald-500 dark:text-white" placeholder="0000 0000 0000 0000" />
+                       </div>
+                       <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                             <label className="text-xs font-black uppercase text-gray-400 tracking-widest">Expiry</label>
+                             <input required className="w-full p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-emerald-500 dark:text-white" placeholder="MM/YY" />
+                          </div>
+                          <div className="space-y-1">
+                             <label className="text-xs font-black uppercase text-gray-400 tracking-widest">CVC</label>
+                             <input required className="w-full p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-emerald-500 dark:text-white" placeholder="123" />
+                          </div>
+                       </div>
+                       <button type="submit" className="w-full py-4 bg-emerald-600 text-white rounded-xl font-black shadow-xl hover:bg-emerald-700 transition-all flex items-center justify-center gap-2">
+                          <Lock className="w-4 h-4" /> Pay €{totalPrice.toFixed(2)}
+                       </button>
+                    </form>
+                 ) : checkoutStep === 'processing' ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center">
+                       <Loader2 className="w-12 h-12 text-emerald-600 animate-spin mb-4" />
+                       <p className="font-bold text-gray-500">{isGeg ? 'Tuj e procesue...' : 'Processing payment...'}</p>
+                    </div>
+                 ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-center animate-scale-in">
+                       <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-6">
+                          <CheckCircle className="w-10 h-10 text-emerald-600" />
+                       </div>
+                       <h2 className="text-2xl font-bold dark:text-white mb-2">{isGeg ? 'Pagesa u Krye!' : 'Payment Success!'}</h2>
+                       <p className="text-gray-500 dark:text-gray-400">{isGeg ? 'Ju faleminderit për mbështetjen e projektit.' : 'Thank you for supporting the project.'}</p>
+                    </div>
+                 )}
+              </div>
 
-              {/* STEP: STRIPE FORM */}
-              {checkoutStep === 'stripe' && (
-                  <div className="p-8 flex-grow animate-fade-in">
-                      <form onSubmit={processStripePayment} className="space-y-6">
-                         <div>
-                            <label className="text-xs font-black uppercase text-gray-400 block mb-2">{isGeg ? 'Emni në Kartë' : 'Name on Card'}</label>
-                            <input 
-                                className="w-full p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl dark:text-white outline-none focus:border-indigo-500"
-                                value={cardData.name}
-                                onChange={e => setCardData({...cardData, name: e.target.value})}
-                                required
-                            />
-                         </div>
-                         <div>
-                            <label className="text-xs font-black uppercase text-gray-400 block mb-2">{isGeg ? 'Numri i Kartës' : 'Card Number'}</label>
-                            <input 
-                                className="w-full p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl dark:text-white font-mono outline-none focus:border-indigo-500"
-                                placeholder="0000 0000 0000 0000"
-                                value={cardData.number}
-                                onChange={e => setCardData({...cardData, number: e.target.value})}
-                                required
-                            />
-                         </div>
-                         <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="text-xs font-black uppercase text-gray-400 block mb-2">Expiry</label>
-                                <input 
-                                    className="w-full p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl dark:text-white text-center"
-                                    placeholder="MM/YY"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-black uppercase text-gray-400 block mb-2">CVC</label>
-                                <input 
-                                    className="w-full p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl dark:text-white text-center"
-                                    placeholder="000"
-                                    required
-                                />
-                            </div>
-                         </div>
-
-                         <div className="pt-6">
-                            <button 
-                                type="submit"
-                                className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold text-lg hover:bg-indigo-700 shadow-xl shadow-indigo-200 dark:shadow-none transition-all flex items-center justify-center gap-2"
-                            >
-                                {isGeg ? `Paguaj $${totalPrice.toFixed(2)}` : `Pay $${totalPrice.toFixed(2)}`}
-                            </button>
-                         </div>
-                      </form>
-                  </div>
-              )}
-
-              {/* STEP: PAYPAL REDIRECT SIMULATION */}
-              {checkoutStep === 'paypal' && (
-                  <div className="p-8 flex-grow flex flex-col items-center justify-center text-center animate-fade-in">
-                      <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/30 rounded-3xl flex items-center justify-center mb-6">
-                          <Package className="w-10 h-10 text-blue-600" />
-                      </div>
-                      <h3 className="text-xl font-bold dark:text-white mb-2">PayPal Redirection</h3>
-                      <p className="text-sm text-gray-500 mb-8 max-w-xs mx-auto">
-                         You will be securely redirected to PayPal to complete your purchase of <strong>${totalPrice.toFixed(2)}</strong>.
-                      </p>
-                      
-                      <button 
-                        onClick={processPaypalPayment}
-                        className="w-full py-4 bg-[#FFC439] text-[#2C2E2F] rounded-xl font-bold text-lg hover:bg-[#F2BA36] transition-colors flex items-center justify-center gap-2 shadow-lg"
-                      >
-                         Continue to PayPal
-                      </button>
-                  </div>
-              )}
-
-              {/* STEP: PROCESSING */}
-              {checkoutStep === 'processing' && (
-                  <div className="p-8 flex-grow flex flex-col items-center justify-center text-center animate-fade-in">
-                      <Loader2 className="w-16 h-16 text-indigo-500 animate-spin mb-6" />
-                      <h3 className="text-2xl font-serif font-bold dark:text-white mb-2">{isGeg ? 'Duke Procesue...' : 'Processing Payment...'}</h3>
-                      <p className="text-gray-500 dark:text-gray-400">Please do not close the window.</p>
-                  </div>
-              )}
-
-              {/* STEP: SUCCESS */}
-              {checkoutStep === 'success' && (
-                  <div className="p-8 flex-grow flex flex-col items-center justify-center text-center animate-fade-in">
-                      <div className="w-24 h-24 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6 animate-bounce">
-                          <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400" />
-                      </div>
-                      <h2 className="text-3xl font-serif font-bold dark:text-white mb-2">{isGeg ? 'Pagesa u Krye!' : 'Payment Success!'}</h2>
-                      <p className="text-gray-500 dark:text-gray-400 mb-8">{isGeg ? 'Porosia juej po përgatitet.' : 'Your order is being processed.'}</p>
-                      <button onClick={closeCart} className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold">
-                          {isGeg ? 'Mbyll' : 'Back to Shop'}
-                      </button>
-                  </div>
+              {checkoutStep === 'cart' && cartProducts.length > 0 && (
+                 <div className="p-8 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/50">
+                    <div className="flex items-center justify-between mb-6">
+                       <span className="text-gray-500 font-bold">{isGeg ? 'Totali' : 'Total'}</span>
+                       <span className="text-3xl font-black dark:text-white">€{totalPrice.toFixed(2)}</span>
+                    </div>
+                    <button onClick={startCheckoutFlow} className="w-full py-5 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl hover:bg-emerald-700 transition-all flex items-center justify-center gap-3">
+                       {isGeg ? 'Vazhdo te Pagesa' : 'Checkout'} <ArrowRight className="w-5 h-5" />
+                    </button>
+                 </div>
               )}
            </div>
         </div>
       )}
 
-      {/* Hero Header */}
-      <div className="text-center mb-12 pt-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-50 dark:bg-emerald-900/30 rounded-3xl mb-4 border border-emerald-100 dark:border-emerald-800 shadow-sm">
-             <ShoppingBag className="w-8 h-8 text-emerald-600" />
-          </div>
-          <h1 className="text-4xl font-serif font-bold text-gray-900 dark:text-white mb-2">{isGeg ? 'Dyqani Gegenisht' : 'The Geg Shop'}</h1>
-          <p className="text-gray-500 dark:text-gray-400 font-medium">{isGeg ? 'Mbështetni projektin tuj blerë produkte unike.' : 'Support the project by buying unique products.'}</p>
+      <div className="mb-16 px-4">
+         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-10">
+            <div>
+               <h1 className="text-4xl sm:text-6xl font-serif font-black text-gray-900 dark:text-white mb-4 tracking-tight">
+                  {isGeg ? 'Dyqani ' : 'The '}<span className="text-emerald-600">Gegenisht</span>
+               </h1>
+               <p className="text-xl text-gray-500 dark:text-gray-400 font-medium max-w-2xl leading-relaxed">
+                  {isGeg ? 'Veshje dhe suvenire me frymëzim nga veriu i Shqipnisë. Çdo blerje ndihmon mbajtjen gjallë të arkivës.' : 'Apparel and souvenirs inspired by Northern Albania. Every purchase helps keep the archive alive.'}
+               </p>
+            </div>
+         </div>
+
+         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-6">
+            {categories.map(cat => (
+               <button 
+                  key={cat.id} 
+                  onClick={() => setActiveCategory(cat.id as any)}
+                  className={`px-6 py-2.5 rounded-full text-sm font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeCategory === cat.id ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white dark:bg-gray-800 text-gray-500 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+               >
+                  {cat.label}
+               </button>
+            ))}
+         </div>
       </div>
 
-      <div className="flex flex-col gap-8">
-          <div className="flex justify-center flex-wrap gap-3">
-              {categories.map((cat) => (
-                  <button key={cat.id} onClick={() => setActiveCategory(cat.id as any)} className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all border ${activeCategory === cat.id ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-emerald-300'}`}>
-                      {cat.label}
-                  </button>
-              ))}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
-              {isLoading ? (
-                  <div className="col-span-full py-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto text-emerald-500"/></div>
-              ) : filteredProducts.map((product) => (
-                  <div key={product.id} className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group flex flex-col h-full relative overflow-hidden">
-                      <div className={`aspect-square rounded-2xl mb-6 flex items-center justify-center relative overflow-hidden ${product.color || 'bg-indigo-50'}`}>
-                          {renderProductIcon(product.imageIcon)}
-                      </div>
-                      <div className="flex-grow flex flex-col">
-                          <h3 className="text-xl font-serif font-bold text-gray-900 dark:text-white mb-2">{isGeg ? product.nameGeg : product.name}</h3>
-                          <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-6 line-clamp-3">{product.description}</p>
-                          <div className="mt-auto flex items-center justify-between">
-                              <span className="text-2xl font-black text-gray-900 dark:text-white">${product.price.toFixed(2)}</span>
-                              <button onClick={() => handleAddToCartClick(product)} disabled={addingToCart === product.id} className="px-5 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold text-sm hover:bg-emerald-600 dark:hover:bg-emerald-400 transition-all">
-                                  {addingToCart === product.id ? <Loader2 className="w-4 h-4 animate-spin" /> : (isGeg ? 'Shto' : 'Add')}
-                              </button>
-                          </div>
-                      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
+         {filteredProducts.map(product => (
+            <div key={product.id} className="bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all group flex flex-col h-full relative">
+               <div className="aspect-square bg-gray-50 dark:bg-gray-800 relative overflow-hidden flex items-center justify-center">
+                  {product.imageUrl ? (
+                     <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  ) : (
+                     <div className="flex flex-col items-center gap-3 opacity-20">
+                        <Package className="w-20 h-20" />
+                        {isGeneratingVisuals && <Loader2 className="w-6 h-6 animate-spin" />}
+                     </div>
+                  )}
+                  <div className="absolute top-6 right-6 flex flex-col gap-2">
+                     <button className="p-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-xl text-gray-400 hover:text-rose-500 transition-colors">
+                        <Heart className="w-5 h-5" />
+                     </button>
                   </div>
-              ))}
-          </div>
+               </div>
+
+               <div className="p-10 flex flex-col flex-grow">
+                  <div className="flex justify-between items-start mb-6">
+                     <div>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-2 block">{product.category}</span>
+                        <h3 className="text-2xl font-serif font-black text-gray-900 dark:text-white leading-tight group-hover:text-emerald-600 transition-colors">
+                           {isGeg ? product.nameGeg : product.name}
+                        </h3>
+                     </div>
+                     <div className="text-2xl font-black dark:text-white">€{product.price.toFixed(2)}</div>
+                  </div>
+
+                  <p className="text-gray-500 dark:text-gray-400 leading-relaxed mb-10 flex-grow font-medium">
+                     {product.description}
+                  </p>
+
+                  <div className="flex items-center justify-between pt-8 border-t border-gray-50 dark:border-gray-800">
+                     <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                        <span className="text-sm font-bold dark:text-white">{product.rating}</span>
+                        <span className="text-xs text-gray-400 font-medium">({product.reviews})</span>
+                     </div>
+                     <button 
+                        onClick={() => handleAddToCartClick(product)}
+                        disabled={addingToCart === product.id}
+                        className={`px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 ${addingToCart === product.id ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-emerald-600 dark:hover:bg-emerald-100'}`}
+                     >
+                        {addingToCart === product.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingBag className="w-4 h-4" />}
+                        {addingToCart === product.id ? 'Tuj e shtue...' : (isGeg ? 'Shto në Shportë' : 'Add to Cart')}
+                     </button>
+                  </div>
+               </div>
+            </div>
+         ))}
       </div>
     </div>
   );

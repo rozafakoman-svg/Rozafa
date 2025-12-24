@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Search, BookOpen, Volume2, ArrowRight, Share2, Info, Loader2, Sparkles, X,
@@ -22,7 +21,12 @@ import {
   // Added formatting icons
   Bold, Italic, List, Link,
   // Added Diamond icon
-  Diamond
+  Diamond,
+  // Added Database icon to fix error in AdminDashboard
+  Database,
+  // Added Box icon
+  Box,
+  LogIn
 } from 'lucide-react';
 
 export { 
@@ -47,5 +51,10 @@ export {
   // Added formatting icons
   Bold, Italic, List, Link,
   // Added Diamond icon
-  Diamond
+  Diamond,
+  // Added Database icon to fix error in AdminDashboard
+  Database,
+  // Added Box icon
+  Box,
+  LogIn
 };

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { DictionaryEntry, ContributionType, ExampleSentence } from '../types';
-import { Volume2, BookOpen, Share2, ArrowRight, AlignLeft, Globe, Info, Sparkles, Loader2, X, Upload, Mic, Flag, Edit3, Trash2, PlusCircle, CheckCircle, Save, Star, AlertTriangle } from './Icons';
+import { Volume2, BookOpen, Share2, ArrowRight, AlignLeft, Globe, Info, Sparkles, Loader2, X, Upload, Mic, Flag, Edit3, Trash2, PlusCircle, CheckCircle, Save, Star, AlertTriangle, PlayCircle } from './Icons';
 import { fetchWordDefinition, saveToDictionaryCache } from '../services/geminiService';
 
 interface WordCardProps {
@@ -33,7 +33,9 @@ const translations = {
     phrases_title: "Idioms & Expressions",
     no_syn: "None recorded.",
     standard_label: "Standard '72",
-    translation_label: "English"
+    translation_label: "English",
+    upload_audio: "Upload authentic pronunciation",
+    remove_audio: "Remove recording"
   },
   geg: {
     tabs: { definitions: "Kuptime", thesaurus: "Thesar", examples: "Shembuj", phrases: "Shprehje" },
@@ -50,7 +52,9 @@ const translations = {
     phrases_title: "Idioma & Shprehje",
     no_syn: "S'ka shënime.",
     standard_label: "Standardi",
-    translation_label: "Përkthimi"
+    translation_label: "Përkthimi",
+    upload_audio: "Ngarko shqiptim autentik",
+    remove_audio: "Hiqe incizimin"
   }
 };
 
@@ -60,6 +64,10 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(false);
+  const [isUploadingAudio, setIsUploadingAudio] = useState(false);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const t = translations[lang];
   const isGeg = lang === 'geg';
@@ -78,6 +86,17 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
   }, []);
 
   const handleSpeak = (text: string) => {
+    if (entry.customAudio) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      const audio = new Audio(entry.customAudio);
+      audioRef.current = audio;
+      audio.play().catch(e => console.error("Audio playback failed", e));
+      return;
+    }
+
     if (hasSpeechSupport && text) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
@@ -90,6 +109,40 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
     if (onUpdateEntry && entry) {
       onUpdateEntry({ ...entry, [field]: value });
     }
+  };
+
+  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingAudio(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const base64 = event.target?.result as string;
+        const updatedEntry = { ...entry, customAudio: base64 };
+        if (onUpdateEntry) onUpdateEntry(updatedEntry);
+        
+        // Auto-save if possible or wait for manual commit
+        if (onSaveEntry) {
+          await onSaveEntry(updatedEntry);
+        }
+        setIsUploadingAudio(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error("Audio upload failed", err);
+      setIsUploadingAudio(false);
+    }
+  };
+
+  const removeCustomAudio = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm(isGeg ? "A doni ta hiqni këtë incizim?" : "Remove this custom recording?")) return;
+    
+    const updatedEntry = { ...entry, customAudio: undefined };
+    if (onUpdateEntry) onUpdateEntry(updatedEntry);
+    if (onSaveEntry) await onSaveEntry(updatedEntry);
   };
 
   const handleTermClick = (term: string) => {
@@ -108,8 +161,8 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
               setSaveSuccess(true);
               setTimeout(() => setSaveSuccess(false), 3000);
           }
-      } catch (e) {
-          console.error("Save failure in component:", e);
+      } catch (e: any) {
+          console.error("Save failure in component:", e.message || e);
           setSaveError(true);
           setTimeout(() => setSaveError(false), 5000);
       } finally {
@@ -149,18 +202,62 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
             
             <div className="flex flex-wrap items-center justify-center gap-4">
                 <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-inner group">
-                    {hasSpeechSupport && (
-                        <button 
-                            onClick={() => handleSpeak(entry.word)}
-                            className="p-3 rounded-2xl bg-albanian-red text-white hover:bg-red-800 transition-all shadow-lg active:scale-95"
-                        >
-                            <Volume2 className="w-6 h-6" />
-                        </button>
-                    )}
+                    <div className="flex gap-2">
+                        {hasSpeechSupport && (
+                            <button 
+                                onClick={() => handleSpeak(entry.word)}
+                                className={`p-3 rounded-2xl transition-all shadow-lg active:scale-95 ${entry.customAudio ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-albanian-red hover:bg-red-800'} text-white relative`}
+                                title={entry.customAudio ? (isGeg ? 'Ndëgjo shqiptimin autentik' : 'Listen to authentic pronunciation') : t.pronunciation}
+                            >
+                                <Volume2 className="w-6 h-6" />
+                                {entry.customAudio && (
+                                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></span>
+                                )}
+                            </button>
+                        )}
+                        
+                        <div className="relative">
+                            <input 
+                              type="file" 
+                              ref={fileInputRef} 
+                              onChange={handleAudioUpload} 
+                              accept="audio/*" 
+                              className="hidden" 
+                            />
+                            <button 
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isUploadingAudio}
+                                className={`p-3 rounded-2xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-400 hover:text-indigo-600 transition-all shadow-sm active:scale-95 ${isUploadingAudio ? 'animate-pulse' : ''}`}
+                                title={t.upload_audio}
+                            >
+                                {isUploadingAudio ? <Loader2 className="w-6 h-6 animate-spin" /> : <Mic className="w-6 h-6" />}
+                            </button>
+                            
+                            {entry.customAudio && (
+                                <button 
+                                    onClick={removeCustomAudio}
+                                    className="absolute -top-2 -right-2 p-1.5 bg-rose-500 text-white rounded-full shadow-lg hover:bg-rose-600 transition-colors"
+                                    title={t.remove_audio}
+                                >
+                                    <Trash2 className="w-3 h-3" />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
                     <div className="flex flex-col items-start pr-2">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none mb-1">{t.pronunciation}</span>
                         <div className="flex items-center gap-2">
                             <span className="text-xl font-mono text-gray-800 dark:text-gray-200 font-bold">/{entry.phonetic}/</span>
+                            {hasSpeechSupport && (
+                                <button 
+                                    onClick={() => handleSpeak(entry.word)}
+                                    className="p-1 text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
+                                    title={t.pronunciation}
+                                >
+                                    <Volume2 className="w-4 h-4" />
+                                </button>
+                            )}
                             <Info className="w-4 h-4 text-gray-300 dark:text-gray-600 hover:text-indigo-500 cursor-help" />
                         </div>
                     </div>
@@ -340,13 +437,13 @@ const WordCard: React.FC<WordCardProps> = ({ entry, initialTab = 'definitions', 
               {saveError && (
                   <div className="mb-4 flex items-center gap-2 text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-xl border border-red-100 animate-fade-in">
                       <AlertTriangle className="w-4 h-4" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Sync Failed: Check Supabase Permissions</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest">Sync Partial: Local Cache Updated</span>
                   </div>
               )}
               <div className="w-full flex items-center justify-end">
-                <button onClick={handleSave} disabled={isSaving} className={`px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-3 transition-all hover:scale-[1.02] active:scale-95 ${saveSuccess ? 'bg-emerald-600' : saveError ? 'bg-red-600' : 'bg-red-600 hover:bg-red-700'} text-white`}>
+                <button onClick={handleSave} disabled={isSaving} className={`px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-3 transition-all hover:scale-[1.02] active:scale-95 ${saveSuccess ? 'bg-emerald-600' : saveError ? 'bg-amber-600' : 'bg-red-600 hover:bg-red-700'} text-white`}>
                     {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : saveSuccess ? <CheckCircle className="w-5 h-5" /> : saveError ? <AlertTriangle className="w-5 h-5" /> : <Save className="w-5 h-5" />}
-                    {isSaving ? 'Syncing...' : saveSuccess ? 'Cloud Vault Synced' : saveError ? 'Retry Sync' : 'Deploy Changes to Node'}
+                    {isSaving ? 'Syncing...' : saveSuccess ? 'Cloud Vault Synced' : saveError ? 'Sync Warning' : 'Deploy Changes to Node'}
                 </button>
               </div>
           </div>

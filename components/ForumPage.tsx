@@ -1,7 +1,10 @@
-
 import React, { useState } from 'react';
 import { ForumPost, ForumComment, UserProfile, Language } from '../types';
-import { ArrowBigUp, ArrowBigDown, MessageSquare, Clock, User, PlusCircle, Pin, MoreHorizontal, ArrowLeft, Send, X, Search, Filter, Shield, Flame, Hash, TrendingUp, Info } from './Icons';
+import { 
+  ArrowBigUp, ArrowBigDown, MessageSquare, Clock, User, PlusCircle, Pin, 
+  MoreHorizontal, ArrowLeft, Send, X, Search, Filter, Shield, Flame, 
+  Hash, TrendingUp, Info, Zap 
+} from './Icons';
 
 interface ForumPageProps {
   lang: Language;
@@ -11,128 +14,79 @@ interface ForumPageProps {
 
 const MOCK_POSTS: ForumPost[] = [
   {
+    id: 'gjergj_fishta_biblioteka_diskutim',
+    title: "Veprat e Fishtës: Cila ka lânë ma shumë gjurmë te ju?",
+    content: "Sot, po rishikoja bibliografinë e At Gjergj Fishtës dhe m'u mbush zemra me nji ndjenjë të jashtëzakonshme. \n\nShumë njerëz e njohin veç për 'Lahutën e Malcís', por a e keni lexue 'Gomarin e Babatasit'? Aty ai dëshmon nji satirë qi nuk vdes kurrë. \n\nPo 'Anzat e Parnasit'? Mënyra se si ai e përdor Gegënishten për me thumbue veset e kohës âsht nji mrekulli gjuhësore. \n\nCila prej librave të tij ju bân me u ndier ma krenarë për t'folmen tonë? Dhe cili varg ju rrin në mendje çdo ditë?",
+    author: 'Malësí_Legacy',
+    authorRole: 'user',
+    date: '10 minutes ago',
+    upvotes: 45,
+    downvotes: 1,
+    tags: ['Letërsi', 'Fishta', 'ue/ua', 'Traditë'],
+    comments: [
+        { id: 'f1', postId: 'gjergj_fishta_biblioteka_diskutim', author: 'Baca_Gjoni', content: "Për mu, 'Lahuta' asht bashi i vendit. Vargjet për Oso Kukën i mban mend çdo fëmijë n'veri. Faleminderit qi e hapët këtë temë!", date: '5 min ago', upvotes: 12 }
+    ],
+    viewCount: 150,
+    pinned: false
+  },
+  {
+    id: 'diftongjet_debati_1',
+    title: "Pse 'ue' tingëllon ma amël se 'ua'?",
+    content: "Kisha pasë qejf me diskutue nji fenomen qi më bân përshtypje çdo ditë: diftongun 'ue'.\n\nKur shkoj n'katund dhe ndigjoj njerëzit tuj thonë 'me punue', 'me kndue', 'me shkrue' - m'duket sikur fjala ka nji peshë tjetër. 'Ua'-ja e standardit m'duket ma e rrafshët, ma pak 'shpirtnore'.\n\nNji plak i urtë m'tha se sekreti i vërtetë asht te shqiptimi: na nuk i thojmë të dyja shkronjat. Na thojmë veç shkronjën e parë, por e bajmë ma t'gjatë. Pra, 'ue' thuhet si nji 'u:' e gjatë dhe 'ie' si nji 'i:' e gjatë.\n\nA âsht kjo zgjatje e zanores së parë ajo qi e bân 'ue'-në ma t'përshtatshme për poezi dhe kangë kreshnikësh?\n\nNdani mendimet tuaja dhe fjalët qi ju pëlqejnë ma shumë me këtë diftong!",
+    author: 'Geg_Master',
+    authorRole: 'user',
+    date: '2 hours ago',
+    upvotes: 215,
+    downvotes: 4,
+    tags: ['Linguistics', 'Aesthetics', 'ue/ua'],
+    comments: [
+        { id: 'd1', postId: 'diftongjet_debati_1', author: 'Leka_88', content: "Për mu 'ue' asht zemra e t'folmit tonë. S'muj me e paramendue Lahutën e Malcisë pa diftongun 'ue'. Dhe po, ajo zgjatja e 'u'-së asht çka i jep melodinë qi na bân me kênë Gegë.", date: '1 hour ago', upvotes: 42 },
+        { id: 'd2', postId: 'diftongjet_debati_1', author: 'Dr. Gjuhësori', content: "Fonetikisht, kjo zgjatje e zanores së parë (u: ose i:) asht nji relikt i randsishëm fonetik qi e bân Gegënishten nji sistem unik. Standardizimi e humbi këtë amëlsi tuj i rrafshue diftongjet.", date: '30 min ago', upvotes: 12 }
+    ],
+    viewCount: 1200,
+    pinned: false
+  },
+  {
     id: 'gjuha_ruhet_forum_1',
     title: 'Gjuha Ruhet Aty Ku Shkruhet',
-    content: 'Hapim këtë temë për me diskutue randsinë e të shkruemit në gegënisht në epokën digjitale.\n\nA shkruani shpesh në gegënisht në rrjete sociale? \nA keni hasë vështirësi apo paragjykime kur e bëni këtë?\n\nNdani mendimet tueja dhe ndonji fragment të shkurtër qi keni shkrue ose lexue së fundmi.',
+    content: 'Hapim këtë temë për me diskutue randsinë e të shkruemit në gegënisht në epokën digjitale. Na besojmë qi gegënishtja nuk asht veç nji dialekt, por nji vlerë qi duhet rruejtë me krenari.',
     author: 'Redaksia',
     authorRole: 'admin',
     date: 'Pinned',
     upvotes: 95,
     downvotes: 0,
     tags: ['Shkrim', 'Diskutim', 'Kulturë'],
-    comments: [
-        { id: 'gr1', postId: 'gjuha_ruhet_forum_1', author: 'Leka', content: 'Unë shkruej gjithmonë gegënisht me miqtë, por në punë më duhet standardi.', date: '10 min ago', upvotes: 5 }
-    ],
+    comments: [],
     viewCount: 450,
     pinned: true
   },
   {
     id: 'manifesto_2024',
     title: 'Manifest për barazinë historike të gegënishtes',
-    content: 'Ne besojmë se:\n\n• Gegënishtja asht pasuni kulturore e shqipes.\n• Para vitit 1972, gegënishtja ishte gjuhë e shkrueme dhe e normueme në praktikë.\n• Heqja e saj nga arsimi dhe administrata ishte akt politik, jo gjuhësor.\n• Rilindja kulturore e gegënishtes nuk cenon unitetin gjuhësor.\n\nNe nuk kërkojmë përçarje, por barazi historike.\n\nKërkojmë:\n• Njohjen e gegënishtes si trashëgimi gjuhësore;\n• Përdorimin e saj të lirë në letërsi, media dhe art;\n• Studim serioz, jo ideologjik, të traditës së saj;\n• Bashkëjetesë mes standardit dhe varianteve historike.\n\nNjë gjuhë nuk forcohet tue u ngushtue, por tue u kuptue.',
+    content: 'Ne besojmë se:\n\n• Gegënishtja asht pasuni kulturore e shqipes.\n• Paskajorja (me + folje) asht forma ma organike e shprehjes.\n• Rruajtja e diftongjeve (ue/ie) asht mbrojtja e muzikalitetit tonë.',
     author: 'Redaksia',
     authorRole: 'admin',
     date: 'Pinned',
     upvotes: 1205,
     downvotes: 0,
     tags: ['Manifest', 'Kulturë', 'Histori'],
-    comments: [
-       { id: 'm1', postId: 'manifesto_2024', author: 'Gjergj', content: 'Plotësisht dakord. Kjo është rruga përpara.', date: '1 hour ago', upvotes: 45 },
-       { id: 'm2', postId: 'manifesto_2024', author: 'Valbona', content: 'Gjuha jonë është pasuri, jo kërcënim.', date: '2 hours ago', upvotes: 32 }
-    ],
+    comments: [],
     viewCount: 8500,
     pinned: true
-  },
-  {
-    id: 'academic_2024',
-    title: 'Shqipja para standardizimit: kornizë studimore',
-    content: '1. Gjendja para-standardizuese\nPara vitit 1972, shqipja funksiononte si gjuhë pluricentrike, me dy tradita kryesore shkrimi:\n• Gegënishtja (Veri, Kosovë, Mal i Zi, Maqedoni Perëndimore);\n• Toskërishtja (Jug).\nNuk ekzistonte një normë e vetme detyruese në shkallë shtetërore.\n\n2. Gegënishtja si gjuhë shkrimi\nGegënishtja përdorej gjerësisht në:\n• Letërsi artistike;\n• Publicistikë;\n• Tekste fetare;\n• Arsim para vitit 1945.\nAutorë kryesorë dëshmojnë stabilitetin dhe funksionalitetin e saj si gjuhë shkrimi.\n\n3. Standardizimi i vitit 1972\nKongresi i Drejtshkrimit (1972) përcaktoi një normë të vetme zyrtare, të ndërtuar kryesisht mbi toskërishten, me elemente të kufizuara gegë. Ky proces rriti unifikimin administrativ por uli përfaqësimin e traditës gegë në institucionet shtetërore.\n\n4. Përfundim\nStandardi është mjet funksional komunikimi, jo matës i vlerës kulturore. Studimi i shqipes kërkon njohjen e të dy traditave historike pa hierarki ideologjike.',
-    author: 'Moderatori_Akademik',
-    authorRole: 'moderator',
-    date: 'Pinned',
-    upvotes: 450,
-    downvotes: 2,
-    tags: ['Akademi', 'Gjuhësi', 'Studim'],
-    comments: [],
-    viewCount: 3200,
-    pinned: true
-  },
-  {
-    id: '1',
-    title: 'Welcome to the Gegenisht Community Forum!',
-    content: 'This is a place to discuss the Geg language, ask questions about grammar, or share your favorite archaic words. Please be respectful and keep the conversation focused on language preservation.\n\nWe encourage you to:\n1. Search before posting.\n2. Be kind to learners.\n3. Cite sources when discussing history.',
-    author: 'Admin',
-    authorRole: 'admin',
-    date: '1 hour ago',
-    upvotes: 142,
-    downvotes: 2,
-    tags: ['Announcement', 'Rules'],
-    comments: [],
-    viewCount: 1205,
-    pinned: true
-  },
-  {
-    id: '2',
-    title: 'Is "tuj" strictly Geg or used in Standard too?',
-    content: 'I noticed in the dictionary that "tuj" (duke) is marked as Geg. However, I hear people in Tirana use it often in casual speech. Is this a case of Geg bleeding into the standard informal register? I find it fascinating how the gerund form has evolved.',
-    author: 'Linguist_99',
-    authorRole: 'user',
-    date: '3 hours ago',
-    upvotes: 45,
-    downvotes: 1,
-    tags: ['Grammar', 'Question'],
-    comments: [
-      { id: 'c1', postId: '2', author: 'ShkodraBoy', content: 'It is definitely Geg origin (participle format), but yes, slang in Tirana has adopted it because "duke" feels too formal for street talk.', date: '2 hours ago', upvotes: 12 },
-      { id: 'c2', postId: '2', author: 'Ana_M', content: 'Agreed. Language evolves! Even Standard Albanian is slowly absorbing Geg elements naturally.', date: '1 hour ago', upvotes: 5 }
-    ],
-    viewCount: 340
-  },
-  {
-    id: '3',
-    title: 'Resource: Old Franciscan Manuscripts Digitized',
-    content: 'Just found this amazing archive of Father Zef Pllumi\'s early writings. The link is below. The vocabulary is incredibly rich compared to modern standard textbooks. It really shows what we lost in 1972.',
-    author: 'HistoryBuff',
-    authorRole: 'moderator',
-    date: '1 day ago',
-    upvotes: 89,
-    downvotes: 0,
-    tags: ['Resources', 'History'],
-    comments: [],
-    viewCount: 890
-  },
-  {
-    id: '4',
-    title: 'Difference between "Cuca" and "Çika"?',
-    content: 'Are these purely regional variations for "girl", or is there a semantic difference? My grandmother from Mirdita says "Cuca" but my cousins in Pristina say "Çika".',
-    author: 'DiasporaKid',
-    date: '2 days ago',
-    upvotes: 34,
-    downvotes: 2,
-    tags: ['Vocabulary', 'Language'],
-    comments: [
-        { id: 'c3', postId: '4', author: 'Geg_Master', content: 'Mirdita and Mat tend to use Cuca. Kosova and Malesia e Madhe tend to use Çika. Same meaning.', date: '1 day ago', upvotes: 20 }
-    ],
-    viewCount: 600
   }
 ];
 
-const POPULAR_TAGS = ['Grammar', 'History', 'Vocabulary', 'Resources', 'Language', 'Translation', 'Manifest', 'Akademi'];
-
 const ForumPage: React.FC<ForumPageProps> = ({ lang, user, onReqAuth }) => {
   const [posts, setPosts] = useState<ForumPost[]>(MOCK_POSTS);
-  const [activeTab, setActiveTab] = useState<'hot' | 'new' | 'top'>('hot');
   const [selectedPost, setSelectedPost] = useState<ForumPost | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Form State
   const [newPostTitle, setNewPostTitle] = useState('');
   const [newPostContent, setNewPostContent] = useState('');
   const [newComment, setNewComment] = useState('');
 
   const isGeg = lang === 'geg';
 
-  // Filter posts based on search
   const filteredPosts = posts.filter(p => 
     p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
     p.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -141,10 +95,7 @@ const ForumPage: React.FC<ForumPageProps> = ({ lang, user, onReqAuth }) => {
 
   const handleVote = (e: React.MouseEvent, postId: string, type: 'up' | 'down') => {
     e.stopPropagation();
-    if (!user) {
-        onReqAuth();
-        return;
-    }
+    if (!user) { onReqAuth(); return; }
     setPosts(prev => prev.map(p => {
         if (p.id === postId) {
             if (type === 'up') return { ...p, upvotes: p.upvotes + 1 };
@@ -156,10 +107,7 @@ const ForumPage: React.FC<ForumPageProps> = ({ lang, user, onReqAuth }) => {
 
   const handleCreatePost = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-        onReqAuth();
-        return;
-    }
+    if (!user) { onReqAuth(); return; }
     const post: ForumPost = {
         id: Date.now().toString(),
         title: newPostTitle,
@@ -181,12 +129,8 @@ const ForumPage: React.FC<ForumPageProps> = ({ lang, user, onReqAuth }) => {
 
   const handleCreateComment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-        onReqAuth();
-        return;
-    }
+    if (!user) { onReqAuth(); return; }
     if (!selectedPost) return;
-
     const comment: ForumComment = {
         id: Date.now().toString(),
         postId: selectedPost.id,
@@ -196,145 +140,84 @@ const ForumPage: React.FC<ForumPageProps> = ({ lang, user, onReqAuth }) => {
         date: 'Just now',
         upvotes: 0
     };
-
     const updatedPost = { ...selectedPost, comments: [...selectedPost.comments, comment] };
     setSelectedPost(updatedPost);
     setPosts(prev => prev.map(p => p.id === selectedPost.id ? updatedPost : p));
     setNewComment('');
   };
 
-  // DETAIL VIEW
   if (selectedPost) {
     return (
-        <div className="max-w-5xl mx-auto animate-fade-in pb-20">
-            <button 
-                onClick={() => setSelectedPost(null)}
-                className="mb-6 flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors font-medium px-4 sm:px-0"
-            >
-                <div className="p-2 bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700">
-                  <ArrowLeft className="w-4 h-4" />
+        <div className="max-w-5xl mx-auto animate-fade-in pb-20 pt-8 px-4">
+            <button onClick={() => setSelectedPost(null)} className="mb-8 flex items-center gap-3 text-gray-500 hover:text-indigo-600 transition-all font-bold">
+                <div className="p-2.5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm group-hover:border-indigo-200 transition-colors">
+                    <ArrowLeft className="w-5 h-5" />
                 </div>
                 <span>{isGeg ? 'Kthehu te Forumi' : 'Back to Forum'}</span>
             </button>
 
-            <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col md:flex-row">
-                {/* Voting Sidebar (Desktop) */}
-                <div className="hidden md:flex w-16 bg-gray-50 dark:bg-gray-900/50 border-r border-gray-100 dark:border-gray-700 flex-col items-center py-6 gap-2 flex-shrink-0">
-                    <button onClick={(e) => handleVote(e, selectedPost.id, 'up')} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded text-gray-400 hover:text-orange-500 transition-colors">
-                        <ArrowBigUp className="w-8 h-8" />
-                    </button>
-                    <span className="font-bold text-gray-900 dark:text-white text-sm">
-                        {selectedPost.upvotes - selectedPost.downvotes}
-                    </span>
-                    <button onClick={(e) => handleVote(e, selectedPost.id, 'down')} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded text-gray-400 hover:text-blue-500 transition-colors">
-                        <ArrowBigDown className="w-8 h-8" />
-                    </button>
+            <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden flex flex-col md:flex-row">
+                <div className="hidden md:flex w-20 bg-gray-50 dark:bg-gray-950/50 border-r border-gray-100 dark:border-gray-800 flex-col items-center py-10 gap-3">
+                    <button onClick={(e) => handleVote(e, selectedPost.id, 'up')} className="p-2 hover:bg-white dark:hover:bg-gray-800 rounded-xl text-gray-400 hover:text-orange-500 transition-all"><ArrowBigUp className="w-10 h-10" /></button>
+                    <span className="font-black text-gray-900 dark:text-white text-xl">{selectedPost.upvotes - selectedPost.downvotes}</span>
+                    <button onClick={(e) => handleVote(e, selectedPost.id, 'down')} className="p-2 hover:bg-white dark:hover:bg-gray-800 rounded-xl text-gray-400 hover:text-blue-500 transition-all"><ArrowBigDown className="w-10 h-10" /></button>
                 </div>
 
-                <div className="flex-grow p-6 sm:p-8">
-                    {/* Header Info */}
-                    <div className="flex flex-wrap items-center gap-3 mb-4 text-xs text-gray-500 dark:text-gray-400">
-                        {selectedPost.pinned && (
-                           <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-bold bg-green-50 dark:bg-green-900/30 px-2 py-0.5 rounded">
-                             <Pin className="w-3 h-3 fill-current" /> Pinned
-                           </span>
-                        )}
+                <div className="flex-grow p-8 sm:p-12">
+                    <div className="flex flex-wrap items-center gap-4 mb-8 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        {selectedPost.pinned && <span className="flex items-center gap-2 text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800"><Pin className="w-3.5 h-3.5 fill-current" /> Pinned</span>}
                         <div className="flex items-center gap-2">
-                           <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 flex items-center justify-center font-bold">
-                              {selectedPost.author.charAt(0)}
-                           </div>
-                           <span className={`font-bold ${selectedPost.authorRole === 'admin' ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
-                              {selectedPost.author}
-                           </span>
-                           {selectedPost.authorRole === 'admin' && <Shield className="w-3 h-3 text-red-500" />}
+                           <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-600 flex items-center justify-center font-black">{selectedPost.author.charAt(0)}</div>
+                           <span className={selectedPost.authorRole === 'admin' ? 'text-red-600' : 'text-gray-900 dark:text-white'}>{selectedPost.author}</span>
+                           {selectedPost.authorRole === 'admin' && <Shield className="w-3.5 h-3.5 text-red-500" />}
                         </div>
                         <span>•</span>
                         <span>{selectedPost.date}</span>
                     </div>
 
-                    <h1 className="text-2xl sm:text-4xl font-serif font-bold text-gray-900 dark:text-white mb-6 leading-tight">{selectedPost.title}</h1>
-                    
-                    <div className="prose prose-lg dark:prose-invert text-gray-700 dark:text-gray-300 leading-relaxed mb-8 whitespace-pre-line">
-                        {selectedPost.content}
-                    </div>
+                    <h1 className="text-3xl sm:text-5xl font-serif font-black text-gray-900 dark:text-white mb-8 leading-tight">{selectedPost.title}</h1>
+                    <div className="prose prose-xl dark:prose-invert text-gray-700 dark:text-gray-300 leading-relaxed mb-12 whitespace-pre-line font-serif">{selectedPost.content}</div>
 
-                    {/* Mobile Vote & Action Bar */}
-                    <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-700 pt-6 mb-8">
-                        <div className="flex md:hidden items-center gap-3 bg-gray-100 dark:bg-gray-700 rounded-full px-3 py-1">
-                           <button onClick={(e) => handleVote(e, selectedPost.id, 'up')}><ArrowBigUp className="w-6 h-6 text-gray-500 dark:text-gray-400 hover:text-orange-500" /></button>
-                           <span className="font-bold text-gray-900 dark:text-white">{selectedPost.upvotes - selectedPost.downvotes}</span>
-                           <button onClick={(e) => handleVote(e, selectedPost.id, 'down')}><ArrowBigDown className="w-6 h-6 text-gray-500 dark:text-gray-400 hover:text-blue-500" /></button>
-                        </div>
-                        
-                        <div className="flex items-center gap-4 text-xs font-bold text-gray-500 dark:text-gray-400 ml-auto">
-                            <div className="flex items-center gap-2">
-                                <MessageSquare className="w-4 h-4" />
-                                {selectedPost.comments.length} {isGeg ? 'Komente' : 'Comments'}
-                            </div>
-                            <div className="flex gap-2">
-                                 {selectedPost.tags.map(tag => (
-                                     <span key={tag} className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs font-medium text-gray-600 dark:text-gray-300">#{tag}</span>
-                                 ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Comments Section */}
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-100 dark:border-gray-700/50">
-                        <h3 className="font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                           <MessageSquare className="w-4 h-4 text-indigo-500" />
-                           {isGeg ? 'Diskutimi' : 'Discussion'}
+                    <div className="bg-gray-50 dark:bg-gray-950 p-8 sm:p-12 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-inner">
+                        <h3 className="font-black text-gray-900 dark:text-white mb-10 flex items-center gap-3 text-sm uppercase tracking-[0.2em] border-b border-gray-200 dark:border-gray-800 pb-4">
+                           <MessageSquare className="w-5 h-5 text-indigo-500" />
+                           {isGeg ? 'Diskutimi i Komunitetit' : 'Community Discussion'}
                         </h3>
-                        
-                        {/* New Comment Input */}
-                        <form onSubmit={handleCreateComment} className="mb-8 flex gap-4">
-                            <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300 font-bold flex-shrink-0 hidden sm:flex">
-                                {user ? user.name.charAt(0) : '?'}
-                            </div>
-                            <div className="flex-grow">
-                                <textarea 
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                    placeholder={isGeg ? 'Shkruani mendimin tuej...' : 'What are your thoughts?'}
-                                    className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 outline-none text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                                    rows={2}
-                                />
-                                <div className="flex justify-end mt-2">
-                                    <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold text-sm hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-2">
-                                        <Send className="w-3 h-3" />
-                                        {isGeg ? 'Komento' : 'Comment'}
-                                    </button>
-                                </div>
+
+                        <form onSubmit={handleCreateComment} className="mb-12 relative group">
+                            <textarea 
+                                value={newComment} 
+                                onChange={(e) => setNewComment(e.target.value)} 
+                                placeholder={isGeg ? 'Shto mendimin tuej n\'këtë debat...' : 'Add your perspective to the debate...'} 
+                                className="w-full p-6 bg-white dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800 rounded-3xl outline-none focus:border-indigo-500 transition-all text-sm min-h-[120px] dark:text-white shadow-sm"
+                            />
+                            <div className="flex justify-end mt-4">
+                                <button type="submit" disabled={!newComment.trim()} className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-50">Post Response</button>
                             </div>
                         </form>
 
-                        {/* Comments List */}
-                        <div className="space-y-6">
-                            {selectedPost.comments.length === 0 && (
-                                <p className="text-gray-400 italic text-center py-4">{isGeg ? 'Asnji koment ende. Bâhu i pari!' : 'No comments yet. Be the first!'}</p>
-                            )}
-                            {selectedPost.comments.map(comment => (
-                                <div key={comment.id} className="flex gap-4 group">
-                                    <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 font-bold text-xs flex-shrink-0 mt-1">
-                                        {comment.author.charAt(0)}
-                                    </div>
-                                    <div className="flex-grow">
-                                        <div className="flex items-center gap-2 text-xs mb-1">
-                                            <span className={`font-bold ${comment.role === 'admin' ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>{comment.author}</span>
-                                            <span className="text-gray-400">• {comment.date}</span>
-                                        </div>
-                                        <div className="text-gray-800 dark:text-gray-200 text-sm leading-relaxed mb-2">
-                                            {comment.content}
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <button className="flex items-center gap-1 text-xs text-gray-400 hover:text-orange-500 font-bold">
-                                                <ArrowBigUp className="w-4 h-4" /> {comment.upvotes || 0}
-                                            </button>
-                                            <button className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-medium">Reply</button>
-                                        </div>
-                                    </div>
+                        <div className="space-y-8">
+                            {selectedPost.comments.length === 0 ? (
+                                <div className="text-center py-10 opacity-30">
+                                    <MessageSquare className="w-12 h-12 mx-auto mb-4" />
+                                    <p className="font-black uppercase text-[10px] tracking-widest">No responses yet.</p>
                                 </div>
-                            ))}
+                            ) : (
+                                selectedPost.comments.map(comment => (
+                                    <div key={comment.id} className="flex gap-5 group">
+                                        <div className="w-12 h-12 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black text-lg flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform">{comment.author.charAt(0)}</div>
+                                        <div className="flex-grow">
+                                            <div className="flex items-center gap-3 mb-2 text-[10px] font-black uppercase tracking-widest">
+                                                <span className={comment.role === 'admin' ? 'text-red-600' : 'text-gray-900 dark:text-white'}>{comment.author}</span>
+                                                <span className="text-gray-400">• {comment.date}</span>
+                                            </div>
+                                            <div className="text-gray-700 dark:text-gray-300 text-base leading-relaxed bg-white dark:bg-gray-900 p-5 rounded-3xl rounded-tl-none border border-gray-100 dark:border-gray-800 shadow-sm">
+                                                {comment.content}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
@@ -343,197 +226,122 @@ const ForumPage: React.FC<ForumPageProps> = ({ lang, user, onReqAuth }) => {
     );
   }
 
-  // MAIN FEED VIEW
   return (
-    <div className="max-w-7xl mx-auto animate-fade-in-up pb-20">
-       
-       {/* Hero / Header */}
-       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 px-4">
+    <div className="max-w-7xl mx-auto animate-fade-in-up pb-24 px-4 sm:px-6">
+       <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 pt-8">
           <div>
-            <h1 className="text-3xl sm:text-5xl font-serif font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
-               <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl">
-                 <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600 dark:text-indigo-400" />
-               </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full border border-indigo-100 dark:border-indigo-800 text-[10px] font-black uppercase tracking-widest mb-4">
+               <Zap className="w-3.5 h-3.5 fill-current" /> Archive Discussion Hub
+            </div>
+            <h1 className="text-4xl sm:text-6xl font-serif font-black text-gray-900 dark:text-white mb-3 tracking-tight">
                {isGeg ? 'Forumi i Komunitetit' : 'Community Forum'}
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 max-w-lg">
-               {isGeg ? 'Diskutoni, pyesni dhe ndani njohuni rreth gjuhës.' : 'Discuss, ask questions, and share knowledge about the language.'}
+            <p className="text-lg text-gray-500 dark:text-gray-400 font-medium max-w-xl">
+               Diskutoni rreth kërkimeve gjuhësore, veprave të Fishtës dhe trashëgimisë tonë gege.
             </p>
           </div>
           
-          <div className="flex items-center gap-3 w-full md:w-auto">
-             <div className="relative flex-grow md:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+             <div className="relative w-full sm:w-72 group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
                 <input 
-                  type="text" 
-                  placeholder={isGeg ? 'Kërko diskutime...' : 'Search discussions...'}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-100 outline-none text-sm dark:text-white"
+                   type="text" 
+                   placeholder="Lyp n'debat..." 
+                   value={searchQuery} 
+                   onChange={(e) => setSearchQuery(e.target.value)} 
+                   className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-2xl outline-none focus:border-indigo-500 shadow-sm transition-all" 
                 />
              </div>
              <button 
-               onClick={() => user ? setIsCreating(true) : onReqAuth()}
-               className="hidden md:flex px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-bold items-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 dark:shadow-none whitespace-nowrap"
+                onClick={() => user ? setIsCreating(true) : onReqAuth()} 
+                className="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-500/20 hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-2"
              >
-                <PlusCircle className="w-5 h-5" />
-                {isGeg ? 'Postim i Ri' : 'New Post'}
+                <PlusCircle className="w-5 h-5" /> New Post
              </button>
           </div>
        </div>
 
-       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 px-4">
-           
-           {/* LEFT SIDEBAR - Tags & Filters (Desktop) */}
+       <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
            <div className="hidden lg:block space-y-6">
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
-                 <h3 className="font-bold text-gray-900 dark:text-white mb-4 text-sm uppercase tracking-wider px-2">Feeds</h3>
-                 <div className="space-y-1">
-                    {['hot', 'new', 'top'].map((tab) => (
-                        <button 
-                            key={tab}
-                            onClick={() => setActiveTab(tab as any)}
-                            className={`w-full text-left px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-3 transition-colors ${activeTab === tab ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-                        >
-                            {tab === 'hot' && <Flame className="w-4 h-4" />}
-                            {tab === 'new' && <Clock className="w-4 h-4" />}
-                            {tab === 'top' && <TrendingUp className="w-4 h-4" />}
-                            <span className="capitalize">{isGeg && tab === 'new' ? 'Të Reja' : tab}</span>
+               <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 border border-gray-100 dark:border-gray-800 shadow-xl">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-6 flex items-center gap-2">
+                     <Filter className="w-4 h-4" /> Filter Feeds
+                  </h3>
+                  <div className="space-y-2">
+                     {['hot', 'new', 'top'].map(t => (
+                        <button key={t} className="w-full text-left px-5 py-3 rounded-xl text-sm font-black uppercase tracking-widest text-gray-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 transition-all flex items-center justify-between group">
+                           {t}
+                           <div className="w-1.5 h-1.5 bg-gray-200 rounded-full group-hover:bg-indigo-400"></div>
                         </button>
-                    ))}
-                 </div>
-              </div>
-
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
-                 <h3 className="font-bold text-gray-900 dark:text-white mb-4 text-sm uppercase tracking-wider px-2">Popular Tags</h3>
-                 <div className="flex flex-wrap gap-2">
-                    {POPULAR_TAGS.map(tag => (
-                       <button key={tag} className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                          #{tag}
-                       </button>
-                    ))}
-                 </div>
-              </div>
-           </div>
-
-           {/* CENTER - Feed */}
-           <div className="lg:col-span-3 space-y-6">
-               
-               {/* Mobile Filter Tabs */}
-               <div className="flex lg:hidden overflow-x-auto gap-2 pb-2 no-scrollbar">
-                  {['hot', 'new', 'top'].map((tab) => (
-                      <button 
-                        key={tab}
-                        onClick={() => setActiveTab(tab as any)}
-                        className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-bold capitalize whitespace-nowrap border ${activeTab === tab ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white' : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700'}`}
-                      >
-                          {isGeg && tab === 'new' ? 'Të Reja' : tab}
-                      </button>
-                  ))}
+                     ))}
+                  </div>
                </div>
 
-               {/* Create Post Form (Inline) */}
+               <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600 rounded-full blur-3xl opacity-20 -mr-16 -mt-16"></div>
+                  <h4 className="text-xl font-serif font-black mb-4 relative z-10">Community Rules</h4>
+                  <p className="text-xs text-indigo-200 leading-relaxed relative z-10 font-bold italic">
+                     Fjalë e dhanun, Besë e lidhun. Ruani rreptësinë e gjuhës dhe butësinë e bisedës.
+                  </p>
+               </div>
+           </div>
+
+           <div className="lg:col-span-3 space-y-6">
                {isCreating && (
-                   <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-indigo-200 dark:border-indigo-900 shadow-lg mb-8 animate-scale-in">
-                       <div className="flex justify-between items-center mb-4">
-                           <h3 className="font-bold text-gray-900 dark:text-white">{isGeg ? 'Krijo Postim' : 'Create Post'}</h3>
-                           <button onClick={() => setIsCreating(false)}><X className="w-5 h-5 text-gray-400" /></button>
-                       </div>
-                       <form onSubmit={handleCreatePost} className="space-y-4">
-                           <input 
-                             className="w-full p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl font-serif font-bold text-lg outline-none focus:border-indigo-500 text-gray-900 dark:text-white"
-                             placeholder={isGeg ? 'Titulli' : 'Title'}
-                             value={newPostTitle}
-                             onChange={(e) => setNewPostTitle(e.target.value)}
-                             required
-                           />
-                           <textarea 
-                             className="w-full p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-indigo-500 min-h-[120px] text-gray-900 dark:text-white"
-                             placeholder={isGeg ? 'Përmbajtja...' : 'Content...'}
-                             value={newPostContent}
-                             onChange={(e) => setNewPostContent(e.target.value)}
-                             required
-                           />
-                           <div className="flex justify-end">
-                               <button type="submit" className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700">
-                                   {isGeg ? 'Posto' : 'Post'}
-                               </button>
-                           </div>
-                       </form>
+                   <div className="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] border-2 border-indigo-500 shadow-2xl animate-scale-in mb-10">
+                      <h3 className="text-2xl font-serif font-black dark:text-white mb-6">Create Discussion Node</h3>
+                      <div className="space-y-4">
+                        <input className="w-full p-4 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-2xl outline-none focus:border-indigo-500 dark:text-white font-bold" placeholder="Subject Title" value={newPostTitle} onChange={e => setNewPostTitle(e.target.value)} />
+                        <textarea className="w-full p-6 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-[2rem] min-h-[180px] outline-none focus:border-indigo-500 dark:text-white font-serif" placeholder="Provide depth to your topic..." value={newPostContent} onChange={e => setNewPostContent(e.target.value)} />
+                        <div className="flex justify-end gap-3 pt-4">
+                            <button onClick={() => setIsCreating(false)} className="px-6 py-3 text-gray-400 font-bold uppercase text-[10px] tracking-widest hover:text-gray-600">Cancel</button>
+                            <button onClick={handleCreatePost} className="px-10 py-3 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-indigo-700 transition-all">Broadcast Thread</button>
+                        </div>
+                      </div>
                    </div>
                )}
 
-               {/* Posts List */}
-               <div className="space-y-4">
-                   {filteredPosts.map((post) => (
-                       <div 
-                         key={post.id}
-                         onClick={() => setSelectedPost(post)}
-                         className={`bg-white dark:bg-gray-800 rounded-2xl border flex overflow-hidden hover:border-indigo-300 dark:hover:border-indigo-700 transition-all cursor-pointer group shadow-sm ${post.pinned ? 'border-green-200 dark:border-green-900 bg-green-50/30 dark:bg-green-900/10' : 'border-gray-200 dark:border-gray-700'}`}
-                       >
-                           {/* Vote Column (Desktop) */}
-                           <div className="hidden sm:flex w-12 bg-gray-50/50 dark:bg-gray-900/30 border-r border-gray-100 dark:border-gray-700 flex-col items-center py-4 gap-1 flex-shrink-0">
-                               <button onClick={(e) => handleVote(e, post.id, 'up')} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-400 hover:text-orange-500">
-                                   <ArrowBigUp className="w-6 h-6" />
-                               </button>
-                               <span className={`font-bold text-xs ${post.upvotes - post.downvotes > 50 ? 'text-orange-500' : 'text-gray-700 dark:text-gray-300'}`}>
-                                   {post.upvotes - post.downvotes}
+               {filteredPosts.length === 0 ? (
+                  <div className="text-center py-40 bg-white dark:bg-gray-900 rounded-[3rem] border border-dashed border-gray-200 dark:border-gray-800">
+                     <MessageSquare className="w-16 h-16 mx-auto mb-6 text-gray-200" />
+                     <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">No matching discussions found.</p>
+                  </div>
+               ) : filteredPosts.map(post => (
+                   <div 
+                      key={post.id} 
+                      onClick={() => setSelectedPost(post)} 
+                      className="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 flex hover:shadow-2xl hover:border-indigo-200 dark:hover:border-indigo-800 cursor-pointer shadow-sm transition-all duration-300 group"
+                   >
+                       <div className="hidden sm:flex w-14 flex-col items-center border-r border-gray-50 dark:border-gray-800 mr-8 pr-8 gap-1">
+                          <button onClick={(e) => handleVote(e, post.id, 'up')} className="text-gray-300 hover:text-orange-500 transition-colors"><ArrowBigUp className="w-8 h-8"/></button>
+                          <span className="text-sm font-black text-gray-900 dark:text-white">{post.upvotes - post.downvotes}</span>
+                          <button onClick={(e) => handleVote(e, post.id, 'down')} className="text-gray-300 hover:text-blue-500 transition-colors"><ArrowBigDown className="w-8 h-8"/></button>
+                       </div>
+                       
+                       <div className="flex-grow">
+                           <div className="flex flex-wrap items-center gap-3 mb-4 text-[9px] font-black uppercase tracking-widest text-gray-400">
+                               {post.pinned && <Pin className="w-3.5 h-3.5 fill-current text-emerald-500"/>}
+                               <span className={post.authorRole === 'admin' ? 'text-red-500' : 'text-gray-700 dark:text-gray-300'}>{post.author}</span>
+                               <span>•</span>
+                               <span>{post.date}</span>
+                               <span className="flex items-center gap-1 ml-auto bg-gray-50 dark:bg-gray-800 px-2 py-0.5 rounded-full text-[8px] font-black">
+                                  <MessageSquare className="w-3 h-3" /> {post.comments.length} RESPONSES
                                </span>
-                               <button onClick={(e) => handleVote(e, post.id, 'down')} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-400 hover:text-blue-500">
-                                   <ArrowBigDown className="w-6 h-6" />
-                               </button>
                            </div>
-
-                           {/* Content */}
-                           <div className="p-5 flex-grow">
-                               <div className="flex items-center gap-2 mb-2 text-xs text-gray-500 dark:text-gray-400">
-                                   {post.pinned && <Pin className="w-3 h-3 text-green-600 fill-green-600" />}
-                                   <span className={`font-bold hover:underline ${post.authorRole === 'admin' ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>{post.author}</span>
-                                   <span>•</span>
-                                   <span>{post.date}</span>
-                               </div>
-                               
-                               <h3 className="text-lg sm:text-xl font-serif font-bold text-gray-900 dark:text-white mb-2 leading-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                   {post.title}
-                               </h3>
-                               <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-4">
-                                   {post.content}
-                               </p>
-
-                               <div className="flex items-center justify-between">
-                                   <div className="flex items-center gap-4 text-xs font-bold text-gray-500 dark:text-gray-400">
-                                       <div className="flex items-center gap-1 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded transition-colors">
-                                           <MessageSquare className="w-4 h-4" />
-                                           {post.comments.length} <span className="hidden sm:inline">{isGeg ? 'Komente' : 'Comments'}</span>
-                                       </div>
-                                       <div className="flex gap-2">
-                                           {post.tags.map(tag => (
-                                               <span key={tag} className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full text-[10px] font-medium text-gray-600 dark:text-gray-300">
-                                                   #{tag}
-                                               </span>
-                                           ))}
-                                       </div>
-                                   </div>
-                                   
-                                   {/* Mobile Vote Count Display */}
-                                   <div className="sm:hidden flex items-center gap-1 text-xs font-bold text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
-                                      <ArrowBigUp className="w-4 h-4" /> {post.upvotes - post.downvotes}
-                                   </div>
-                               </div>
+                           
+                           <h3 className="text-2xl font-serif font-black text-gray-900 dark:text-white mb-4 group-hover:text-indigo-600 transition-colors leading-tight">{post.title}</h3>
+                           <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed font-medium mb-6">{post.content}</p>
+                           
+                           <div className="flex flex-wrap gap-2">
+                              {post.tags.map(tag => (
+                                 <span key={tag} className="text-[8px] font-black px-2 py-1 bg-gray-50 dark:bg-gray-800 text-gray-400 rounded-lg uppercase tracking-tighter">#{tag}</span>
+                              ))}
                            </div>
                        </div>
-                   ))}
-               </div>
+                   </div>
+               ))}
            </div>
        </div>
-
-       {/* Mobile Floating Action Button */}
-       <button 
-          onClick={() => user ? setIsCreating(true) : onReqAuth()}
-          className="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-xl flex items-center justify-center z-40 hover:scale-110 active:scale-95 transition-all"
-       >
-          <PlusCircle className="w-8 h-8" />
-       </button>
     </div>
   );
 };

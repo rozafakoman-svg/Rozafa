@@ -15,7 +15,6 @@ interface SupportPageProps {
   onReqAuth: (mode?: 'login' | 'signup') => void;
 }
 
-// Fixed: Added CheckoutStep type definition to resolve "Cannot find name 'CheckoutStep'" error
 type CheckoutStep = 'methods' | 'processing' | 'success' | 'require-auth';
 
 const tiers = [
@@ -23,7 +22,7 @@ const tiers = [
     id: 'bronze',
     name: 'Bronze',
     nameGeg: 'Bronz',
-    price: '$3',
+    price: '€3',
     priceVal: 3,
     period: '/mo',
     icon: Shield,
@@ -38,7 +37,7 @@ const tiers = [
     id: 'silver',
     name: 'Silver',
     nameGeg: 'Argjend',
-    price: '$10',
+    price: '€10',
     priceVal: 10,
     period: '/mo',
     icon: Medal,
@@ -53,7 +52,7 @@ const tiers = [
     id: 'gold',
     name: 'Gold',
     nameGeg: 'Ar',
-    price: '$25',
+    price: '€25',
     priceVal: 25,
     period: '/mo',
     icon: Award,
@@ -68,7 +67,7 @@ const tiers = [
     id: 'platinum',
     name: 'Platinum',
     nameGeg: 'Platin',
-    price: '$50',
+    price: '€50',
     priceVal: 50,
     period: '/mo',
     icon: Crown,
@@ -83,7 +82,7 @@ const tiers = [
     id: 'diamond',
     name: 'Diamond',
     nameGeg: 'Diamant',
-    price: '$100',
+    price: '€100',
     priceVal: 100,
     period: '/mo',
     icon: Diamond,
@@ -98,7 +97,7 @@ const tiers = [
     id: 'mythic',
     name: 'Mythic',
     nameGeg: 'Miti',
-    price: '$500',
+    price: '€500',
     priceVal: 500,
     period: '/mo',
     icon: Zap,

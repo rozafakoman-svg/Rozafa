@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { PodcastEpisode, UserProfile, PodcastComment, Language } from '../types';
-/* Added Upload icon to the imports to fix "Cannot find name 'Upload'" error */
 import { 
   PlayCircle, PauseCircle, Headphones, Mic, Share2, Clock, Calendar, PlusCircle, 
   X, Send, MessageCircle, User, Activity, Users, Zap, Volume2, ArrowRight, Loader2, Upload
@@ -76,12 +75,12 @@ const PodcastPage: React.FC<PodcastPageProps> = ({ lang, user }) => {
   const [liveViewers, setLiveViewers] = useState(124);
   const [isLoading, setIsLoading] = useState(true);
 
-  // New Post Form State
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [newTopic, setNewTopic] = useState('');
 
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<number>(0);
   const animationRef = useRef<number>(0);
   const isGeg = lang === 'geg';
@@ -93,7 +92,7 @@ const PodcastPage: React.FC<PodcastPageProps> = ({ lang, user }) => {
   const loadEpisodes = async () => {
     setIsLoading(true);
     try {
-        const stored = await db.getAll<PodcastEpisode>(Stores.DailyData); // Re-using DailyData or specialized store
+        const stored = await db.getAll<PodcastEpisode>(Stores.DailyData);
         const filtered = stored.filter(i => i.id.startsWith('ep_'));
         if (filtered.length > 0) {
             setEpisodes(filtered);
@@ -113,7 +112,6 @@ const PodcastPage: React.FC<PodcastPageProps> = ({ lang, user }) => {
     }
   };
 
-  // Simulate Live Chat Messages
   useEffect(() => {
     if (currentEpisode?.isLive) {
       const interval = setInterval(() => {
@@ -139,8 +137,19 @@ const PodcastPage: React.FC<PodcastPageProps> = ({ lang, user }) => {
     }
   }, [currentEpisode?.id, currentEpisode?.isLive]);
 
+  // Fix: Contained chat scroll that doesn't trigger a global window scroll
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatContainerRef.current) {
+        const { scrollHeight, clientHeight, scrollTop } = chatContainerRef.current;
+        const isNearBottom = scrollHeight - clientHeight - scrollTop < 100;
+        
+        if (isNearBottom) {
+            chatContainerRef.current.scrollTo({
+                top: scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }
   }, [currentEpisode?.comments]);
 
   const togglePlay = (id: string) => {
@@ -185,8 +194,21 @@ const PodcastPage: React.FC<PodcastPageProps> = ({ lang, user }) => {
     setCurrentEpisode(updatedEpisode);
     setCommentText('');
     
-    // Persist
     await db.put(Stores.DailyData, updatedEpisode);
+  };
+
+  const handleSelectEpisode = (ep: PodcastEpisode) => {
+    setCurrentEpisode(ep);
+    setPlayingId(null);
+    setIsPlaying(false);
+    
+    // Bug Fix: Only scroll to player if we're far down the page, otherwise don't jump
+    if (playerRef.current) {
+        const rect = playerRef.current.getBoundingClientRect();
+        if (rect.top < 0) {
+            playerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
   };
 
   const handleUpload = async (e: React.FormEvent) => {
@@ -214,7 +236,7 @@ const PodcastPage: React.FC<PodcastPageProps> = ({ lang, user }) => {
   if (isLoading) {
       return (
           <div className="flex flex-col items-center justify-center py-40 animate-pulse">
-              <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mb-4" />
+              <Loader2 className="w-12 h-12 text-indigo-50 animate-spin mb-4" />
               <p className="text-gray-400 font-black uppercase text-[10px] tracking-widest">{isGeg ? 'Tuj hulumtue arkivën e zâneve...' : 'Accessing audio archives...'}</p>
           </div>
       );
@@ -246,9 +268,8 @@ const PodcastPage: React.FC<PodcastPageProps> = ({ lang, user }) => {
       </div>
 
       {currentEpisode && (
-        <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden mb-16">
+        <div ref={playerRef} className="bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden mb-16 scroll-mt-24">
           <div className="grid lg:grid-cols-12 min-h-[600px]">
-            {/* Left: Player Control Area */}
             <div className="lg:col-span-7 p-10 sm:p-16 flex flex-col justify-between bg-gray-50/50 dark:bg-gray-950/20 relative">
                <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none">
                   <Activity className="w-64 h-64 text-indigo-500" />
@@ -321,7 +342,6 @@ const PodcastPage: React.FC<PodcastPageProps> = ({ lang, user }) => {
                </div>
             </div>
 
-            {/* Right: Interactive Chat / Comment Area */}
             <div className="lg:col-span-5 flex flex-col bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800">
                <div className="p-8 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/50 flex items-center justify-between">
                   <h3 className="text-xl font-serif font-black dark:text-white flex items-center gap-3">
@@ -333,7 +353,7 @@ const PodcastPage: React.FC<PodcastPageProps> = ({ lang, user }) => {
                   </div>
                </div>
 
-               <div className="flex-grow p-8 overflow-y-auto max-h-[500px] lg:max-h-[600px] space-y-6 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-opacity-[0.02]">
+               <div ref={chatContainerRef} className="flex-grow p-8 overflow-y-auto max-h-[500px] lg:max-h-[600px] space-y-6 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-opacity-[0.02]">
                   {currentEpisode.comments.length === 0 ? (
                      <div className="flex flex-col items-center justify-center h-full text-center opacity-30 py-20">
                         <MessageCircle className="w-16 h-16 mb-4" />
@@ -357,7 +377,6 @@ const PodcastPage: React.FC<PodcastPageProps> = ({ lang, user }) => {
                       </div>
                     ))
                   )}
-                  <div ref={chatEndRef}></div>
                </div>
 
                <div className="p-8 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/50">
@@ -403,7 +422,7 @@ const PodcastPage: React.FC<PodcastPageProps> = ({ lang, user }) => {
             {episodes.filter(e => e.id !== currentEpisode?.id).map((ep) => (
                <div 
                  key={ep.id} 
-                 onClick={() => { setCurrentEpisode(ep); setPlayingId(null); setIsPlaying(false); window.scrollTo({ top: 400, behavior: 'smooth' }); }}
+                 onClick={() => handleSelectEpisode(ep)}
                  className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-800 hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer group flex flex-col h-full relative overflow-hidden"
                >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 dark:bg-indigo-900/10 rounded-bl-[80px] -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>

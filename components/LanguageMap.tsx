@@ -104,7 +104,7 @@ const REGIONS: RegionData[] = [
 const SHKUMBIN_PATH: [number, number][] = [
   [41.033, 19.383], [41.050, 19.550], [41.080, 19.750], [41.100, 19.950],
   [41.115, 20.080], [41.140, 20.250], [41.180, 20.450], [41.150, 20.580],
-  [41.100, 20.750], [41.000, 20.900], [40.850, 21.200], [40.750, 21.450]
+  [41.100, 20.750], [40.850, 21.200], [40.750, 21.450]
 ];
 
 const GEG_BOUNDS: [number, number][] = [
@@ -123,7 +123,8 @@ const TOSK_BOUNDS: [number, number][] = [
 ];
 
 const LanguageMap: React.FC<{ lang: Language }> = ({ lang }) => {
-  const [hoveredRegion, setHoveredRegion] = useState<RegionData | null>(REGIONS[0]);
+  // Changed default region selection to null for cleaner mobile entry
+  const [hoveredRegion, setHoveredRegion] = useState<RegionData | null>(null);
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
   const [visibleLayers, setVisibleLayers] = useState({
     boundaries: true,
@@ -335,7 +336,8 @@ const LanguageMap: React.FC<{ lang: Language }> = ({ lang }) => {
       <div className="grid lg:grid-cols-12 gap-8 items-stretch relative z-10 min-h-[650px]">
         <div className="lg:col-span-8 bg-white dark:bg-gray-900 rounded-[3rem] p-3 sm:p-5 border border-gray-100 dark:border-gray-800 shadow-xl relative overflow-hidden flex flex-col items-center">
            
-           <div className="absolute top-8 right-8 z-[400] flex flex-col gap-2">
+           {/* HIDDEN ON MOBILE: Layers Control */}
+           <div className="absolute top-8 right-8 z-[400] hidden lg:flex flex-col gap-2">
               <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md p-4 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-2xl flex flex-col gap-3 min-w-[200px]">
                  <div className="flex items-center gap-2 mb-1 border-b border-gray-100 dark:border-gray-700 pb-2">
                     <Filter className="w-4 h-4 text-albanian-red" />
@@ -377,7 +379,8 @@ const LanguageMap: React.FC<{ lang: Language }> = ({ lang }) => {
               </div>
            </div>
 
-           <div className="absolute top-8 left-8 flex flex-col gap-3 z-[400] max-w-[220px]">
+           {/* HIDDEN ON MOBILE: Region Stats */}
+           <div className="absolute top-8 left-8 hidden lg:flex flex-col gap-3 z-[400] max-w-[220px]">
               {visibleLayers.boundaries && REGIONS.map((region) => (
                 <div key={region.id} className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md p-3 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-lg group hover:border-indigo-200 dark:hover:border-indigo-800 transition-all">
                   <div className="flex items-center gap-2 mb-2">
@@ -406,7 +409,8 @@ const LanguageMap: React.FC<{ lang: Language }> = ({ lang }) => {
 
            <div ref={mapContainerRef} className="w-full h-[550px] sm:h-[650px] rounded-[2rem] overflow-hidden border border-gray-100 dark:border-gray-800 shadow-inner z-10 transition-opacity duration-1000"></div>
            
-           <div className="absolute bottom-8 left-8 z-[400] bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-lg pointer-events-none">
+           {/* HIDDEN ON MOBILE: Shkumbin River Legend */}
+           <div className="absolute bottom-8 left-8 z-[400] bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-lg pointer-events-none hidden lg:flex">
               <div className="flex items-center gap-2 text-blue-500">
                  <Anchor className="w-4 h-4" />
                  <span className="text-[10px] font-black uppercase tracking-widest">{t.shkumbin}</span>
@@ -486,7 +490,7 @@ const LanguageMap: React.FC<{ lang: Language }> = ({ lang }) => {
                     <div className="grid grid-cols-2 gap-4">
                        <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-inner">
                           <div className="flex items-center gap-2 mb-1">
-                             <Target className="w-3.5 h-3.5 text-indigo-500" />
+                             <Target className="w-3.5 h-3.5 text-indigo-50" />
                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t.area_label}</span>
                           </div>
                           <span className="text-lg font-black text-gray-800 dark:text-gray-100">{hoveredRegion.areaEstimate}</span>

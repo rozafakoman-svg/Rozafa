@@ -1,7 +1,10 @@
-
 import React, { useState } from 'react';
-import { UserProfile, Badge, Language } from '../types';
-import { Trophy, Star, Medal, Edit3, PlusCircle, Shield, Crown, Award, CheckCircle, ArrowRight, User, Flame, Lock, Calendar, Zap, MessageSquare, Activity, Hash, Diamond } from './Icons';
+import { UserProfile, Badge, Language, ForumPost } from '../types';
+import { 
+  Trophy, Star, Medal, Edit3, PlusCircle, Shield, Crown, Award, 
+  CheckCircle, ArrowRight, User, Flame, Lock, Calendar, Zap, 
+  MessageSquare, Activity, Hash, Diamond, ArrowUpRight 
+} from './Icons';
 import ContributionModal from './ContributionModal';
 
 interface CommunityPageProps {
@@ -10,9 +13,10 @@ interface CommunityPageProps {
   onAdminClick: () => void;
   user: UserProfile | null;
   onReqAuth: () => void;
+  onNavigate: (view: any) => void;
 }
 
-const CommunityPage: React.FC<CommunityPageProps> = ({ lang, isAdmin, onAdminClick, user, onReqAuth }) => {
+const CommunityPage: React.FC<CommunityPageProps> = ({ lang, isAdmin, onAdminClick, user, onReqAuth, onNavigate }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const isGeg = lang === 'geg';
   
@@ -37,17 +41,31 @@ const CommunityPage: React.FC<CommunityPageProps> = ({ lang, isAdmin, onAdminCli
     <div className="max-w-7xl mx-auto animate-fade-in-up pb-24 px-4">
        <div className="text-center mb-20 px-4">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white dark:bg-gray-900 text-indigo-600 rounded-full text-[9px] font-black uppercase tracking-[0.3em] mb-8 border border-gray-100 dark:border-gray-800 shadow-xl">
-             <Activity className="w-3.5 h-3.5" /> Community Archive Status
+             <User className="w-3.5 h-3.5" /> Personal Legacy Profile
           </div>
           <h1 className="text-5xl sm:text-7xl font-serif font-black text-gray-900 dark:text-white mb-6 tracking-tight">
-             {isGeg ? 'Forumi i ' : 'The '}<span className="text-indigo-600">Gegenishtes</span>
+             {isGeg ? 'Mirësevini, ' : 'Welcome, '}<span className="text-indigo-600">{displayUser.name.split(' ')[0]}</span>
           </h1>
+          <p className="text-xl text-gray-500 dark:text-gray-400 font-medium max-w-2xl mx-auto leading-relaxed">
+             {isGeg 
+               ? 'Ky asht vendi ku ruhen kontributet tueja për gjuhën tonë. Gjurmoni gradat dhe nderimet tueja.' 
+               : 'This is where your linguistic contributions are preserved. Track your ranks and honors.'}
+          </p>
        </div>
 
        <div className="grid lg:grid-cols-12 gap-10 items-start">
           <div className="lg:col-span-8 space-y-10">
              <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden relative">
                 <div className={`h-48 relative ${displayUser.tier === 'mythic' ? 'bg-gradient-to-r from-fuchsia-600 to-indigo-600' : 'bg-indigo-600'}`}>
+                   {!user && (
+                      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-20 p-8 text-center">
+                         <div className="max-w-md">
+                            <h3 className="text-white text-2xl font-black mb-4">Limited Access</h3>
+                            <p className="text-white/80 text-sm mb-6">Sign in to sync your progress with the Global Archive and earn permanent badges.</p>
+                            <button onClick={onReqAuth} className="px-8 py-3 bg-white text-indigo-600 rounded-xl font-black text-xs uppercase tracking-widest shadow-xl">Authenticate Now</button>
+                         </div>
+                      </div>
+                   )}
                    {displayUser.tier && (
                       <div className="absolute top-6 right-8 bg-white/10 backdrop-blur-xl text-white text-[9px] font-black px-5 py-2 rounded-2xl uppercase tracking-[0.2em] border border-white/20 flex items-center gap-2">
                          <Zap className="w-3.5 h-3.5 text-yellow-400" /> Patron: {displayUser.tier.toUpperCase()}
@@ -55,7 +73,7 @@ const CommunityPage: React.FC<CommunityPageProps> = ({ lang, isAdmin, onAdminCli
                    )}
                 </div>
 
-                <div className="px-10 pb-12 sm:px-16 sm:pb-16">
+                <div className="px-10 pb-12 sm:px-16 sm:pb-16 relative">
                    <div className="flex flex-col md:flex-row items-center md:items-end -mt-20 mb-12 gap-8">
                       <div className="relative group shrink-0">
                          <div className={`w-40 h-40 rounded-[2.5rem] bg-white dark:bg-gray-900 p-2 shadow-3xl ${displayUser.tier === 'mythic' ? 'ring-4 ring-fuchsia-500 animate-pulse' : ''}`}>
@@ -96,19 +114,19 @@ const CommunityPage: React.FC<CommunityPageProps> = ({ lang, isAdmin, onAdminCli
                       </div>
                    </div>
 
-                   <div className="bg-gray-50 dark:bg-gray-800 p-10 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 mb-12 shadow-inner">
+                   <div className="bg-gray-50 dark:bg-gray-800 p-10 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 mb-12 shadow-inner">
                       <div className="flex justify-between items-center mb-8">
                          <div className="flex items-center gap-3"><Zap className="w-6 h-6 text-amber-500 fill-current" /><span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Knowledge Matrix</span></div>
                          <div className="flex items-baseline gap-2"><span className="text-4xl font-black text-indigo-600 dark:text-indigo-400">{displayUser.points}</span><span className="text-sm font-black text-gray-400 tracking-widest uppercase">/ {displayUser.nextLevelPoints} XP</span></div>
                       </div>
-                      <div className="w-full h-6 bg-white dark:bg-gray-950 rounded-full overflow-hidden p-1.5 shadow-inner">
+                      <div className="w-full h-6 bg-white dark:bg-gray-950 rounded-full overflow-hidden p-1.5 shadow-inner border border-gray-100 dark:border-gray-800">
                          <div className="h-full bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-indigo-600 rounded-full transition-all duration-1000 ease-out shadow-lg" style={{ width: `${progressPercent}%` }} />
                       </div>
                    </div>
 
-                   <div className="flex gap-6">
+                   <div className="flex flex-col sm:flex-row gap-6 mb-12">
                       <button onClick={() => setModalOpen(true)} className="flex-grow py-6 bg-indigo-600 text-white rounded-[1.8rem] font-black text-xs uppercase tracking-[0.25em] flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all shadow-2xl active:scale-95"><PlusCircle className="w-5 h-5" /> Record Entry</button>
-                      <button onClick={onAdminClick} disabled={!isAdmin} className={`px-10 py-6 rounded-[1.8rem] font-black text-xs uppercase tracking-[0.25em] flex items-center justify-center gap-3 border-2 transition-all ${isAdmin ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-100 dark:border-gray-800 hover:border-indigo-500 shadow-xl' : 'opacity-40 cursor-not-allowed'}`}><Shield className="w-5 h-5" /> SOC</button>
+                      <button onClick={() => onNavigate('forum')} className="flex-grow py-6 bg-white dark:bg-gray-900 text-indigo-600 border border-indigo-100 dark:border-indigo-800 rounded-[1.8rem] font-black text-xs uppercase tracking-[0.25em] flex items-center justify-center gap-3 hover:bg-indigo-50 transition-all shadow-xl active:scale-95"><MessageSquare className="w-5 h-5" /> Open Discussions</button>
                    </div>
                 </div>
              </div>
@@ -118,7 +136,7 @@ const CommunityPage: React.FC<CommunityPageProps> = ({ lang, isAdmin, onAdminCli
              <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-12 border border-gray-100 dark:border-gray-800 shadow-2xl flex flex-col h-full sticky top-24">
                 <div className="flex items-center justify-between mb-12 border-b border-gray-100 dark:border-gray-800 pb-8">
                    <h3 className="text-2xl font-serif font-black dark:text-white">{isGeg ? 'Nderi' : 'Honors'}</h3>
-                   <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Real-time Node Status</div>
+                   <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Archive Status</div>
                 </div>
                 <div className="space-y-6">
                    {[1, 2, 3, 4, 5].map((rank) => (
