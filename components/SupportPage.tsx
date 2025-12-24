@@ -4,7 +4,6 @@ import { UserProfile, Badge, Language, Transaction } from '../types';
 import { 
   Heart, Shield, Award, Crown, CheckCircle, CreditCard, X, Loader2, Lock, 
   Wallet, ArrowRight, Smartphone, ArrowLeft, ShieldCheck, User, Star, Zap, Flame, Diamond, Trophy,
-  // Added missing Medal icon to imports
   Medal
 } from './Icons';
 import { db, Stores } from '../services/db';
@@ -15,6 +14,9 @@ interface SupportPageProps {
   onUpdateUser: (user: UserProfile) => void;
   onReqAuth: (mode?: 'login' | 'signup') => void;
 }
+
+// Fixed: Added CheckoutStep type definition to resolve "Cannot find name 'CheckoutStep'" error
+type CheckoutStep = 'methods' | 'processing' | 'success' | 'require-auth';
 
 const tiers = [
   {
@@ -109,15 +111,12 @@ const tiers = [
   }
 ];
 
-type CheckoutStep = 'methods' | 'stripe' | 'paypal' | 'processing' | 'require-auth' | 'success';
-
 const SupportPage: React.FC<SupportPageProps> = ({ lang, user, onUpdateUser, onReqAuth }) => {
   const isGeg = lang === 'geg';
   const [selectedTier, setSelectedTier] = useState<typeof tiers[0] | null>(null);
   const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>('methods');
   const [isProcessing, setIsProcessing] = useState(false);
   const [pendingReward, setPendingReward] = useState<typeof tiers[0] | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal'>('stripe');
 
   const monthlyGoal = 5000;
   const currentMonthly = 1840;
@@ -125,7 +124,7 @@ const SupportPage: React.FC<SupportPageProps> = ({ lang, user, onUpdateUser, onR
 
   useEffect(() => {
     if (user && pendingReward && checkoutStep === 'require-auth') {
-      applyReward(user, pendingReward, paymentMethod);
+      applyReward(user, pendingReward, 'stripe');
       setCheckoutStep('success');
       setPendingReward(null);
     }
@@ -151,7 +150,6 @@ const SupportPage: React.FC<SupportPageProps> = ({ lang, user, onUpdateUser, onR
     };
     onUpdateUser(updatedUser);
 
-    // Save transaction for Admin Dashboard
     const transaction: Transaction = {
         id: `TX_${Date.now()}`,
         userId: targetUser.id,
@@ -164,13 +162,7 @@ const SupportPage: React.FC<SupportPageProps> = ({ lang, user, onUpdateUser, onR
     await db.put(Stores.Transactions, transaction);
   };
 
-  const handleJoinClick = (tier: typeof tiers[0]) => {
-     setSelectedTier(tier);
-     setCheckoutStep('methods');
-  };
-
   const handleFinalConfirm = (method: 'stripe' | 'paypal') => {
-    setPaymentMethod(method);
     setIsProcessing(true);
     setCheckoutStep('processing');
     setTimeout(() => {
@@ -182,7 +174,7 @@ const SupportPage: React.FC<SupportPageProps> = ({ lang, user, onUpdateUser, onR
             setPendingReward(selectedTier);
             setCheckoutStep('require-auth');
         }
-    }, 2500);
+    }, 2000);
   };
 
   return (
@@ -206,20 +198,12 @@ const SupportPage: React.FC<SupportPageProps> = ({ lang, user, onUpdateUser, onR
                    <div className="absolute top-0 bottom-0 left-0 right-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.1)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.1)_50%,rgba(255,255,255,0.1)_75%,transparent_75%,transparent)] bg-[length:1rem_1rem]"></div>
                 </div>
             </div>
-            <p className="mt-6 text-base text-gray-500 dark:text-gray-400 font-medium italic">
-                {isGeg ? 'Kontributi juej asht jetik për ruajtjen e kësaj pasunie letrare.' : 'Your support is vital for the preservation of this literary treasure.'}
-            </p>
          </div>
        </div>
 
        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
           {tiers.map((tier) => (
               <div key={tier.id} className={`group relative bg-white dark:bg-gray-900 rounded-[2.5rem] p-10 border-2 transition-all duration-500 hover:-translate-y-3 flex flex-col shadow-sm hover:shadow-3xl ${user?.tier === tier.id ? 'border-indigo-500 ring-8 ring-indigo-500/5' : tier.borderColor}`}>
-                 {tier.id === 'mythic' && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-fuchsia-600 text-white px-6 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">
-                        Elite Legacy
-                    </div>
-                 )}
                  <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center mb-10 ${tier.bgColor} ${tier.color} shadow-inner group-hover:scale-110 transition-transform duration-500`}>
                     <tier.icon className="w-10 h-10" />
                  </div>
@@ -241,17 +225,16 @@ const SupportPage: React.FC<SupportPageProps> = ({ lang, user, onUpdateUser, onR
                  </ul>
 
                  <button 
-                    onClick={() => handleJoinClick(tier)} 
+                    onClick={() => setSelectedTier(tier)} 
                     disabled={user?.tier === tier.id} 
                     className={`w-full py-6 rounded-[1.8rem] font-black text-xs uppercase tracking-[0.25em] text-white transition-all shadow-xl active:scale-95 ${user?.tier === tier.id ? 'bg-emerald-600' : tier.buttonColor}`}
                  >
-                    {user?.tier === tier.id ? 'Active Protection' : (isGeg ? 'Zgjidh Këtë Plan' : 'Select Plan')}
+                    {user?.tier === tier.id ? 'Active Protection' : (isGeg ? 'Dhuroni' : 'Contribute')}
                  </button>
               </div>
           ))}
        </div>
 
-       {/* Simplified payment step for consistency */}
        {selectedTier && (
          <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-[500] backdrop-blur-xl animate-fade-in">
             <div className="bg-white dark:bg-gray-900 rounded-[3rem] w-full max-w-lg relative overflow-hidden shadow-3xl border border-white/10">
@@ -270,34 +253,32 @@ const SupportPage: React.FC<SupportPageProps> = ({ lang, user, onUpdateUser, onR
                             <div className="w-24 h-24 bg-emerald-50 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-8 border-4 border-emerald-100">
                                 <CheckCircle className="w-12 h-12 text-emerald-600" />
                             </div>
-                            <h2 className="text-3xl font-serif font-black dark:text-white mb-4">You are now a Patron!</h2>
+                            <h2 className="text-3xl font-serif font-black dark:text-white mb-4">Misioni u Krye!</h2>
                             <p className="text-gray-500 dark:text-gray-400 mb-4">A legacy badge has been issued to your profile.</p>
-                            <button onClick={() => setSelectedTier(null)} className="mt-10 px-10 py-4 bg-gray-900 dark:bg-white text-white dark:text-black rounded-2xl font-black text-xs uppercase tracking-widest">Return to Library</button>
+                            <button onClick={() => setSelectedTier(null)} className="mt-10 px-10 py-4 bg-gray-900 dark:bg-white text-white dark:text-black rounded-2xl font-black text-xs uppercase tracking-widest">Kthehu</button>
                         </div>
                     ) : checkoutStep === 'require-auth' ? (
                         <div className="py-12 flex flex-col items-center">
                             <User className="w-16 h-16 text-indigo-500 mb-6" />
-                            <h2 className="text-2xl font-serif font-black dark:text-white mb-4">Action Required</h2>
+                            <h2 className="text-2xl font-serif font-black dark:text-white mb-4">Identifikimi</h2>
                             <p className="text-gray-500 dark:text-gray-400 mb-8">Please sign in to link this contribution to your legacy profile.</p>
-                            <button onClick={() => onReqAuth('login')} className="px-10 py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest">Sign In to Claim</button>
+                            <button onClick={() => onReqAuth('login')} className="px-10 py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest">Sign In</button>
                         </div>
                     ) : (
-                        <>
+                        <div className="space-y-4">
                             <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 rounded-[2rem] flex items-center justify-center mx-auto mb-10 shadow-lg border border-indigo-100">
                                 <Lock className="w-10 h-10 text-indigo-600" />
                             </div>
                             <p className="text-xl font-medium text-gray-600 dark:text-gray-300 mb-12">
-                                Complete your <strong>{selectedTier.name}</strong> subscription of <strong>{selectedTier.price}</strong>.
+                                Tier: <strong>{selectedTier.name}</strong> • Sum: <strong>{selectedTier.price}</strong>.
                             </p>
-                            <div className="space-y-4">
-                                <button onClick={() => handleFinalConfirm('stripe')} className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-3">
-                                    <CreditCard className="w-5 h-5" /> Pay with Card
-                                </button>
-                                <button onClick={() => handleFinalConfirm('paypal')} className="w-full py-5 bg-[#003087] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl hover:opacity-90 transition-all flex items-center justify-center gap-3">
-                                    <Wallet className="w-5 h-5" /> Pay with PayPal
-                                </button>
-                            </div>
-                        </>
+                            <button onClick={() => handleFinalConfirm('stripe')} className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-3">
+                                <CreditCard className="w-5 h-5" /> Stripe (Card)
+                            </button>
+                            <button onClick={() => handleFinalConfirm('paypal')} className="w-full py-5 bg-[#003087] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl hover:opacity-90 transition-all flex items-center justify-center gap-3">
+                                <Wallet className="w-5 h-5" /> PayPal
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
