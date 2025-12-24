@@ -228,6 +228,16 @@ export interface Product {
   color: string;
 }
 
+export interface Transaction {
+  id: string;
+  userId: string;
+  userName: string;
+  amount: number;
+  tier: string;
+  method: 'stripe' | 'paypal';
+  timestamp: string;
+}
+
 export interface FinancialRecord {
   month: string;
   revenue: number; 

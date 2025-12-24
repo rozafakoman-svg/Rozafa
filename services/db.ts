@@ -2,7 +2,7 @@
 import { supabase, isRemoteActive } from './supabaseClient';
 
 const DB_NAME = 'GegenishtSecureDB';
-const DB_VERSION = 7; 
+const DB_VERSION = 8; 
 
 export enum Stores {
   Dictionary = 'dictionary',
@@ -12,7 +12,8 @@ export enum Stores {
   Scores = 'scores',
   Products = 'products',
   AuditLogs = 'audit_logs',
-  Alphabet = 'alphabet'
+  Alphabet = 'alphabet',
+  Transactions = 'transactions'
 }
 
 const toSnake = (obj: any) => {
@@ -82,7 +83,7 @@ export class AppDatabase {
     if (localResult) return localResult;
 
     // 2. Try Remote if Local fails (Cloud Sync)
-    const syncableStores = [Stores.Dictionary, Stores.Blog, Stores.Glossary, Stores.DailyData, Stores.Scores, Stores.Alphabet, Stores.Products];
+    const syncableStores = [Stores.Dictionary, Stores.Blog, Stores.Glossary, Stores.DailyData, Stores.Scores, Stores.Alphabet, Stores.Products, Stores.Transactions];
     if (isRemoteActive() && syncableStores.includes(storeName)) {
         try {
             const idCol = storeName === Stores.Dictionary ? 'word' : 'id';
@@ -119,7 +120,7 @@ export class AppDatabase {
     await this.putLocal(storeName, normalizedData);
 
     // 2. Sync to Supabase if online
-    const syncableStores = [Stores.Dictionary, Stores.Blog, Stores.Glossary, Stores.DailyData, Stores.Scores, Stores.Alphabet, Stores.Products];
+    const syncableStores = [Stores.Dictionary, Stores.Blog, Stores.Glossary, Stores.DailyData, Stores.Scores, Stores.Alphabet, Stores.Products, Stores.Transactions];
     if (isRemoteActive() && syncableStores.includes(storeName)) {
         try {
             const snakeData = toSnake(normalizedData);

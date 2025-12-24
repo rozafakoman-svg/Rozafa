@@ -20,7 +20,9 @@ import {
   Smartphone,
   ChevronDown,
   // Added formatting icons
-  Bold, Italic, List, Link
+  Bold, Italic, List, Link,
+  // Added Diamond icon
+  Diamond
 } from 'lucide-react';
 
 export { 
@@ -43,5 +45,7 @@ export {
   Smartphone,
   ChevronDown,
   // Added formatting icons
-  Bold, Italic, List, Link
+  Bold, Italic, List, Link,
+  // Added Diamond icon
+  Diamond
 };

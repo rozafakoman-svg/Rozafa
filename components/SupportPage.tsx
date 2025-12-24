@@ -1,7 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { UserProfile, Badge, Language } from '../types';
-import { Heart, Shield, Award, Crown, CheckCircle, CreditCard, X, Loader2, Lock, Wallet, ArrowRight, Smartphone, ArrowLeft, ShieldCheck, User, Star, Zap } from './Icons';
+import { UserProfile, Badge, Language, Transaction } from '../types';
+import { 
+  Heart, Shield, Award, Crown, CheckCircle, CreditCard, X, Loader2, Lock, 
+  Wallet, ArrowRight, Smartphone, ArrowLeft, ShieldCheck, User, Star, Zap, Flame, Diamond, Trophy,
+  // Added missing Medal icon to imports
+  Medal
+} from './Icons';
+import { db, Stores } from '../services/db';
 
 interface SupportPageProps {
   lang: Language;
@@ -27,11 +33,26 @@ const tiers = [
     featuresGeg: ['Emblemë Mbështetësi', 'Pa Reklama', 'Rol në Discord'],
   },
   {
+    id: 'silver',
+    name: 'Silver',
+    nameGeg: 'Argjend',
+    price: '$10',
+    priceVal: 10,
+    period: '/mo',
+    icon: Medal,
+    color: 'text-slate-400 dark:text-slate-300',
+    bgColor: 'bg-slate-50 dark:bg-slate-800/50',
+    borderColor: 'border-slate-200 dark:border-slate-700',
+    buttonColor: 'bg-slate-600 hover:bg-slate-700 dark:bg-slate-500 dark:hover:bg-slate-600',
+    features: ['All Bronze Features', 'Special Icon', 'Supporter Newsletter'],
+    featuresGeg: ['Të gjitha benefitet e Bronzit', 'Ikonë Speciale', 'Gazetë e Mbështetësve'],
+  },
+  {
     id: 'gold',
     name: 'Gold',
     nameGeg: 'Ar',
-    price: '$10',
-    priceVal: 10,
+    price: '$25',
+    priceVal: 25,
     period: '/mo',
     icon: Award,
     color: 'text-yellow-600 dark:text-yellow-400',
@@ -45,8 +66,8 @@ const tiers = [
     id: 'platinum',
     name: 'Platinum',
     nameGeg: 'Platin',
-    price: '$25',
-    priceVal: 25,
+    price: '$50',
+    priceVal: 50,
     period: '/mo',
     icon: Crown,
     color: 'text-indigo-600 dark:text-indigo-400',
@@ -55,10 +76,40 @@ const tiers = [
     buttonColor: 'bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600',
     features: ['All Gold Features', 'Early Access to Games', 'Digital Certificate'],
     featuresGeg: ['Të gjitha benefitet e Arit', 'Qasje e Hershme në Lojna', 'Certifikatë Digjitale'],
+  },
+  {
+    id: 'diamond',
+    name: 'Diamond',
+    nameGeg: 'Diamant',
+    price: '$100',
+    priceVal: 100,
+    period: '/mo',
+    icon: Diamond,
+    color: 'text-cyan-500 dark:text-cyan-400',
+    bgColor: 'bg-cyan-50 dark:bg-cyan-900/30',
+    borderColor: 'border-cyan-100 dark:border-cyan-700',
+    buttonColor: 'bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-500 dark:hover:bg-cyan-600',
+    features: ['All Platinum Features', 'Name in Credits', '1-on-1 History Session'],
+    featuresGeg: ['Të gjitha benefitet e Platinit', 'Emni në Kreditet e Aplikacionit', 'Sesion Histori 1-më-1'],
+  },
+  {
+    id: 'mythic',
+    name: 'Mythic',
+    nameGeg: 'Miti',
+    price: '$500',
+    priceVal: 500,
+    period: '/mo',
+    icon: Zap,
+    color: 'text-fuchsia-600 dark:text-fuchsia-400',
+    bgColor: 'bg-fuchsia-50 dark:bg-fuchsia-900/30',
+    borderColor: 'border-fuchsia-200 dark:border-fuchsia-800',
+    buttonColor: 'bg-fuchsia-600 hover:bg-fuchsia-700 dark:bg-fuchsia-500 dark:hover:bg-fuchsia-600',
+    features: ['The Ultimate Recognition', 'Founding Member Badge', 'Private Dinner Event'],
+    featuresGeg: ['Mirënjohja ma e Lartë', 'Emblemë "Anëtar Themelues"', 'Darkë Private vjetore'],
   }
 ];
 
-type CheckoutStep = 'methods' | 'stripe' | 'paypal' | 'revolut' | 'processing' | 'require-auth' | 'success';
+type CheckoutStep = 'methods' | 'stripe' | 'paypal' | 'processing' | 'require-auth' | 'success';
 
 const SupportPage: React.FC<SupportPageProps> = ({ lang, user, onUpdateUser, onReqAuth }) => {
   const isGeg = lang === 'geg';
@@ -66,28 +117,29 @@ const SupportPage: React.FC<SupportPageProps> = ({ lang, user, onUpdateUser, onR
   const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>('methods');
   const [isProcessing, setIsProcessing] = useState(false);
   const [pendingReward, setPendingReward] = useState<typeof tiers[0] | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal'>('stripe');
 
-  const monthlyGoal = 2000;
-  const currentMonthly = 1250;
+  const monthlyGoal = 5000;
+  const currentMonthly = 1840;
   const progressPercent = Math.min((currentMonthly / monthlyGoal) * 100, 100);
 
   useEffect(() => {
     if (user && pendingReward && checkoutStep === 'require-auth') {
-      applyReward(user, pendingReward);
+      applyReward(user, pendingReward, paymentMethod);
       setCheckoutStep('success');
       setPendingReward(null);
     }
   }, [user, pendingReward, checkoutStep]);
 
-  const applyReward = (targetUser: UserProfile, tier: typeof tiers[0]) => {
+  const applyReward = async (targetUser: UserProfile, tier: typeof tiers[0], method: 'stripe' | 'paypal') => {
     const newBadge: Badge = {
         id: `badge_${Date.now()}`,
         name: `${tier.name} Supporter`,
         nameGeg: `Mbështetës ${tier.nameGeg}`,
-        iconName: 'Heart',
+        iconName: tier.id === 'mythic' ? 'Zap' : tier.id === 'diamond' ? 'Diamond' : 'Heart',
         description: `Subscribed to ${tier.name} tier`,
         descriptionGeg: `Abonue në nivelin ${tier.nameGeg}`,
-        color: tier.color.replace('text-', 'bg-').replace('600', '100').replace('700', '100') + ` ${tier.color}`,
+        color: tier.color.replace('text-', 'bg-').replace('600', '100').replace('700', '100').replace('500', '100') + ` ${tier.color}`,
         earned: true
     };
     
@@ -98,6 +150,18 @@ const SupportPage: React.FC<SupportPageProps> = ({ lang, user, onUpdateUser, onR
         points: targetUser.points + (tier.priceVal * 10)
     };
     onUpdateUser(updatedUser);
+
+    // Save transaction for Admin Dashboard
+    const transaction: Transaction = {
+        id: `TX_${Date.now()}`,
+        userId: targetUser.id,
+        userName: targetUser.name,
+        amount: tier.priceVal,
+        tier: tier.id,
+        method: method,
+        timestamp: new Date().toISOString()
+    };
+    await db.put(Stores.Transactions, transaction);
   };
 
   const handleJoinClick = (tier: typeof tiers[0]) => {
@@ -105,13 +169,14 @@ const SupportPage: React.FC<SupportPageProps> = ({ lang, user, onUpdateUser, onR
      setCheckoutStep('methods');
   };
 
-  const handleFinalConfirm = () => {
+  const handleFinalConfirm = (method: 'stripe' | 'paypal') => {
+    setPaymentMethod(method);
     setIsProcessing(true);
     setCheckoutStep('processing');
     setTimeout(() => {
         setIsProcessing(false);
         if (user && selectedTier) {
-            applyReward(user, selectedTier);
+            applyReward(user, selectedTier, method);
             setCheckoutStep('success');
         } else if (selectedTier) {
             setPendingReward(selectedTier);
@@ -150,6 +215,11 @@ const SupportPage: React.FC<SupportPageProps> = ({ lang, user, onUpdateUser, onR
        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
           {tiers.map((tier) => (
               <div key={tier.id} className={`group relative bg-white dark:bg-gray-900 rounded-[2.5rem] p-10 border-2 transition-all duration-500 hover:-translate-y-3 flex flex-col shadow-sm hover:shadow-3xl ${user?.tier === tier.id ? 'border-indigo-500 ring-8 ring-indigo-500/5' : tier.borderColor}`}>
+                 {tier.id === 'mythic' && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-fuchsia-600 text-white px-6 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">
+                        Elite Legacy
+                    </div>
+                 )}
                  <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center mb-10 ${tier.bgColor} ${tier.color} shadow-inner group-hover:scale-110 transition-transform duration-500`}>
                     <tier.icon className="w-10 h-10" />
                  </div>
@@ -201,7 +271,15 @@ const SupportPage: React.FC<SupportPageProps> = ({ lang, user, onUpdateUser, onR
                                 <CheckCircle className="w-12 h-12 text-emerald-600" />
                             </div>
                             <h2 className="text-3xl font-serif font-black dark:text-white mb-4">You are now a Patron!</h2>
+                            <p className="text-gray-500 dark:text-gray-400 mb-4">A legacy badge has been issued to your profile.</p>
                             <button onClick={() => setSelectedTier(null)} className="mt-10 px-10 py-4 bg-gray-900 dark:bg-white text-white dark:text-black rounded-2xl font-black text-xs uppercase tracking-widest">Return to Library</button>
+                        </div>
+                    ) : checkoutStep === 'require-auth' ? (
+                        <div className="py-12 flex flex-col items-center">
+                            <User className="w-16 h-16 text-indigo-500 mb-6" />
+                            <h2 className="text-2xl font-serif font-black dark:text-white mb-4">Action Required</h2>
+                            <p className="text-gray-500 dark:text-gray-400 mb-8">Please sign in to link this contribution to your legacy profile.</p>
+                            <button onClick={() => onReqAuth('login')} className="px-10 py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest">Sign In to Claim</button>
                         </div>
                     ) : (
                         <>
@@ -212,10 +290,10 @@ const SupportPage: React.FC<SupportPageProps> = ({ lang, user, onUpdateUser, onR
                                 Complete your <strong>{selectedTier.name}</strong> subscription of <strong>{selectedTier.price}</strong>.
                             </p>
                             <div className="space-y-4">
-                                <button onClick={handleFinalConfirm} className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-3">
+                                <button onClick={() => handleFinalConfirm('stripe')} className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-3">
                                     <CreditCard className="w-5 h-5" /> Pay with Card
                                 </button>
-                                <button onClick={handleFinalConfirm} className="w-full py-5 bg-[#003087] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl hover:opacity-90 transition-all flex items-center justify-center gap-3">
+                                <button onClick={() => handleFinalConfirm('paypal')} className="w-full py-5 bg-[#003087] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl hover:opacity-90 transition-all flex items-center justify-center gap-3">
                                     <Wallet className="w-5 h-5" /> Pay with PayPal
                                 </button>
                             </div>
