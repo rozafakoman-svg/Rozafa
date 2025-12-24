@@ -1,3 +1,4 @@
+
 import { supabase, isRemoteActive } from './supabaseClient';
 
 const DB_NAME = 'GegenishtSecureDB';
@@ -69,6 +70,7 @@ export class AppDatabase {
   async get<T>(storeName: Stores, key: string): Promise<T | null> {
     await this.init();
     
+    // 1. Try Local First (Performance & Offline)
     const localResult = await new Promise<T | null>((resolve) => {
       const transaction = this.db!.transaction(storeName, 'readonly');
       const store = transaction.objectStore(storeName);
@@ -79,6 +81,7 @@ export class AppDatabase {
 
     if (localResult) return localResult;
 
+    // 2. Try Remote if Local fails (Cloud Sync)
     const syncableStores = [Stores.Dictionary, Stores.Blog, Stores.Glossary, Stores.DailyData, Stores.Scores, Stores.Alphabet, Stores.Products];
     if (isRemoteActive() && syncableStores.includes(storeName)) {
         try {
@@ -112,8 +115,10 @@ export class AppDatabase {
         normalizedData.word = normalizedData.word.toLowerCase();
     }
 
+    // 1. Always save locally immediately
     await this.putLocal(storeName, normalizedData);
 
+    // 2. Sync to Supabase if online
     const syncableStores = [Stores.Dictionary, Stores.Blog, Stores.Glossary, Stores.DailyData, Stores.Scores, Stores.Alphabet, Stores.Products];
     if (isRemoteActive() && syncableStores.includes(storeName)) {
         try {
@@ -121,9 +126,11 @@ export class AppDatabase {
             const { error } = await supabase!.from(storeName).upsert(snakeData);
             if (error) {
                 console.error(`[DB] Cloud Sync Failed for ${storeName}:`, error.message);
+                throw error; // Rethrow to let UI know sync failed
             }
         } catch (e: any) {
             console.warn(`[DB] Remote sync exception for ${storeName}`, e.message || e);
+            throw e;
         }
     }
   }
@@ -161,7 +168,6 @@ export class AppDatabase {
 
     if (isRemoteActive()) {
         const idCol = storeName === Stores.Dictionary ? 'word' : 'id';
-        // Updated to use .then() to avoid TS2551 error on catch property for PostgrestFilterBuilder
         supabase!.from(storeName).delete().eq(idCol, key.toLowerCase()).then(({ error }) => {
             if (error) {
                 console.error("[DB] Remote Delete Error", error.message);

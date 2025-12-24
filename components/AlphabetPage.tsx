@@ -10,7 +10,6 @@ interface AlphabetPageProps {
   isEditing: boolean;
 }
 
-// Helper to generate a placeholder image URL based on the word
 const getPlaceholder = (text: string, color: string = 'e2e8f0') => 
   `https://placehold.co/400x400/${color}/475569?text=${text}`;
 
@@ -52,7 +51,6 @@ const INITIAL_ALPHABET: AlphabetLetter[] = [
   { id: 'z', char: 'Z', isNasal: false, isDigraph: false, ipa: '/z/', exampleWord: 'Zemër', exampleTranslation: 'Heart', description: 'Voiced alveolar fricative.', imageUrl: getPlaceholder('Zemër') },
   { id: 'zh', char: 'Zh', isNasal: false, isDigraph: true, ipa: '/ʒ/', exampleWord: 'Zhurmë', exampleTranslation: 'Noise', description: 'Voiced postalveolar fricative.', imageUrl: getPlaceholder('Zhurmë') },
   
-  // GEG DISTINCTIVE NASALS
   { id: 'â', char: 'Â', isNasal: true, isDigraph: false, ipa: '/ã/', exampleWord: 'Hâna', exampleTranslation: 'The Moon', description: 'Nasal A. Replaces standard "ë" in many Geg words (Hëna -> Hâna).', imageUrl: getPlaceholder('Hâna', 'fecaca') },
   { id: 'ê', char: 'Ê', isNasal: true, isDigraph: false, ipa: '/ẽ/', exampleWord: 'Kênë', exampleTranslation: 'Been', description: 'Nasal E. Common in Geg participles (qenë -> kênë).', imageUrl: getPlaceholder('Kênë', 'fecaca') },
   { id: 'î', char: 'Î', isNasal: true, isDigraph: false, ipa: '/ĩ/', exampleWord: 'Hî', exampleTranslation: 'Ash/Enter', description: 'Nasal I. A distinct phonetic marker of the Geg people.', imageUrl: getPlaceholder('Hî', 'fecaca') },
@@ -93,7 +91,6 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
   const handleSaveAll = async () => {
       setIsSaving(true);
       try {
-          // Clear current and rewrite
           await db.clearStore(Stores.Alphabet);
           for (const letter of letters) {
               await db.put(Stores.Alphabet, letter);
@@ -216,8 +213,6 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
 
   return (
     <div className="max-w-7xl mx-auto animate-fade-in-up pb-20 relative">
-      
-      {/* Hidden input for grid uploads */}
       <input 
         type="file" 
         accept="image/*" 
@@ -226,15 +221,14 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
         onChange={handleGridFileChange}
       />
 
-      {/* Header */}
       <div className="text-center mb-12">
         <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-900 dark:bg-white rounded-3xl mb-6 shadow-xl border-4 border-gray-100 dark:border-gray-800">
-           <span className="font-serif font-black text-4xl text-white dark:text-gray-900">Aa</span>
+           <span className="font-serif font-black text-4xl text-white dark:text-gray-900 text-center">Aa</span>
         </div>
-        <h1 className="text-4xl sm:text-6xl font-serif font-bold text-gray-900 dark:text-white mb-4">
+        <h1 className="text-4xl sm:text-6xl font-serif font-bold text-gray-900 dark:text-white mb-4 text-center">
            {isGeg ? 'Alfabeti i ' : 'The Alphabet of the '}<span className="text-albanian-red">Geg People</span>
         </h1>
-        <p className="text-xl text-gray-500 dark:text-gray-400 font-medium max-w-2xl mx-auto mb-8">
+        <p className="text-xl text-gray-500 dark:text-gray-400 font-medium max-w-2xl mx-auto mb-8 text-center">
             {isGeg 
               ? '36 shkronjat standarde plus zanoret hundore karakteristike të bashkësisë Gege.' 
               : 'The 36 standard letters plus the distinctive nasal vowels of the Geg community.'}
@@ -260,7 +254,6 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
         )}
       </div>
 
-      {/* Main Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 px-4">
         {letters.map((letter) => (
           <div
@@ -272,7 +265,6 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
                 : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500'
             } ${!isEditing ? 'cursor-pointer' : ''}`}
           >
-            {/* Image Area */}
             <div className="w-full h-[60%] bg-gray-50 dark:bg-gray-700 relative overflow-hidden">
                 {letter.imageUrl ? (
                     <img src={letter.imageUrl} alt={letter.exampleWord} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -315,38 +307,37 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
                         value={letter.char}
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) => handleInlineUpdate(letter.id, 'char', e.target.value)}
-                        className="absolute bottom-2 left-4 w-16 text-5xl font-black text-white drop-shadow-md font-serif leading-none bg-transparent border-b-2 border-white/30 focus:border-white focus:outline-none"
+                        className="absolute bottom-2 left-1/2 -translate-x-1/2 w-16 text-5xl font-black text-white drop-shadow-md font-serif leading-none bg-transparent border-b-2 border-white/30 focus:border-white focus:outline-none text-center"
                     />
                 ) : (
-                    <span className="absolute bottom-2 left-4 text-5xl font-black text-white drop-shadow-md font-serif leading-none">
+                    <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-5xl font-black text-white drop-shadow-md font-serif leading-none text-center">
                         {letter.char}
                     </span>
                 )}
             </div>
 
-            {/* Content Bottom */}
-            <div className="flex-grow flex flex-col items-start justify-center p-4 w-full bg-white dark:bg-gray-800 relative">
+            <div className="flex-grow flex flex-col items-center justify-center p-4 w-full bg-white dark:bg-gray-800 relative text-center">
                 {isEditing ? (
                     <div className="w-full space-y-1">
                         <input 
                             value={letter.exampleWord}
                             onClick={(e) => e.stopPropagation()}
                             onChange={(e) => handleInlineUpdate(letter.id, 'exampleWord', e.target.value)}
-                            className="w-full text-sm font-bold text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded px-1"
+                            className="w-full text-sm font-bold text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded px-1 text-center"
                             placeholder="Word"
                         />
                         <input 
                             value={letter.exampleTranslation}
                             onClick={(e) => e.stopPropagation()}
                             onChange={(e) => handleInlineUpdate(letter.id, 'exampleTranslation', e.target.value)}
-                            className="w-full text-[10px] text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded px-1"
+                            className="w-full text-[10px] text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded px-1 text-center"
                             placeholder="Translation"
                         />
                     </div>
                 ) : (
                     <>
-                        <span className="text-lg font-bold text-gray-800 dark:text-gray-200 truncate w-full leading-tight">{letter.exampleWord}</span>
-                        <span className="text-xs text-gray-400 dark:text-gray-500 font-medium truncate w-full">{letter.exampleTranslation}</span>
+                        <span className="text-lg font-bold text-gray-800 dark:text-gray-200 truncate w-full leading-tight text-center">{letter.exampleWord}</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500 font-medium truncate w-full text-center">{letter.exampleTranslation}</span>
                     </>
                 )}
                 
@@ -381,7 +372,6 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
           </div>
         ))}
 
-        {/* Add Card Button */}
         {isEditing && (
             <button 
                 onClick={addNewCard}
@@ -393,7 +383,6 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
         )}
       </div>
 
-      {/* Detail Modal */}
       {isModalOpen && selectedLetter && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm animate-fade-in">
           <div className="bg-white dark:bg-gray-900 rounded-[40px] w-full max-w-4xl relative overflow-hidden shadow-2xl animate-scale-in flex flex-col md:flex-row min-h-[600px] border border-gray-100 dark:border-gray-800">
@@ -405,9 +394,7 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
               <X className="w-6 h-6 text-gray-500 dark:text-gray-400" />
             </button>
 
-            {/* Left Side: Letter Visualization */}
             <div className={`w-full md:w-5/12 flex flex-col items-center justify-center p-12 ${selectedLetter.isNasal ? 'bg-red-50 dark:bg-red-900/20' : 'bg-gray-50 dark:bg-gray-800'}`}>
-               
                {isEditing ? (
                    <input 
                       value={selectedLetter.char}
@@ -415,25 +402,16 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
                       className="text-9xl font-black font-serif mb-6 text-center bg-transparent border-b-4 border-dashed border-gray-300 dark:border-gray-600 focus:border-albanian-red focus:outline-none w-3/4 text-gray-900 dark:text-white"
                    />
                ) : (
-                    <span className={`text-[12rem] font-black font-serif mb-6 ${selectedLetter.isNasal ? 'text-albanian-red' : 'text-gray-900 dark:text-white'} leading-none`}>
+                    <span className={`text-[12rem] font-black font-serif mb-6 ${selectedLetter.isNasal ? 'text-albanian-red' : 'text-gray-900 dark:text-white'} leading-none text-center`}>
                         {selectedLetter.char}
                     </span>
                )}
 
-               {isEditing ? (
-                   <div className="w-full flex flex-col items-center gap-2">
-                       <label className="text-[10px] font-black uppercase text-gray-400">IPA Transcription</label>
-                       <input 
-                          value={selectedLetter.ipa}
-                          onChange={(e) => handleUpdate('ipa', e.target.value)}
-                          className="text-2xl font-mono text-center bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-6 py-2 rounded-2xl shadow-sm w-3/4 border border-gray-200 dark:border-gray-600"
-                       />
-                   </div>
-               ) : (
-                    <span className="text-3xl font-mono text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 px-6 py-2 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
-                        [{selectedLetter.ipa}]
-                    </span>
-               )}
+               <div className="w-full flex flex-col items-center gap-2">
+                 <span className="text-3xl font-mono text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 px-6 py-2 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 text-center">
+                    [{selectedLetter.ipa}]
+                 </span>
+               </div>
 
                <button 
                  onClick={() => playAudio()}
@@ -441,52 +419,35 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
                >
                  <Volume2 className="w-10 h-10" />
                </button>
-               <p className="mt-4 text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">{isGeg ? 'Ndëgjo Shqiptimin' : 'Listen to Sound'}</p>
+               <p className="mt-4 text-xs font-bold text-gray-400 uppercase tracking-[0.2em] text-center">{isGeg ? 'Ndëgjo Shqiptimin' : 'Listen to Sound'}</p>
             </div>
 
-            {/* Right Side: Details */}
             <div className="w-full md:w-7/12 p-10 flex flex-col overflow-y-auto bg-white dark:bg-gray-900 custom-scrollbar">
                <div className="mb-8">
-                 <div className="flex items-center justify-between mb-4">
+                 <div className="flex items-center justify-center mb-4">
                     <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
                         <Info className="w-4 h-4" /> {isGeg ? 'Përshkrimi' : 'Linguistic Notes'}
                     </h3>
-                    {isEditing && (
-                        <div className="flex gap-2">
-                            <button 
-                                onClick={() => handleUpdate('isNasal', !selectedLetter.isNasal)}
-                                className={`px-3 py-1 rounded-full text-[10px] font-black uppercase transition-all ${selectedLetter.isNasal ? 'bg-red-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 border border-gray-200 dark:border-gray-700'}`}
-                            >
-                                Nasal
-                            </button>
-                            <button 
-                                onClick={() => handleUpdate('isDigraph', !selectedLetter.isDigraph)}
-                                className={`px-3 py-1 rounded-full text-[10px] font-black uppercase transition-all ${selectedLetter.isDigraph ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 border border-gray-200 dark:border-gray-700'}`}
-                            >
-                                Digraph
-                            </button>
-                        </div>
-                    )}
                  </div>
                  {isEditing ? (
                    <textarea
-                     className="w-full p-4 border border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white text-base focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 transition-all font-medium"
+                     className="w-full p-4 border border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white text-base focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 transition-all font-medium text-center"
                      value={selectedLetter.description}
                      onChange={(e) => handleUpdate('description', e.target.value)}
                      rows={4}
                      placeholder="Detailed description of the sound and its usage in the Geg language..."
                    />
                  ) : (
-                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg font-medium">{selectedLetter.description}</p>
+                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg font-medium text-center">{selectedLetter.description}</p>
                  )}
                </div>
 
-               <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[32px] p-8 mb-8 relative hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors shadow-sm">
-                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">
+               <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[32px] p-8 mb-8 relative hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors shadow-sm flex flex-col items-center">
+                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6 text-center">
                      {isGeg ? 'Fjala Shembull' : 'Anchor Word'}
                   </h3>
                   
-                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
+                  <div className="flex flex-col items-center gap-8">
                       <div className="relative group shrink-0">
                         {selectedLetter.imageUrl ? (
                             <img src={selectedLetter.imageUrl} alt={selectedLetter.exampleWord} className="w-32 h-32 object-cover rounded-3xl shadow-md bg-gray-100 dark:bg-gray-700 border-2 border-white dark:border-gray-600" />
@@ -507,22 +468,22 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
                         )}
                       </div>
                       
-                      <div className="flex-grow pt-2 text-center sm:text-left w-full">
+                      <div className="flex-grow pt-2 text-center w-full">
                           {isEditing ? (
-                             <div className="flex flex-col gap-4">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase text-gray-400">Word (Geg)</label>
+                             <div className="flex flex-col gap-4 items-center">
+                                <div className="space-y-1 w-full">
+                                    <label className="text-[10px] font-black uppercase text-gray-400 text-center block">Word (Geg)</label>
                                     <input 
-                                      className="w-full font-serif text-3xl font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2 focus:outline-none focus:border-indigo-400"
+                                      className="w-full font-serif text-3xl font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2 focus:outline-none focus:border-indigo-400 text-center"
                                       value={selectedLetter.exampleWord}
                                       onChange={(e) => handleUpdate('exampleWord', e.target.value)}
                                       placeholder="e.g. Hâna"
                                     />
                                 </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase text-gray-400">Translation</label>
+                                <div className="space-y-1 w-full">
+                                    <label className="text-[10px] font-black uppercase text-gray-400 text-center block">Translation</label>
                                     <input 
-                                      className="w-full text-gray-600 dark:text-gray-300 italic text-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2 focus:outline-none focus:border-indigo-400"
+                                      className="w-full text-gray-600 dark:text-gray-300 italic text-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2 focus:outline-none focus:border-indigo-400 text-center"
                                       value={selectedLetter.exampleTranslation}
                                       onChange={(e) => handleUpdate('exampleTranslation', e.target.value)}
                                       placeholder="e.g. The Moon"
@@ -531,88 +492,12 @@ const AlphabetPage: React.FC<AlphabetPageProps> = ({ lang, isEditing }) => {
                              </div>
                           ) : (
                              <>
-                                <p className="text-4xl font-serif font-black text-gray-900 dark:text-white mb-2 leading-none">{selectedLetter.exampleWord}</p>
-                                <p className="text-gray-500 dark:text-gray-400 italic text-2xl">{selectedLetter.exampleTranslation}</p>
+                                <p className="text-4xl font-serif font-black text-gray-900 dark:text-white mb-2 leading-none text-center">{selectedLetter.exampleWord}</p>
+                                <p className="text-gray-500 dark:text-gray-400 italic text-2xl text-center">{selectedLetter.exampleTranslation}</p>
                              </>
                           )}
                       </div>
                   </div>
-
-                  {isEditing && (
-                    <div className="mt-8 pt-8 border-t border-gray-100 dark:border-gray-700 space-y-6">
-                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                           <div className="space-y-2">
-                               <label className="text-[10px] font-black uppercase text-gray-400 flex items-center gap-2">
-                                   <Volume2 className="w-3 h-3" /> Audio File
-                               </label>
-                               <input 
-                                 type="file" 
-                                 accept="audio/*" 
-                                 className="hidden" 
-                                 ref={fileInputAudioRef}
-                                 onChange={(e) => handleFileUpload(e, 'audio')}
-                               />
-                               <div className="flex gap-2">
-                                   <button 
-                                     onClick={() => fileInputAudioRef.current?.click()}
-                                     className="flex-grow flex items-center justify-center gap-2 text-xs font-bold text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 px-4 py-3 rounded-xl transition-all border border-gray-200 dark:border-gray-600"
-                                   >
-                                     <Upload className="w-4 h-4" /> {selectedLetter.audioUrl ? 'Replace Audio' : 'Upload Audio'}
-                                   </button>
-                                   {selectedLetter.audioUrl && (
-                                       <button onClick={() => handleUpdate('audioUrl', undefined)} className="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900">
-                                           <Trash2 className="w-4 h-4" />
-                                       </button>
-                                   )}
-                               </div>
-                           </div>
-
-                           <div className="space-y-2">
-                               <label className="text-[10px] font-black uppercase text-gray-400 flex items-center gap-2">
-                                   <ImageIcon className="w-3 h-3" /> Image File
-                               </label>
-                               <input 
-                                 type="file" 
-                                 accept="image/*" 
-                                 className="hidden" 
-                                 ref={fileInputImageRef}
-                                 onChange={(e) => handleFileUpload(e, 'image')}
-                               />
-                               <div className="flex gap-2">
-                                   <button 
-                                     onClick={() => fileInputImageRef.current?.click()}
-                                     className="flex-grow flex items-center justify-center gap-2 text-xs font-bold text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 px-4 py-3 rounded-xl transition-all border border-gray-200 dark:border-gray-600"
-                                   >
-                                     <Upload className="w-4 h-4" /> {selectedLetter.imageUrl ? 'Replace Image' : 'Upload Image'}
-                                   </button>
-                                   {selectedLetter.imageUrl && (
-                                       <button onClick={() => handleUpdate('imageUrl', undefined)} className="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900">
-                                           <Trash2 className="w-4 h-4" />
-                                       </button>
-                                   )}
-                               </div>
-                           </div>
-                       </div>
-                       
-                       <div className="space-y-2">
-                           <label className="text-[10px] font-black uppercase text-gray-400">Direct Media URLs (Advanced)</label>
-                           <div className="grid grid-cols-1 gap-2">
-                               <input 
-                                 value={selectedLetter.imageUrl || ''} 
-                                 onChange={(e) => handleUpdate('imageUrl', e.target.value)}
-                                 className="w-full text-[10px] bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-2 font-mono dark:text-white"
-                                 placeholder="Image URL (HTTPS)"
-                               />
-                               <input 
-                                 value={selectedLetter.audioUrl || ''} 
-                                 onChange={(e) => handleUpdate('audioUrl', e.target.value)}
-                                 className="w-full text-[10px] bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-2 font-mono dark:text-white"
-                                 placeholder="Audio URL (HTTPS)"
-                               />
-                           </div>
-                       </div>
-                    </div>
-                  )}
                </div>
                
                {isEditing && (

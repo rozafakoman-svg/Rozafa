@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Loader2, Clock, ArrowRight, Sparkles, HelpCircle } from './Icons';
+import { Search, Loader2, Clock, ArrowRight, Sparkles, HelpCircle, X } from './Icons';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -232,16 +232,16 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, lang, histor
   const SuggestionIcon = query.trim() ? Search : Sparkles;
 
   const getTypeBadge = (type: string) => {
-      if (type === 'geg') return <span className="bg-red-100 dark:bg-red-900/50 text-albanian-red dark:text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">GEG</span>;
-      if (type === 'std') return <span className="bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">STD '72</span>;
-      if (type === 'eng') return <span className="bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">ENG</span>;
+      if (type === 'geg') return <span className="bg-red-50 dark:bg-red-900/50 text-albanian-red dark:text-red-400 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider">GEG</span>;
+      if (type === 'std') return <span className="bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider">STD '72</span>;
+      if (type === 'eng') return <span className="bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider">ENG</span>;
       return null;
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto mb-12 relative" ref={containerRef}>
-      <form onSubmit={handleSubmit} className="relative group z-30">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+    <div className="w-full max-w-3xl mx-auto relative z-[60]" ref={containerRef}>
+      <form onSubmit={handleSubmit} className="relative group">
+        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
           {isLoading ? (
             <Loader2 className="h-6 w-6 text-albanian-red animate-spin" />
           ) : (
@@ -253,48 +253,48 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, lang, histor
           value={query}
           onFocus={() => setIsFocused(true)}
           onChange={(e) => setQuery(e.target.value)}
-          className={`block w-full pl-12 pr-4 py-4 bg-white dark:bg-gray-800 border-2 border-transparent shadow-lg text-lg sm:text-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-albanian-red/30 dark:focus:border-red-500/30 focus:ring-4 focus:ring-albanian-red/10 dark:focus:ring-red-500/10 transition-all duration-300 ${showDropdown ? 'rounded-t-2xl rounded-b-none' : 'rounded-2xl'}`}
+          className={`block w-full pl-14 pr-4 py-5 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-xl text-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-albanian-red/5 dark:focus:ring-red-500/5 transition-all duration-300 ${showDropdown ? 'rounded-t-[2.5rem]' : 'rounded-[2.5rem]'}`}
           placeholder={placeholder}
           disabled={isLoading}
         />
         <button 
           type="submit" 
           disabled={isLoading || !query.trim()}
-          className="absolute inset-y-2 right-2 px-6 bg-albanian-red text-white rounded-xl font-medium hover:bg-red-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-40"
+          className="absolute inset-y-2.5 right-2.5 px-8 bg-albanian-red text-white rounded-[2rem] font-black text-xs uppercase tracking-widest hover:bg-red-800 transition-all disabled:opacity-50 active:scale-95 shadow-lg"
         >
           {buttonText}
         </button>
       </form>
       
       {showDropdown && (
-        <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border-2 border-t-0 border-gray-100 dark:border-gray-700 rounded-b-2xl shadow-xl z-20 overflow-hidden animate-fade-in origin-top">
-           <div className="py-2">
+        <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-900 border border-t-0 border-gray-100 dark:border-gray-800 rounded-b-[2.5rem] shadow-2xl overflow-hidden animate-fade-in origin-top">
+           <div className="py-4">
               {displayHistory.length > 0 && (
-                 <div className="mb-2">
-                    <div className="px-4 py-2 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                       <Clock className="w-3 h-3" /> {lang === 'geg' ? 'Lypjet e Fundit' : 'Recent Searches'}
+                 <div className="mb-4">
+                    <div className="px-6 py-2 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.25em] flex items-center gap-2">
+                       <Clock className="w-3.5 h-3.5" /> {lang === 'geg' ? 'Lypjet e Fundit' : 'Recent Searches'}
                     </div>
                     {displayHistory.map((item, idx) => (
                        <button
                           key={`hist-${idx}`}
                           onClick={() => handleSuggestionClick(item)}
-                          className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between group transition-colors"
+                          className="w-full text-left px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-between group transition-colors"
                        >
-                          <span className="font-medium text-gray-700 dark:text-gray-200 group-hover:text-albanian-red dark:group-hover:text-red-400">{item}</span>
-                          <ArrowRight className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-albanian-red dark:group-hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all" />
+                          <span className="font-bold text-gray-700 dark:text-gray-200 group-hover:text-albanian-red dark:group-hover:text-red-400">{item}</span>
+                          <ArrowRight className="w-4 h-4 text-gray-200 dark:text-gray-700 group-hover:text-albanian-red dark:group-hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all" />
                        </button>
                     ))}
                  </div>
               )}
               {didYouMean && (
-                  <div className="px-4 py-2 bg-yellow-50/50 dark:bg-yellow-900/30 border-y border-yellow-100 dark:border-yellow-900/50 mb-2">
+                  <div className="px-6 py-3 bg-amber-50/50 dark:bg-amber-900/10 border-y border-amber-100 dark:border-amber-900/30 mb-4">
                       <button 
                         onClick={() => handleSuggestionClick(didYouMean.word)}
-                        className="w-full text-left py-2 flex items-center gap-2 group"
+                        className="w-full text-left py-2 flex items-center gap-3 group"
                       >
-                         <HelpCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-500" />
-                         <span className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
-                            {didYouMeanText} <span className="font-bold underline decoration-dotted text-yellow-900 dark:text-yellow-100 group-hover:text-albanian-red dark:group-hover:text-red-400">{didYouMean.word}</span>
+                         <HelpCircle className="w-4 h-4 text-amber-600 dark:text-amber-500" />
+                         <span className="text-sm text-amber-800 dark:text-amber-200 font-bold">
+                            {didYouMeanText} <span className="underline decoration-dotted text-amber-900 dark:text-amber-100 group-hover:text-albanian-red dark:group-hover:text-red-400">{didYouMean.word}</span>
                          </span>
                          {getTypeBadge(didYouMean.type)}
                       </button>
@@ -302,20 +302,20 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, lang, histor
               )}
               {filteredSuggestions.length > 0 && (
                  <div>
-                    <div className={`px-4 py-2 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider ${displayHistory.length > 0 ? 'border-t border-gray-50 dark:border-gray-700 mt-2 pt-4' : ''} flex items-center gap-2`}>
-                       <SuggestionIcon className="w-3 h-3" /> {suggestionLabel}
+                    <div className={`px-6 py-2 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.25em] ${displayHistory.length > 0 ? 'border-t border-gray-50 dark:border-gray-800 mt-2 pt-6' : ''} flex items-center gap-2`}>
+                       <SuggestionIcon className="w-3.5 h-3.5" /> {suggestionLabel}
                     </div>
                     {filteredSuggestions.map((item, idx) => (
                        <button
                           key={`sugg-${idx}`}
                           onClick={() => handleSuggestionClick(item.word)}
-                          className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between group transition-colors"
+                          className="w-full text-left px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-between group transition-colors"
                        >
-                          <div className="flex items-center gap-3">
-                              <span className="font-serif italic text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white text-lg">{item.word}</span>
+                          <div className="flex items-center gap-4">
+                              <span className="font-serif italic text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white text-lg">{item.word}</span>
                               {query.trim() && getTypeBadge(item.type)}
                           </div>
-                          {!query.trim() && <ArrowRight className="w-3 h-3 text-gray-300 dark:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                          {!query.trim() && <ArrowRight className="w-3.5 h-3.5 text-gray-200 dark:text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity" />}
                        </button>
                     ))}
                  </div>

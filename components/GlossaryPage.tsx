@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { GlossaryTerm, DictionaryEntry, Language } from '../types';
 import { fetchGlossaryTerms, fetchWordDefinition, saveToDictionaryCache } from '../services/geminiService';
 import WordCard from './WordCard';
-import { Loader2, Book, ArrowRight, ArrowLeft, Filter, Search, X, AlertTriangle, RefreshCw } from './Icons';
+import { Loader2, Book, ArrowRight, ArrowLeft, Filter, Search, X, AlertTriangle, RefreshCw, Download, CheckCircle, Zap } from './Icons';
+import { db, Stores } from '../services/db';
 
 interface GlossaryPageProps {
   lang: Language;
@@ -27,6 +28,11 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
   const [loadingEntry, setLoadingEntry] = useState(false);
   const [originFilter, setOriginFilter] = useState<OriginFilter>('All');
   const [localSearch, setLocalSearch] = useState('');
+  
+  // Offline Sync State
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncProgress, setSyncProgress] = useState({ current: 0, total: ALPHABET.length });
+  const [syncComplete, setSyncComplete] = useState(false);
 
   const isGeg = lang === 'geg';
 
@@ -48,6 +54,31 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePrecacheAll = async () => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    setSyncComplete(false);
+    setSyncProgress({ current: 0, total: ALPHABET.length });
+
+    try {
+        for (let i = 0; i < ALPHABET.length; i++) {
+            const letter = ALPHABET[i];
+            setSyncProgress(prev => ({ ...prev, current: i + 1 }));
+            // This will fetch from API and save to IndexedDB via fetchGlossaryTerms logic
+            await fetchGlossaryTerms(letter);
+            // Small delay to avoid aggressive rate limiting
+            await new Promise(r => setTimeout(r, 500));
+        }
+        setSyncComplete(true);
+        setTimeout(() => setSyncComplete(false), 5000);
+    } catch (e) {
+        console.error("Batch sync failed:", e);
+        alert(isGeg ? "Sinkronizimi dështoi. Provoni sërish." : "Library sync failed. Please check your connection.");
+    } finally {
+        setIsSyncing(false);
     }
   };
 
@@ -73,7 +104,7 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
 
   const handleSaveEntry = async (entry: DictionaryEntry) => {
       try {
-          await saveToDictionaryCache(entry.word, entry);
+          await db.put(Stores.Dictionary, entry);
           setSelectedEntry(entry);
       } catch (e) {
           console.error("Glossary save failed", e);
@@ -95,7 +126,7 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
            className="mb-6 flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors font-medium group px-4 sm:px-0"
          >
             <div className="p-2 bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 group-hover:border-gray-400 transition-colors">
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4" />
             </div>
             <span>{isGeg ? 'Kthehu te Fjalorthi' : 'Back to Glossary'}</span>
          </button>
@@ -130,19 +161,38 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-teal-50 dark:bg-teal-900/20 rounded-3xl mb-6 shadow-sm border border-teal-100 dark:border-teal-800 transform rotate-2">
              <Book className="w-8 h-8 sm:w-10 sm:h-10 text-teal-600 dark:text-teal-400" />
          </div>
-         <h1 className="text-3xl sm:text-5xl font-serif font-bold text-gray-900 dark:text-white mb-4">
+         <h1 className="text-3xl sm:text-5xl font-serif font-black text-gray-900 dark:text-white mb-4 text-center">
             {isGeg ? 'Fjalorthi i ' : 'Glossary of '}<span className="text-teal-600 dark:text-teal-400">Gegenishtes</span>
          </h1>
-         <p className="text-lg text-gray-500 dark:text-gray-400 font-medium max-w-2xl mx-auto leading-relaxed">
+         <p className="text-lg text-gray-500 dark:text-gray-400 font-medium max-w-2xl mx-auto leading-relaxed text-center mb-8">
              {isGeg 
                ? 'Shfletoni fjalët sipas shkronjave. Nji koleksion i kuruem termash arkaikë dhe kulturorë.' 
                : 'Browse words by letter. A curated collection of archaic and cultural terms.'}
          </p>
+
+         <div className="flex flex-col items-center gap-4">
+            <button 
+                onClick={handlePrecacheAll}
+                disabled={isSyncing}
+                className={`group flex items-center gap-3 px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl ${isSyncing ? 'bg-teal-50 text-teal-600 border border-teal-100' : syncComplete ? 'bg-emerald-600 text-white' : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-[1.02]'}`}
+            >
+                {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : syncComplete ? <CheckCircle className="w-4 h-4" /> : <Download className="w-4 h-4" />}
+                {isSyncing ? (isGeg ? `Duke sinkronizue: ${syncProgress.current}/${syncProgress.total}` : `Syncing Library: ${syncProgress.current}/${syncProgress.total}`) : syncComplete ? (isGeg ? 'Arkiva u Ruajt Lokalisht' : 'Library Cached Offline') : (isGeg ? 'Shkarko Librarinë për Offline' : 'Download Library for Offline')}
+            </button>
+            {isSyncing && (
+                <div className="w-64 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden border border-gray-200 dark:border-gray-700">
+                    <div className="h-full bg-teal-500 transition-all duration-300" style={{ width: `${(syncProgress.current / syncProgress.total) * 100}%` }}></div>
+                </div>
+            )}
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-lg border border-emerald-100 dark:border-emerald-900/50">
+                <Zap className="w-3 h-3 fill-current" /> IndexedDB Hot-Storage Enabled
+            </div>
+         </div>
        </div>
 
        <div className="sticky top-16 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-y border-gray-200 dark:border-gray-800 mb-8 shadow-sm">
           <div className="max-w-7xl mx-auto">
-             <div className="flex items-center gap-1 sm:gap-2 p-2 sm:p-4 overflow-x-auto no-scrollbar scroll-smooth">
+             <div className="flex items-center gap-1 sm:gap-2 p-2 sm:p-4 overflow-x-auto no-scrollbar scroll-smooth justify-center">
                 {ALPHABET.map((letter) => {
                    const isActive = selectedLetter === letter;
                    return (
@@ -206,15 +256,15 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
        {loading ? (
          <div className="flex flex-col items-center justify-center py-32">
             <Loader2 className="w-10 h-10 text-teal-600 dark:text-teal-500 animate-spin mb-4" />
-            <p className="text-gray-400 dark:text-gray-500 font-medium">{isGeg ? 'Duke ngarkue fjalët...' : 'Loading words...'}</p>
+            <p className="text-gray-400 dark:text-gray-500 font-medium text-center">{isGeg ? 'Duke ngarkue fjalët...' : 'Loading words...'}</p>
          </div>
        ) : error ? (
          <div className="flex flex-col items-center justify-center py-20 px-4 text-center animate-fade-in">
             <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-6 text-red-500 border border-red-100 dark:border-red-800">
                <AlertTriangle className="w-10 h-10" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{isGeg ? 'U kërkue shumë shpejt' : 'Rate Limit Exceeded'}</h3>
-            <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8 leading-relaxed">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 text-center">{isGeg ? 'U kërkue shumë shpejt' : 'Rate Limit Exceeded'}</h3>
+            <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8 leading-relaxed text-center">
                {error}
             </p>
             <button 
@@ -232,18 +282,20 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
                      <div 
                        key={idx}
                        onClick={() => handleTermClick(term.word)}
-                       className="group bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-teal-300 dark:hover:border-teal-500 transition-all cursor-pointer flex flex-col h-full relative overflow-hidden"
+                       className="group bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-teal-300 dark:hover:border-teal-500 transition-all cursor-pointer flex flex-col h-full relative overflow-hidden text-center items-center"
                      >
                         <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50 dark:bg-teal-900/20 rounded-bl-[100px] -mr-12 -mt-12 transition-transform group-hover:scale-110"></div>
                         
-                        <div className="relative z-10 flex flex-col h-full">
-                           <div className="flex justify-between items-start mb-3">
-                              <h3 className="text-2xl font-serif font-bold text-gray-900 dark:text-white group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
+                        <div className="relative z-10 flex flex-col h-full items-center">
+                           <div className="flex justify-between items-start mb-3 w-full">
+                              <div className="flex-1"></div>
+                              <h3 className="text-2xl font-serif font-bold text-gray-900 dark:text-white group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors text-center">
                                  {term.word}
                               </h3>
+                              <div className="flex-1"></div>
                            </div>
                            
-                           <div className="flex flex-wrap gap-2 mb-4">
+                           <div className="flex flex-wrap gap-2 mb-4 justify-center">
                               <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-2 py-1 rounded-md border border-teal-100 dark:border-teal-800">
                                  {term.partOfSpeech}
                               </span>
@@ -254,11 +306,11 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
                               )}
                            </div>
 
-                           <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-6 line-clamp-3 flex-grow">
+                           <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-6 line-clamp-3 flex-grow text-center">
                               {term.definition}
                            </p>
 
-                           <div className="flex items-center text-teal-600 dark:text-teal-400 font-bold text-xs uppercase tracking-wider mt-auto group-hover:translate-x-2 transition-transform duration-300">
+                           <div className="flex items-center justify-center text-teal-600 dark:text-teal-400 font-bold text-xs uppercase tracking-wider mt-auto group-hover:translate-x-1 transition-transform duration-300">
                               {isGeg ? 'Shiko Detajet' : 'View Details'} <ArrowRight className="w-3 h-3 ml-1" />
                            </div>
                         </div>
@@ -270,8 +322,8 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
                   <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4 text-gray-400 dark:text-gray-500">
                      <Search className="w-8 h-8" />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{isGeg ? 'Nuk u gjetën fjalë' : 'No words found'}</h3>
-                  <p className="text-gray-500 dark:text-gray-400 max-w-sm">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 text-center">{isGeg ? 'Nuk u gjetën fjalë' : 'No words found'}</h3>
+                  <p className="text-gray-500 dark:text-gray-400 max-w-sm text-center">
                      {isGeg 
                         ? 'Provoni të ndryshoni filtrat ose shkronjën e zgjedhun.' 
                         : 'Try changing your filters or selected letter.'}

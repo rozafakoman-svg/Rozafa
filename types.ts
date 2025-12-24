@@ -1,6 +1,9 @@
 
 export type Language = 'geg' | 'eng';
 
+// Added View type for central navigation state management across components
+export type View = 'dictionary' | 'glossary' | 'thesaurus' | 'history' | 'podcast' | 'blog' | 'support' | 'community' | 'shop' | 'interjections' | 'alphabet' | 'forum' | 'admin' | 'map';
+
 export interface ExampleSentence {
   original: string;
   standard: string;

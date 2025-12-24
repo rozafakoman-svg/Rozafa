@@ -134,21 +134,24 @@ const ThesaurusDashboard: React.FC<ThesaurusDashboardProps> = ({ onSearch, lang 
           return (
             <div 
               key={concept.id}
-              className={`rounded-[32px] p-8 border transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 group bg-white dark:bg-gray-800 ${concept.color.replace('bg-', 'hover:bg-opacity-70 ')}`}
+              className={`rounded-[32px] p-8 border transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 group bg-white dark:bg-gray-800 ${concept.color.replace('bg-', 'hover:bg-opacity-70 ')} flex flex-col items-center text-center`}
             >
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-6 w-full">
+                <div className="flex-1"></div>
                 <div className={`p-4 rounded-2xl ${concept.color} shadow-sm group-hover:scale-110 transition-transform`}>
                   <Icon className="w-8 h-8" />
                 </div>
-                <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                   <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                   <span className="text-[10px] font-black text-gray-500 dark:text-gray-300 uppercase">{concept.words.length} items</span>
+                <div className="flex-1 flex justify-end">
+                  <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                    <span className="text-[10px] font-black text-gray-500 dark:text-gray-300 uppercase">{concept.words.length} items</span>
+                  </div>
                 </div>
               </div>
               <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-6 font-serif">
                 {isGeg ? concept.titleGeg : concept.title}
               </h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 justify-center">
                 {concept.words.map((word) => (
                   <button
                     key={word}
@@ -175,10 +178,10 @@ const ThesaurusDashboard: React.FC<ThesaurusDashboardProps> = ({ onSearch, lang 
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4 border border-indigo-500/30">
                  <Anchor className="w-3 h-3" /> Linguistic Bridge
               </div>
-              <h2 className="text-4xl sm:text-5xl font-bold font-serif mb-6 text-white leading-tight">
+              <h2 className="text-4xl sm:text-5xl font-bold font-serif mb-6 text-white leading-tight text-center lg:text-left">
                 {isGeg ? "Standardi '72 kundrejt Gegënishtes" : "Standard '72 vs. Gegënisht"}
               </h2>
-              <p className="text-indigo-100/60 text-lg leading-relaxed">
+              <p className="text-indigo-100/60 text-lg leading-relaxed text-center lg:text-left">
                 {isGeg 
                   ? "Gjurmoni ndryshimet fonetike dhe leksikore qi u imponuen në vitin 1972. Rrotulloni kartat për me zbulue format autentike të popullit Geg, tuj përfshi paskajoren karakteristike me 'me'." 
                   : "Track the phonetic and lexical shifts imposed in 1972. Flip the cards to rediscover the authentic forms of the Geg people, including the characteristic 'me' infinitive."}

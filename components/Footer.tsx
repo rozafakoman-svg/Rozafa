@@ -1,12 +1,14 @@
+
 import React from 'react';
-import { Language } from '../types';
+import { Language, View } from '../types';
 import { 
   BookOpen, Github, Twitter, Instagram, ArrowRight, Heart, Globe, Mail, MapPin 
 } from './Icons';
+import ConnectionStatus from './ConnectionStatus';
 
 interface FooterProps {
   lang: Language;
-  onNavigate: (view: any) => void;
+  onNavigate: (view: View) => void;
 }
 
 const translations = {
@@ -46,10 +48,10 @@ const Footer: React.FC<FooterProps> = ({ lang, onNavigate }) => {
   const t = translations[lang];
   const isGeg = lang === 'geg';
 
-  const mapLinkToView = (label: string): any => {
+  const mapLinkToView = (label: string): View => {
     const l = label.toLowerCase();
-    if (l === 'fjalori' || l === 'dictionary') return 'dictionary';
-    if (l === 'thesari' || l === 'thesaurus') return 'thesaurus';
+    // Thesaurus/Thesari now points to the main Dictionary view where it is integrated
+    if (l === 'fjalori' || l === 'dictionary' || l === 'thesari' || l === 'thesaurus') return 'dictionary';
     if (l === 'alfabeti' || l === 'alphabet') return 'alphabet';
     if (l === 'fjalorthi' || l === 'glossary') return 'glossary';
     if (l === 'harta' || l === 'linguistic map') return 'map';
@@ -153,7 +155,7 @@ const Footer: React.FC<FooterProps> = ({ lang, onNavigate }) => {
                       onClick={() => handleLinkClick(link)}
                       className="group flex items-center gap-2 text-slate-400 hover:text-white transition-colors py-1 text-sm font-semibold"
                     >
-                      <span className="w-0 group-hover:w-3 h-[1px] bg-indigo-500 transition-all duration-300"></span>
+                      <span className="w-0 group-hover:w-3 h-[1px] bg-indigo-50 transition-all duration-300"></span>
                       {link}
                     </button>
                   </li>
@@ -225,6 +227,8 @@ const Footer: React.FC<FooterProps> = ({ lang, onNavigate }) => {
               <a href="#" className="hover:text-white transition-colors">{t.privacy}</a>
               <a href="#" className="hover:text-white transition-colors">{t.terms}</a>
               <a href="#" className="hover:text-white transition-colors">{t.contact}</a>
+              <div className="h-4 w-px bg-slate-800 hidden sm:block"></div>
+              <ConnectionStatus />
             </div>
 
             <div className="flex flex-col items-center md:items-end gap-1">

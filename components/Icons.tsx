@@ -15,7 +15,12 @@ import {
   ShieldCheck, Key, Fingerprint, Activity, FileLock2, Server, Terminal,
   Castle, Landmark, Waves,
   // Added Play and StopCircle icons to fix import errors in VoiceTutor
-  Play, StopCircle
+  Play, StopCircle,
+  // Added Smartphone icon
+  Smartphone,
+  ChevronDown,
+  // Added formatting icons
+  Bold, Italic, List, Link
 } from 'lucide-react';
 
 export { 
@@ -33,5 +38,10 @@ export {
   ShieldCheck, Key, Fingerprint, Activity, FileLock2, Server, Terminal,
   Castle, Landmark, Waves,
   // Added Play and StopCircle icons to fix export errors
-  Play, StopCircle
+  Play, StopCircle,
+  // Added Smartphone icon
+  Smartphone,
+  ChevronDown,
+  // Added formatting icons
+  Bold, Italic, List, Link
 };

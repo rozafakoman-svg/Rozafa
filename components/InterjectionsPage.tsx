@@ -249,7 +249,7 @@ const InterjectionsPage: React.FC<InterjectionsPageProps> = ({ lang }) => {
          <div className="inline-flex items-center justify-center w-24 h-24 bg-white dark:bg-gray-900 rounded-[2.5rem] mb-6 border border-gray-100 dark:border-gray-800 shadow-2xl relative group">
              <MessageCircle className="w-12 h-12 text-amber-600 dark:text-amber-400" />
          </div>
-         <h1 className="text-4xl sm:text-7xl font-serif font-black text-gray-900 dark:text-white mb-6 tracking-tight">
+         <h1 className="text-4xl sm:text-7xl font-serif font-black text-gray-900 dark:text-white mb-6 tracking-tight text-center">
             {isGeg ? 'Pasthirrma & ' : 'Interjections & '}<span className="text-albanian-red">Huazime</span>
          </h1>
        </div>
@@ -258,7 +258,7 @@ const InterjectionsPage: React.FC<InterjectionsPageProps> = ({ lang }) => {
           <input
             type="text"
             placeholder={isGeg ? "Kërko nji fjalë..." : "Search a word..."}
-            className="block w-full pl-10 pr-10 py-5 bg-white dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800 shadow-xl rounded-[2rem] text-lg focus:border-albanian-red/30 transition-all dark:text-white outline-none"
+            className="block w-full pl-10 pr-10 py-5 bg-white dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800 shadow-xl rounded-[2rem] text-lg focus:border-albanian-red/30 transition-all dark:text-white outline-none text-center"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -291,26 +291,26 @@ const InterjectionsPage: React.FC<InterjectionsPageProps> = ({ lang }) => {
              return (
                <div 
                  key={idx} 
-                 className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-2xl transition-all group flex flex-col h-full relative overflow-hidden"
+                 className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-2xl transition-all group flex flex-col h-full relative overflow-hidden items-center text-center"
                >
                   <div className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] border w-fit mb-6 ${styles.pill}`}>
                     {item.origin}
                   </div>
-                  <h3 className="text-4xl font-serif font-black text-gray-900 dark:text-white mb-2 tracking-tight group-hover:text-albanian-red transition-colors">
+                  <h3 className="text-4xl font-serif font-black text-gray-900 dark:text-white mb-2 tracking-tight group-hover:text-albanian-red transition-colors text-center">
                      {item.word}
                   </h3>
-                  <p className="text-gray-500 dark:text-gray-400 font-bold italic mb-6">
+                  <p className="text-gray-500 dark:text-gray-400 font-bold italic mb-6 text-center">
                     "{item.meaning}"
                   </p>
-                  <div className="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-3xl mb-6 flex-grow">
-                     <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                  <div className="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-3xl mb-6 flex-grow w-full">
+                     <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed text-center">
                         {item.usage}
                      </p>
                   </div>
-                  <p className="text-lg font-serif text-gray-800 dark:text-gray-200 italic mb-6">
+                  <p className="text-lg font-serif text-gray-800 dark:text-gray-200 italic mb-6 text-center">
                      "{item.example}"
                   </p>
-                  <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
+                  <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100 dark:border-gray-800 justify-center">
                      {item.tags.map(tag => (
                         <span key={tag} className="text-[9px] font-black uppercase tracking-widest text-gray-400">#{tag}</span>
                      ))}

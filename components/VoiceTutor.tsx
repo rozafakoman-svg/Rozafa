@@ -145,7 +145,6 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
     updateStatus('connecting');
     setErrorMessage(null);
     
-    // GUIDELINE COMPLIANCE: Assume API_KEY exists. Removing custom guard that caused the error.
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const outCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     const inCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
@@ -222,7 +221,6 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
           },
           onerror: (e) => {
               console.error("Live AI Error:", e);
-              // Handle generic errors from SDK
               const msg = e.toString();
               if (msg.includes('403') || msg.includes('API_KEY_INVALID')) {
                  setErrorMessage(isGeg ? "Celësi i Inteligjencës nuk asht valid." : "Invalid API Key detected.");
@@ -264,96 +262,96 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-12 animate-fade-in overflow-hidden">
-      <div className="absolute inset-0 opacity-20 pointer-events-none">
-        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600 rounded-full blur-[120px] transition-all duration-1000 ${status === 'speaking' ? 'scale-125 opacity-40' : 'scale-100 opacity-20'}`}></div>
+    <div className="fixed inset-0 md:inset-auto md:bottom-24 md:right-6 md:w-[400px] md:h-[650px] md:max-h-[85vh] z-[200] bg-slate-950 flex flex-col items-center justify-start md:justify-center p-4 md:p-6 animate-fade-in overflow-hidden md:rounded-[2.5rem] md:border md:border-white/10 md:shadow-2xl">
+      <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
+        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-indigo-600 rounded-full blur-[80px] md:blur-[120px] transition-all duration-1000 ${status === 'speaking' ? 'scale-125 opacity-40' : 'scale-100 opacity-20'}`}></div>
       </div>
 
-      <button onClick={onClose} className="absolute top-8 right-8 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all z-[210] shadow-xl">
-        <X className="w-6 h-6" />
+      <button onClick={onClose} className="absolute top-6 right-6 p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all z-[210] shadow-xl">
+        <X className="w-5 h-5" />
       </button>
 
       {isActive && (
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-[210] flex gap-2 p-1.5 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
-            <button onClick={() => setActiveTab('conversation')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'conversation' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>
+        <div className="mt-12 md:mt-0 md:absolute md:top-6 md:left-1/2 md:-translate-x-1/2 z-[210] flex gap-1 p-1 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl scale-90 md:scale-100">
+            <button onClick={() => setActiveTab('conversation')} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'conversation' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>
                 {isGeg ? 'Bisedë' : 'Talk'}
             </button>
-            <button onClick={() => setActiveTab('teach')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'teach' ? 'bg-amber-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>
-                {isGeg ? 'Mësoe Bacën' : 'Teach Bac'}
+            <button onClick={() => setActiveTab('teach')} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'teach' ? 'bg-amber-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>
+                {isGeg ? 'Mësoe' : 'Teach'}
             </button>
-            <button onClick={() => setActiveTab('feed')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'feed' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>
-                {isGeg ? 'Arkiva' : 'Archive'}
+            <button onClick={() => setActiveTab('feed')} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'feed' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>
+                {isGeg ? 'Arkiva' : 'Files'}
             </button>
         </div>
       )}
 
-      <div className="relative z-10 w-full max-w-2xl text-center flex flex-col items-center">
+      <div className="relative z-10 w-full text-center flex flex-col items-center flex-grow justify-center mt-4">
         {activeTab === 'conversation' && (
             <>
-                <div className="mb-10 animate-fade-in">
-                    <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 bg-indigo-500/10 text-indigo-400 rounded-full border border-indigo-500/20 text-[9px] font-black uppercase tracking-[0.2em]">
+                <div className="mb-6 md:mb-10 animate-fade-in px-4">
+                    <div className="inline-flex items-center gap-2 mb-3 px-3 py-1 bg-indigo-500/10 text-indigo-400 rounded-full border border-indigo-500/20 text-[8px] font-black uppercase tracking-[0.2em]">
                         <ShieldCheck className="w-3 h-3" /> 
-                        {isGeg ? 'Udhëzimet Lokale t\'Aktivizueme' : 'Local Precision Mode Active'}
+                        {isGeg ? 'Udhëzime Aktive' : 'Rules Active'}
                     </div>
-                    <h1 className="text-4xl sm:text-6xl font-serif font-black text-white mb-4 leading-tight">
+                    <h1 className="text-3xl md:text-4xl font-serif font-black text-white mb-2 leading-tight">
                         {isGeg ? 'Konaku i ' : 'The Room of '}<span className="text-indigo-400">Bacës</span>
                     </h1>
-                    <p className="text-slate-400 text-lg max-w-md mx-auto italic font-serif leading-relaxed">
-                        {status === 'listening' ? (isGeg ? 'Folni lirshëm, Baca asht tui ju ndigjue...' : 'Speak freely, Bac is listening...') : status === 'speaking' ? (isGeg ? 'Ndëgjoni fjalën e plakut t\'urtë.' : 'Listen to the wise elder.') : (isGeg ? 'Mirë se ju pruni Zoti!' : 'Welcome to the heritage room!')}
+                    <p className="text-slate-400 text-sm md:text-base max-w-xs mx-auto italic font-serif leading-relaxed">
+                        {status === 'listening' ? (isGeg ? 'Folni, Baca po t\'ndigjon...' : 'Speak, Bac is listening...') : status === 'speaking' ? (isGeg ? 'Dëgjo fjalën e plakut.' : 'Listen to the elder.') : (isGeg ? 'Mirë se ju pruni Zoti!' : 'Welcome to the heritage room!')}
                     </p>
                 </div>
 
-                <div className="relative w-48 h-48 sm:w-64 sm:h-64 mb-12 flex items-center justify-center">
+                <div className="relative w-40 h-40 md:w-56 md:h-56 mb-8 flex items-center justify-center">
                     <div className={`absolute inset-0 border-2 border-indigo-500/30 rounded-full ${status === 'listening' ? 'animate-ping' : ''}`}></div>
                     <div className={`absolute inset-4 border-2 border-indigo-500/10 rounded-full ${status === 'speaking' ? 'animate-pulse' : ''}`}></div>
-                    <div className={`w-32 h-32 sm:w-40 sm:h-40 rounded-full bg-indigo-600 shadow-[0_0_80px_-10px_rgba(79,70,229,0.6)] flex items-center justify-center transition-all duration-500 ${status === 'speaking' ? 'scale-110' : 'scale-100'}`}>
-                        {status === 'connecting' ? <Loader2 className="w-12 h-12 text-white animate-spin" /> : status === 'speaking' ? <Volume2 className="w-12 h-12 text-white" /> : <Mic className="w-12 h-12 text-white" />}
+                    <div className={`w-28 h-28 md:w-36 md:h-36 rounded-full bg-indigo-600 shadow-[0_0_60px_-10px_rgba(79,70,229,0.6)] flex items-center justify-center transition-all duration-500 ${status === 'speaking' ? 'scale-110' : 'scale-100'}`}>
+                        {status === 'connecting' ? <Loader2 className="w-10 h-10 text-white animate-spin" /> : status === 'speaking' ? <Volume2 className="w-10 h-10 text-white" /> : <Mic className="w-10 h-10 text-white" />}
                     </div>
                 </div>
             </>
         )}
 
         {status === 'error' && errorMessage && (
-            <div className="mb-8 p-6 bg-red-500/10 border border-red-500/20 rounded-2xl animate-fade-in max-w-md">
+            <div className="mb-6 p-5 bg-red-500/10 border border-red-500/20 rounded-2xl animate-fade-in max-w-[280px]">
                 <div className="flex items-center gap-3 text-red-500 mb-2 justify-center">
-                    <AlertTriangle className="w-6 h-6" />
-                    <span className="font-black uppercase text-xs tracking-widest">{isGeg ? 'GABIM TEKNIK' : 'SYSTEM ERROR'}</span>
+                    <AlertTriangle className="w-5 h-5" />
+                    <span className="font-black uppercase text-[10px] tracking-widest">{isGeg ? 'GABIM' : 'ERROR'}</span>
                 </div>
-                <p className="text-red-400 font-medium">{errorMessage}</p>
-                <button onClick={() => updateStatus('idle')} className="mt-4 text-[10px] font-black uppercase text-white/40 hover:text-white transition-colors underline tracking-widest">Retry Connection</button>
+                <p className="text-red-400 text-xs font-medium">{errorMessage}</p>
+                <button onClick={() => updateStatus('idle')} className="mt-3 text-[9px] font-black uppercase text-white/40 hover:text-white transition-colors underline tracking-widest">Retry Connection</button>
             </div>
         )}
 
         {activeTab === 'teach' && (
-            <div className="w-full max-w-md bg-white/5 backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/10 shadow-2xl animate-fade-in-up">
-                <div className="flex items-center gap-3 mb-8">
-                    <div className="p-3 bg-amber-500/20 rounded-2xl text-amber-500">
-                        <Edit3 className="w-6 h-6" />
+            <div className="w-full max-w-[320px] bg-white/5 backdrop-blur-2xl p-6 rounded-[2rem] border border-white/10 shadow-2xl animate-fade-in-up">
+                <div className="flex items-center gap-2 mb-6">
+                    <div className="p-2 bg-amber-500/20 rounded-xl text-amber-500">
+                        <Edit3 className="w-5 h-5" />
                     </div>
                     <div className="text-left">
-                        <h3 className="text-xl font-bold text-white leading-tight">{isGeg ? 'Mësoe Bacën nji fjalë' : 'Teach Bac a Word'}</h3>
-                        <p className="text-xs text-slate-500 uppercase tracking-widest font-black">Shto në Leksikun Lokal</p>
+                        <h3 className="text-base font-bold text-white leading-tight">{isGeg ? 'Mësoe fjalën' : 'Teach a word'}</h3>
+                        <p className="text-[8px] text-slate-500 uppercase tracking-widest font-black">Local Lexicon Add</p>
                     </div>
                 </div>
 
-                <form onSubmit={handleTeachWord} className="space-y-4 text-left">
-                    <div className="grid grid-cols-3 gap-3">
+                <form onSubmit={handleTeachWord} className="space-y-3 text-left">
+                    <div className="grid grid-cols-3 gap-2">
                         <div className="col-span-2">
-                            <label className="text-[10px] font-black uppercase text-slate-500 mb-2 block tracking-widest">Fjala (Geg)</label>
+                            <label className="text-[8px] font-black uppercase text-slate-500 mb-1 block tracking-widest">Fjala</label>
                             <input 
                                 value={newWord.word} 
                                 onChange={e => setNewWord({...newWord, word: e.target.value})}
-                                className="w-full p-4 bg-slate-900 border border-white/10 rounded-2xl text-white font-serif text-lg outline-none focus:border-amber-500 transition-all"
-                                placeholder="p.sh. Me kênë"
+                                className="w-full p-3 bg-slate-900 border border-white/10 rounded-xl text-white font-serif text-sm outline-none focus:border-amber-500 transition-all"
+                                placeholder="Me kênë"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-black uppercase text-slate-500 mb-2 block tracking-widest">Lloji</label>
+                            <label className="text-[8px] font-black uppercase text-slate-500 mb-1 block tracking-widest">Lloji</label>
                             <select 
                                 value={newWord.pos}
                                 onChange={e => setNewWord({...newWord, pos: e.target.value})}
-                                className="w-full p-4 bg-slate-900 border border-white/10 rounded-2xl text-white text-sm outline-none focus:border-amber-500"
+                                className="w-full p-3 bg-slate-900 border border-white/10 rounded-xl text-white text-[10px] outline-none focus:border-amber-500"
                             >
                                 <option>Emën</option>
                                 <option>Folje</option>
@@ -362,11 +360,11 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
                         </div>
                     </div>
                     <div>
-                        <label className="text-[10px] font-black uppercase text-slate-500 mb-2 block tracking-widest">Kuptimi n'Gegënisht</label>
+                        <label className="text-[8px] font-black uppercase text-slate-500 mb-1 block tracking-widest">Kuptimi</label>
                         <textarea 
                             value={newWord.meaning}
                             onChange={e => setNewWord({...newWord, meaning: e.target.value})}
-                            className="w-full p-4 bg-slate-900 border border-white/10 rounded-2xl text-white text-sm outline-none focus:border-amber-500 min-h-[80px]"
+                            className="w-full p-3 bg-slate-900 border border-white/10 rounded-xl text-white text-[10px] outline-none focus:border-amber-500 min-h-[60px]"
                             placeholder="Shpjegoni fjalën..."
                             required
                         />
@@ -374,38 +372,38 @@ const VoiceTutor: React.FC<VoiceTutorProps> = ({ lang, onClose }) => {
                     <button 
                         type="submit"
                         disabled={status === 'learning'}
-                        className="w-full py-4 bg-amber-600 text-white rounded-2xl font-black text-lg hover:bg-amber-500 transition-all flex items-center justify-center gap-3 shadow-xl"
+                        className="w-full py-3 bg-amber-600 text-white rounded-xl font-black text-xs hover:bg-amber-500 transition-all flex items-center justify-center gap-2 shadow-xl"
                     >
-                        {status === 'learning' ? <Loader2 className="w-6 h-6 animate-spin" /> : <><Sparkles className="w-6 h-6" /> Përditëso Bacën</>}
+                        {status === 'learning' ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Sparkles className="w-4 h-4" /> Përditëso</>}
                     </button>
                 </form>
             </div>
         )}
 
-        <div className="w-full mt-12 space-y-6">
+        <div className="w-full mt-6 space-y-4 px-6">
             {!isActive ? (
-                <button onClick={startSession} disabled={status === 'connecting'} className="w-full sm:w-auto px-12 py-5 bg-white text-slate-950 rounded-2xl font-black text-xl hover:bg-indigo-50 transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50">
-                    {status === 'connecting' ? <Loader2 className="w-6 h-6 animate-spin" /> : <Play className="w-6 h-6 fill-current" />}
+                <button onClick={startSession} disabled={status === 'connecting'} className="w-full px-8 py-4 bg-white text-slate-950 rounded-2xl font-black text-lg hover:bg-indigo-50 transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50">
+                    {status === 'connecting' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5 fill-current" />}
                     {status === 'connecting' ? (isGeg ? 'Tuj u lidhë...' : 'Connecting...') : (isGeg ? 'Hap Konakun' : 'Enter Room')}
                 </button>
             ) : (
                 activeTab === 'conversation' && (
-                    <button onClick={stopSession} className="w-full sm:w-auto px-12 py-5 bg-red-600 text-white rounded-2xl font-black text-xl hover:bg-red-700 transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-95">
-                        <StopCircle className="w-6 h-6" />
-                        {isGeg ? 'Mbyll Bisedën' : 'End Session'}
+                    <button onClick={stopSession} className="w-full px-8 py-4 bg-red-600 text-white rounded-2xl font-black text-lg hover:bg-red-700 transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-95">
+                        <StopCircle className="w-5 h-5" />
+                        {isGeg ? 'Mbyll' : 'End'}
                     </button>
                 )
             )}
             
-            <div className="flex items-center justify-center gap-4 text-slate-500 font-bold uppercase text-[10px] tracking-[0.3em]">
-                <div className={`w-2 h-2 rounded-full ${status === 'listening' ? 'bg-emerald-500 animate-pulse' : status === 'speaking' ? 'bg-indigo-500' : status === 'error' ? 'bg-red-500' : 'bg-slate-700'}`}></div>
-                {status === 'connecting' ? 'Establishing Context...' : status === 'listening' ? 'Bac is listening' : status === 'speaking' ? 'Bac is interpreting' : status === 'learning' ? 'Applying Local Rules' : status === 'error' ? 'Session Failed' : 'System Ready'}
+            <div className="flex items-center justify-center gap-3 text-slate-500 font-bold uppercase text-[8px] tracking-[0.2em]">
+                <div className={`w-1.5 h-1.5 rounded-full ${status === 'listening' ? 'bg-emerald-500 animate-pulse' : status === 'speaking' ? 'bg-indigo-500' : status === 'error' ? 'bg-red-500' : 'bg-slate-700'}`}></div>
+                {status === 'connecting' ? 'Connecting AI...' : status === 'listening' ? 'Bac is listening' : status === 'speaking' ? 'Bac is speaking' : status === 'learning' ? 'Applying Rules' : status === 'error' ? 'Failed' : 'System Ready'}
             </div>
         </div>
       </div>
 
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-slate-600 text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
-        Neural Geg Lexicon • {isGeg ? 'Udhëzimet Lokale: Aktive' : 'Local Instruction: ACTIVE'}
+      <div className="mt-auto pb-8 text-slate-600 text-[8px] font-black uppercase tracking-widest whitespace-nowrap opacity-60">
+        Neural Geg Lexicon • {isGeg ? 'Udhëzimet: Aktive' : 'Rules: ACTIVE'}
       </div>
     </div>
   );
