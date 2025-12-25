@@ -331,9 +331,9 @@ export const fetchKidIllustration = async (prompt: string): Promise<string> => {
     model: 'gemini-2.5-flash-image',
     contents: { parts: [{ text: `Simple cute illustration: ${prompt}` }] }
   });
-  const candidates = response.candidates;
-  if (!candidates || candidates.length === 0) throw new Error("No candidates");
-  const part = candidates[0].content.parts.find(p => p.inlineData);
+  const firstCandidate = response.candidates?.[0];
+  if (!firstCandidate) throw new Error("No candidates");
+  const part = firstCandidate.content?.parts?.find(p => p.inlineData);
   if (part?.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
   throw new Error("No image data found in model response");
 };
@@ -345,9 +345,9 @@ export const fetchBlogVisual = async (prompt: string): Promise<string> => {
     contents: { parts: [{ text: `Evocative heritage illustration: ${prompt}` }] },
     config: { imageConfig: { aspectRatio: "16:9" } }
   });
-  const candidates = response.candidates;
-  if (!candidates || candidates.length === 0) throw new Error("No candidates");
-  const part = candidates[0].content.parts.find(p => p.inlineData);
+  const firstCandidate = response.candidates?.[0];
+  if (!firstCandidate) throw new Error("No candidates");
+  const part = firstCandidate.content?.parts?.find(p => p.inlineData);
   if (part?.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
   throw new Error("No blog visual found in model response");
 };
@@ -358,9 +358,9 @@ export const fetchProductVisual = async (prompt: string): Promise<string> => {
     model: 'gemini-2.5-flash-image',
     contents: { parts: [{ text: `Professional product photo: ${prompt}` }] }
   });
-  const candidates = response.candidates;
-  if (!candidates || candidates.length === 0) throw new Error("No candidates");
-  const part = candidates[0].content.parts.find(p => p.inlineData);
+  const firstCandidate = response.candidates?.[0];
+  if (!firstCandidate) throw new Error("No candidates");
+  const part = firstCandidate.content?.parts?.find(p => p.inlineData);
   if (part?.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
   throw new Error("No product visual found in model response");
 };
