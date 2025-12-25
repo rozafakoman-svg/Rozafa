@@ -1,7 +1,5 @@
-
 import React, { useState } from 'react';
 import { Language } from '../types';
-// Added Sparkles to the imported icons to fix the "Cannot find name 'Sparkles'" error
 import { QuestionMark, ChevronDown, BookOpen, Zap, Shield, Globe, MessageSquare, ArrowRight, Star, Anchor, Sparkles } from './Icons';
 
 interface FAQItem {

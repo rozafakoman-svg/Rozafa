@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type, Modality, LiveServerMessage } from "@google/genai";
 import { DictionaryEntry, QuizQuestion, CrosswordData, AlphabetData, GlossaryTerm } from "../types";
 import { db, Stores } from "./db";
@@ -16,7 +15,6 @@ async function callWithRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T
       console.warn(`API attempt ${i + 1} failed:`, err.message || err);
 
       if (i < maxRetries - 1) {
-        // More aggressive wait for rate limits: 8s, 16s, etc.
         const baseDelay = isRateLimit ? 8000 : 2000;
         const delay = Math.pow(2, i) * baseDelay + Math.random() * 1000;
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -148,12 +146,13 @@ export const fetchHeritageWisdom = async (): Promise<{ text: string, translation
           }
         }
       });
-      const data = JSON.parse(response.text);
+      const text = response.text;
+      if (!text) throw new Error("Empty response from model");
+      const data = JSON.parse(text);
       await db.put(Stores.DailyData, { id: 'wisdom', date: today, data });
       return data;
     });
   } catch (error) {
-    // Fallback if API fails and no current cache
     return {
       text: "Fjala e urtë asht peshë e burrit.",
       translation: "A wise word is a man's weight.",
@@ -234,6 +233,7 @@ export const fetchDailyQuiz = async (): Promise<QuizQuestion[]> => {
         },
       });
       const text = response.text;
+      if (!text) throw new Error("Empty response");
       const data = JSON.parse(text) as QuizQuestion[];
       await db.put(Stores.DailyData, { id: 'quiz_set', date: today, data });
       return data;
@@ -269,7 +269,9 @@ export const fetchGlossaryTerms = async (letter: string): Promise<GlossaryTerm[]
           }
         },
       });
-      const terms = JSON.parse(response.text).terms;
+      const text = response.text;
+      if (!text) throw new Error("Empty response");
+      const terms = JSON.parse(text).terms;
       await db.put(Stores.Glossary, { id: letter, terms });
       return terms;
   });
@@ -293,7 +295,9 @@ export const fetchAlphabetWord = async (letter: string): Promise<AlphabetData> =
         }
       },
     });
-    return JSON.parse(response.text) as AlphabetData;
+    const text = response.text;
+    if (!text) throw new Error("Empty response");
+    return JSON.parse(text) as AlphabetData;
   });
 };
 
@@ -315,7 +319,9 @@ export const fetchCrosswordPuzzle = async (): Promise<CrosswordData> => {
         }
       },
     });
-    return JSON.parse(response.text) as CrosswordData;
+    const text = response.text;
+    if (!text) throw new Error("Empty response");
+    return JSON.parse(text) as CrosswordData;
   });
 };
 
@@ -325,9 +331,11 @@ export const fetchKidIllustration = async (prompt: string): Promise<string> => {
     model: 'gemini-2.5-flash-image',
     contents: { parts: [{ text: `Simple cute illustration: ${prompt}` }] }
   });
-  const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-  if (part) return `data:image/png;base64,${part.inlineData.data}`;
-  throw new Error("No image");
+  const candidates = response.candidates;
+  if (!candidates || candidates.length === 0) throw new Error("No candidates");
+  const part = candidates[0].content.parts.find(p => p.inlineData);
+  if (part?.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
+  throw new Error("No image data found in model response");
 };
 
 export const fetchBlogVisual = async (prompt: string): Promise<string> => {
@@ -337,9 +345,11 @@ export const fetchBlogVisual = async (prompt: string): Promise<string> => {
     contents: { parts: [{ text: `Evocative heritage illustration: ${prompt}` }] },
     config: { imageConfig: { aspectRatio: "16:9" } }
   });
-  const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-  if (part) return `data:image/png;base64,${part.inlineData.data}`;
-  throw new Error("No blog image");
+  const candidates = response.candidates;
+  if (!candidates || candidates.length === 0) throw new Error("No candidates");
+  const part = candidates[0].content.parts.find(p => p.inlineData);
+  if (part?.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
+  throw new Error("No blog visual found in model response");
 };
 
 export const fetchProductVisual = async (prompt: string): Promise<string> => {
@@ -348,7 +358,9 @@ export const fetchProductVisual = async (prompt: string): Promise<string> => {
     model: 'gemini-2.5-flash-image',
     contents: { parts: [{ text: `Professional product photo: ${prompt}` }] }
   });
-  const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-  if (part) return `data:image/png;base64,${part.inlineData.data}`;
-  throw new Error("No product image");
+  const candidates = response.candidates;
+  if (!candidates || candidates.length === 0) throw new Error("No candidates");
+  const part = candidates[0].content.parts.find(p => p.inlineData);
+  if (part?.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
+  throw new Error("No product visual found in model response");
 };

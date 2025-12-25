@@ -187,7 +187,6 @@ export class AppDatabase {
   async delete(storeName: Stores, key: string): Promise<void> {
     await this.init();
     
-    // Execute local delete
     await new Promise<void>((resolve, reject) => {
       try {
         const transaction = this.db!.transaction(storeName, 'readwrite');
@@ -200,7 +199,6 @@ export class AppDatabase {
       }
     });
 
-    // Remote delete (fire and forget / non-blocking)
     if (isRemoteActive()) {
         const idCol = storeName === Stores.Dictionary ? 'word' : 'id';
         (async () => {

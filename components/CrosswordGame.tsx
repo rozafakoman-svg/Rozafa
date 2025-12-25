@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { CrosswordData } from '../types';
 import { fetchCrosswordPuzzle } from '../services/geminiService';
@@ -115,7 +114,6 @@ const CrosswordGame: React.FC = () => {
     }
     else if (e.key === 'ArrowDown') {
         if (y + 1 < (data?.height || 10) && grid[y + 1][x] !== '') {
-            setSelectedCell({ x: y + 1, y: y + 1 }); // Fixed typo from source: was {x: y+1, y: y+1}
             setSelectedCell({ x: x, y: y + 1 });
             inputRefs.current[y + 1][x]?.focus();
         }
@@ -164,7 +162,6 @@ const CrosswordGame: React.FC = () => {
        </div>
 
        <div className="p-6 flex flex-col lg:flex-row gap-8 overflow-y-auto">
-          {/* Grid */}
           <div className="flex-shrink-0 mx-auto overflow-x-auto">
             <div 
               className="grid gap-1 bg-gray-200 dark:bg-gray-900 p-2 rounded-lg border border-gray-300 dark:border-gray-700 shadow-inner"
@@ -203,7 +200,6 @@ const CrosswordGame: React.FC = () => {
             </div>
           </div>
 
-          {/* Clues */}
           <div className="flex-grow">
              <div className="mb-4">
                 {isSolved ? (
