@@ -203,7 +203,6 @@ export class AppDatabase {
     // Remote delete (fire and forget / non-blocking)
     if (isRemoteActive()) {
         const idCol = storeName === Stores.Dictionary ? 'word' : 'id';
-        // Use an async IIFE to handle the potential error properly and avoid chaining issues.
         (async () => {
           try {
             await supabase!.from(storeName).delete().eq(idCol, key.toLowerCase());
