@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ForumPost, ForumComment, UserProfile, Language } from '../types';
 import { 
@@ -13,6 +14,22 @@ interface ForumPageProps {
 }
 
 const MOCK_POSTS: ForumPost[] = [
+  {
+    id: 'buzmi_night_discussion_2024',
+    title: "Sonte asht Nata e Buzmit: A e rrueni këtë doke?",
+    content: "Përshëndetje t'gjithëve!\n\nSonte âsht nji prej netëve ma t'randsishme t'vjetit në traditën tonë gege. Në shpinë time, Baca e ka sjellë Buzmin te dera para nji ore. Kemi kênë t'gjithë familja tuj pritë me urimin: 'Hini Buzëm!'.\n\nNë kohën e sotme, shumë nga na qi jetojmë në qytet apo në diasporë e kemi t'vështirë me e ndezë nji cung t'vërtetë n'votër. Unë sivjet kam gjetë nji cung të vogël dekorativ veç për me e mbajtë gjallë simbolikën.\n\nPyetja ime asht: Si e festoni ju sonte? A keni dëgjue tregime nga gjyshet tueja për 'ushqimin' e Buzmit apo për fallin qi bëhej me kërshënditë? Ndani me ne format e ndryshme qi ka ky rit në zonat tueja (Shkodër, Mirditë, Kosovë, etj.)!",
+    author: 'Geg_Warrior_92',
+    authorRole: 'user',
+    date: 'Just now',
+    upvotes: 88,
+    downvotes: 0,
+    tags: ['Buzmi', 'Traditë', 'Solstici', 'Malësia'],
+    comments: [
+        { id: 'bz1', postId: 'buzmi_night_discussion_2024', author: 'Baca_Gjoni', content: "Lum na qi po kthejmë sytë kah vjetërsia! Buzmi nuk do me u fikë kurrë sa t'këtë Gegë gjallë. Sonte bëni gajret dhe urojeni nji tjetrin me gjuhën tonë t'amël.", date: '2 min ago', upvotes: 25 }
+    ],
+    viewCount: 312,
+    pinned: false
+  },
   {
     id: 'gjergj_fishta_biblioteka_diskutim',
     title: "Veprat e Fishtës: Cila ka lânë ma shumë gjurmë te ju?",

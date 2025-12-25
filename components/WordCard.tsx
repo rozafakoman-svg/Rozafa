@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { DictionaryEntry, ContributionType, ExampleSentence } from '../types';
 import { Volume2, BookOpen, Share2, ArrowRight, AlignLeft, Globe, Info, Sparkles, Loader2, X, Upload, Mic, Flag, Edit3, Trash2, PlusCircle, CheckCircle, Save, Star, AlertTriangle, PlayCircle } from './Icons';
-import { fetchWordDefinition, saveToDictionaryCache } from '../services/geminiService';
+// Fixed: Removed unused and non-existent imports saveToDictionaryCache and fetchWordDefinition
 
 interface WordCardProps {
   entry: DictionaryEntry;

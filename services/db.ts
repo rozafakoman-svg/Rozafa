@@ -1,4 +1,3 @@
-
 import { supabase, isRemoteActive } from './supabaseClient';
 
 const DB_NAME = 'GegenishtSecureDB';
@@ -72,7 +71,7 @@ export class AppDatabase {
           });
         };
 
-        request.onsuccess = async () => {
+        request.onsuccess = () => {
           this.db = request.result;
           this.isInitialized = true;
           resolve();
@@ -81,8 +80,8 @@ export class AppDatabase {
         request.onerror = () => {
             reject(new Error("IndexedDB initialization failed"));
         };
-      } catch (e) {
-        reject(e);
+      } catch (err: any) {
+        reject(err);
       }
     });
   }
@@ -97,7 +96,7 @@ export class AppDatabase {
         const request = store.get(key.toLowerCase());
         request.onsuccess = () => resolve(request.result || null);
         request.onerror = () => resolve(null);
-      } catch (e) {
+      } catch (err: any) {
         resolve(null);
       }
     });
@@ -164,8 +163,8 @@ export class AppDatabase {
         const request = store.put(data);
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
-      } catch (e) {
-        reject(e);
+      } catch (err: any) {
+        reject(err);
       }
     });
   }
@@ -179,33 +178,40 @@ export class AppDatabase {
         const request = store.getAll();
         request.onsuccess = () => resolve(request.result || []);
         request.onerror = () => reject(request.error);
-      } catch (e) {
-        reject(e);
+      } catch (err: any) {
+        reject(err);
       }
     });
   }
 
   async delete(storeName: Stores, key: string): Promise<void> {
     await this.init();
-    const pLocal = new Promise<void>((resolve, reject) => {
+    
+    // Execute local delete
+    await new Promise<void>((resolve, reject) => {
       try {
         const transaction = this.db!.transaction(storeName, 'readwrite');
         const store = transaction.objectStore(storeName);
         const request = store.delete(key.toLowerCase());
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
-      } catch (e) {
-        reject(e);
+      } catch (err: any) {
+        reject(err);
       }
     });
 
+    // Remote delete (fire and forget / non-blocking)
     if (isRemoteActive()) {
         const idCol = storeName === Stores.Dictionary ? 'word' : 'id';
-        supabase!.from(storeName).delete().eq(idCol, key.toLowerCase()).catch(e => {
-            console.warn("[DB] Remote Delete Bypassed");
-        });
+        // Use an async IIFE to handle the potential error properly and avoid chaining issues.
+        (async () => {
+          try {
+            await supabase!.from(storeName).delete().eq(idCol, key.toLowerCase());
+          } catch (e: any) {
+            console.warn("[DB] Remote Delete Bypassed", e.message || e);
+          }
+        })();
     }
-    return pLocal;
   }
 
   async clearStore(storeName: Stores): Promise<void> {
@@ -217,8 +223,8 @@ export class AppDatabase {
             const request = store.clear();
             request.onsuccess = () => resolve();
             request.onerror = () => reject(request.error);
-          } catch (e) {
-            reject(e);
+          } catch (err: any) {
+            reject(err);
           }
       });
   }
@@ -227,7 +233,7 @@ export class AppDatabase {
       try {
           await this.init();
           return !!this.db;
-      } catch (e) {
+      } catch (e: any) {
           return false;
       }
   }

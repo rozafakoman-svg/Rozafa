@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { GlossaryTerm, DictionaryEntry, Language } from '../types';
-import { fetchGlossaryTerms, fetchWordDefinition, saveToDictionaryCache } from '../services/geminiService';
+// Fixed: Removed non-existent export saveToDictionaryCache
+import { fetchGlossaryTerms, fetchWordDefinition } from '../services/geminiService';
 import WordCard from './WordCard';
 import { Loader2, Book, ArrowRight, ArrowLeft, Filter, Search, X, AlertTriangle, RefreshCw, Download, CheckCircle, Zap } from './Icons';
 import { db, Stores } from '../services/db';
@@ -69,14 +70,16 @@ const GlossaryPage: React.FC<GlossaryPageProps> = ({ lang, isEditing }) => {
             setSyncProgress(prev => ({ ...prev, current: i + 1 }));
             // This will fetch from API and save to IndexedDB via fetchGlossaryTerms logic
             await fetchGlossaryTerms(letter);
-            // Small delay to avoid aggressive rate limiting
-            await new Promise(r => setTimeout(r, 500));
+            
+            // Increased delay to be very safe for free-tier quotas (e.g., 15 RPM)
+            // 4 seconds delay between letters means we stay well under the limit.
+            await new Promise(r => setTimeout(r, 4000));
         }
         setSyncComplete(true);
         setTimeout(() => setSyncComplete(false), 5000);
     } catch (e) {
         console.error("Batch sync failed:", e);
-        alert(isGeg ? "Sinkronizimi dështoi. Provoni sërish." : "Library sync failed. Please check your connection.");
+        alert(isGeg ? "Sinkronizimi dështoi. Provoni sërish pas nji minute." : "Library sync failed. Please try again in a minute.");
     } finally {
         setIsSyncing(false);
     }

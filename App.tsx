@@ -2,11 +2,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   BookOpen, Menu, X, Globe, User, ShieldCheck, Sparkles, Heart, Sun, Moon,
-  Search, Book, AlignLeft, Clock, Headphones, FileText, Users, Type, Activity, Map as MapIcon, Mic, Edit3,
-  MoreHorizontal, ChevronDown, ShoppingBag, HelpCircle, AlertTriangle, Anchor, MessageSquare, LogIn, Diamond
+  Search, Book, AlignLeft, AncientColumns, HeritageMic, BlogB, Users, Type, Activity, Map as MapIcon, Mic, Edit3,
+  MoreHorizontal, ChevronDown, ShoppingBag, QuestionMark, AlertTriangle, Anchor, MessageSquare, LogIn, Diamond, Quote, ArrowRight
 } from './components/Icons';
 import { DictionaryEntry, UserProfile, Language, VaultStatus, View, ModuleSettings } from './types';
-import { fetchWordDefinition, fetchWordOfTheDay, saveToDictionaryCache } from './services/geminiService';
+import { fetchWordDefinition, fetchWordOfTheDay, fetchHeritageWisdom } from './services/geminiService';
 import { db, Stores } from './services/db';
 import SearchBar from './components/SearchBar';
 import WordCard from './components/WordCard';
@@ -48,7 +48,6 @@ const DEFAULT_MODULES: ModuleSettings = {
   community: true
 };
 
-// Traditional Avatar Component
 const GegAvatar: React.FC<{ user: UserProfile, size?: 'sm' | 'md' }> = ({ user, size = 'sm' }) => {
   const isMythic = user.tier === 'mythic';
   const charCode = user.name.charCodeAt(0);
@@ -99,6 +98,7 @@ const App: React.FC = () => {
   const [voiceTutorOpen, setVoiceTutorOpen] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [wotd, setWotd] = useState<DictionaryEntry | null>(null);
+  const [wisdom, setWisdom] = useState<{text: string, translation: string, meaning: string} | null>(null);
   const [globalEditMode, setGlobalEditMode] = useState(false);
   const [moduleSettings, setModuleSettings] = useState<ModuleSettings>(() => {
     const saved = localStorage.getItem('gegenisht_modules');
@@ -116,22 +116,31 @@ const App: React.FC = () => {
   const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
-    db.init().catch(console.error);
-    const storedUser = localStorage.getItem('gegenisht_user');
-    if (storedUser) {
-        const parsed = JSON.parse(storedUser);
-        setUser(parsed);
-    }
-    
-    const loadWotd = async () => {
+    const initApp = async () => {
         try {
-            const data = await fetchWordOfTheDay();
-            setWotd(data);
-        } catch (e) {
-            console.error("Failed to load WOTD");
+            await db.init();
+            const storedUser = localStorage.getItem('gegenisht_user');
+            if (storedUser) {
+                setUser(JSON.parse(storedUser));
+            }
+            
+            // Load daily assets sequentially to avoid 429 burst on startup
+            try {
+                const wotdData = await fetchWordOfTheDay();
+                setWotd(wotdData);
+            } catch (e) { console.warn("Sequential load part 1 failed"); }
+
+            try {
+                const wisdomData = await fetchHeritageWisdom();
+                setWisdom(wisdomData);
+            } catch (e) { console.warn("Sequential load part 2 failed"); }
+            
+        } catch (error) {
+            console.error("App Initialization Failed:", error);
         }
     };
-    loadWotd();
+
+    initApp();
   }, []);
 
   useEffect(() => {
@@ -214,11 +223,11 @@ const App: React.FC = () => {
       { id: 'dictionary' as View, label: 'Dictionary', labelGeg: 'Fjalori', icon: Search, color: 'red' },
       { id: 'forum' as View, label: 'Forum', labelGeg: 'Forumi', icon: MessageSquare, color: 'indigo' },
       { id: 'map' as View, label: 'Map', labelGeg: 'Harta', icon: MapIcon, color: 'emerald' },
-      { id: 'history' as View, label: 'History', labelGeg: 'Historia', icon: Clock, color: 'slate' },
+      { id: 'history' as View, label: 'History', labelGeg: 'Historia', icon: AncientColumns, color: 'slate' },
       { id: 'interjections' as View, label: 'Loan Words', labelGeg: 'Huazime', icon: Globe, color: 'amber' },
-      { id: 'podcast' as View, label: 'Podcast', labelGeg: 'Podkast', icon: Headphones, color: 'violet' },
-      { id: 'blog' as View, label: 'Blog', labelGeg: 'Blogu', icon: FileText, color: 'blue' },
-      { id: 'faq' as View, label: 'FAQ', labelGeg: 'Pyetje', icon: HelpCircle, color: 'cyan' },
+      { id: 'podcast' as View, label: 'Podcast', labelGeg: 'Podkast', icon: HeritageMic, color: 'violet' },
+      { id: 'blog' as View, label: 'Blog', labelGeg: 'Blogu', icon: BlogB, color: 'blue' },
+      { id: 'faq' as View, label: 'FAQ', labelGeg: 'Pyetje', icon: QuestionMark, color: 'cyan' },
     ];
     return all.filter(item => item.id === 'dictionary' || (moduleSettings[item.id] !== false));
   }, [moduleSettings]);
@@ -267,7 +276,6 @@ const App: React.FC = () => {
                 );
               })}
               
-              {/* Mobile Shop Entry */}
               {moduleSettings.shop !== false && (
                 <button 
                   onClick={() => handleNavClick('shop')} 
@@ -278,7 +286,6 @@ const App: React.FC = () => {
                 </button>
               )}
 
-              {/* Mobile Support Entry */}
               {moduleSettings.support !== false && (
                 <button 
                   onClick={() => handleNavClick('support')} 
@@ -432,6 +439,36 @@ const App: React.FC = () => {
                 />
               ) : (
                 <div className="space-y-24">
+                   {/* Fjala e Urtë (Heritage Wisdom) Section */}
+                   {wisdom && (
+                        <section className="animate-fade-in-up">
+                            <div className="bg-slate-900 dark:bg-black rounded-[3rem] p-10 sm:p-16 border border-slate-800 shadow-3xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-albanian-red/10 rounded-full blur-[120px] -mr-48 -mt-48 pointer-events-none"></div>
+                                <div className="relative z-10 flex flex-col items-center text-center">
+                                    <div className="inline-flex items-center gap-3 px-6 py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 text-indigo-300 mb-10">
+                                        <Quote className="w-4 h-4" />
+                                        <span className="text-[10px] font-black uppercase tracking-[0.4em]">{lang === 'geg' ? 'Fjalë e Urtë' : 'Heritage Wisdom'}</span>
+                                    </div>
+                                    <h2 className="text-4xl sm:text-6xl font-serif font-black text-white mb-8 italic leading-tight max-w-4xl">
+                                        "{wisdom.text}"
+                                    </h2>
+                                    <div className="w-24 h-1 bg-albanian-red/30 rounded-full mb-8"></div>
+                                    <p className="text-indigo-100/60 text-xl font-medium mb-12 max-w-2xl">
+                                        {wisdom.translation}
+                                    </p>
+                                    <div className="bg-white/5 backdrop-blur-2xl p-8 rounded-[2rem] border border-white/10 max-w-2xl">
+                                        <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4 flex items-center justify-center gap-2">
+                                            <Sparkles className="w-4 h-4" /> Cultural Insight
+                                        </h3>
+                                        <p className="text-sm text-slate-300 leading-relaxed italic">
+                                            {wisdom.meaning}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                   )}
+
                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                       <div className="lg:col-span-2 space-y-10">
                             <section>
@@ -503,7 +540,7 @@ const App: React.FC = () => {
         >
           <div className="absolute inset-0 bg-indigo-600 rounded-full animate-ping opacity-20 scale-150 group-hover:opacity-40"></div>
           <Mic className="w-8 h-8 relative z-10" />
-          <div className="absolute right-full mr-4 bg-slate-900 text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all pointer-events-none translate-x-4 group-hover:translate-x-0 hidden md:block">
+          <div className="absolute right-full mr-4 bg-slate-900 text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all pointer-events-none translate-x-4 group-hover:translate-x-0 hidden md:block border border-white/10 shadow-2xl">
              {lang === 'geg' ? 'Fol me Bacën' : 'Talk with Bac'}
           </div>
         </button>

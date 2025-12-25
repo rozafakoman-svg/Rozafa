@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Language } from '../types';
 // Added Sparkles to the imported icons to fix the "Cannot find name 'Sparkles'" error
-import { HelpCircle, ChevronDown, BookOpen, Zap, Shield, Globe, MessageSquare, ArrowRight, Star, Anchor, Sparkles } from './Icons';
+import { QuestionMark, ChevronDown, BookOpen, Zap, Shield, Globe, MessageSquare, ArrowRight, Star, Anchor, Sparkles } from './Icons';
 
 interface FAQItem {
   id: string;
@@ -73,13 +73,13 @@ const FAQPage: React.FC<{ lang: Language }> = ({ lang }) => {
   return (
     <div className="max-w-4xl mx-auto animate-fade-in-up pb-24 px-4">
       <div className="text-center mb-16">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-white dark:bg-gray-900 rounded-3xl mb-6 shadow-xl border border-gray-100 dark:border-gray-800">
-           <HelpCircle className="w-10 h-10 text-albanian-red" />
+        <div className="inline-flex items-center justify-center w-28 h-28 bg-white dark:bg-gray-900 rounded-[3rem] mb-8 shadow-2xl border-4 border-gray-50 dark:border-gray-800">
+           <QuestionMark className="w-16 h-16 text-albanian-red" />
         </div>
-        <h1 className="text-4xl sm:text-6xl font-serif font-black text-gray-900 dark:text-white mb-4 tracking-tight text-center">
+        <h1 className="text-4xl sm:text-7xl font-serif font-black text-gray-900 dark:text-white mb-4 tracking-tight text-center">
            {isGeg ? 'Pyetjet e ' : 'Common '}<span className="text-albanian-red">Shpeshta</span>
         </h1>
-        <p className="text-lg text-gray-500 dark:text-gray-400 font-medium max-w-2xl mx-auto leading-relaxed text-center">
+        <p className="text-xl text-gray-500 dark:text-gray-400 font-medium max-w-2xl mx-auto leading-relaxed text-center">
             {isGeg 
               ? 'Gjeni përgjigje rreth gjuhës, teknologjisë dhe kërkimeve tona fonetike.' 
               : 'Find answers about the language, technology, and our phonetic research.'}
@@ -90,7 +90,7 @@ const FAQPage: React.FC<{ lang: Language }> = ({ lang }) => {
         {FAQ_DATA.map((item) => (
           <div 
             key={item.id} 
-            className={`bg-white dark:bg-gray-900 rounded-[2rem] border transition-all duration-300 overflow-hidden ${openId === item.id ? 'border-indigo-200 ring-4 ring-indigo-50 shadow-xl dark:ring-indigo-900/10' : 'border-gray-100 dark:border-gray-800 shadow-sm'}`}
+            className={`bg-white dark:bg-gray-900 rounded-[2.5rem] border transition-all duration-300 overflow-hidden ${openId === item.id ? 'border-indigo-200 ring-4 ring-indigo-50 shadow-xl dark:ring-indigo-900/10' : 'border-gray-100 dark:border-gray-800 shadow-sm'}`}
           >
             <button 
               onClick={() => toggle(item.id)}

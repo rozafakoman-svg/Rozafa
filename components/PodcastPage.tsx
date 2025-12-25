@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PodcastEpisode, UserProfile, PodcastComment, Language } from '../types';
 import { 
-  PlayCircle, PauseCircle, Headphones, Mic, Share2, Clock, Calendar, PlusCircle, 
+  PlayCircle, PauseCircle, HeritageMic, Mic, Share2, Clock, Calendar, PlusCircle, 
   X, Send, MessageCircle, User, Activity, Users, Zap, Volume2, ArrowRight, Loader2, Upload
 } from './Icons';
 import { db, Stores } from '../services/db';
@@ -246,7 +246,7 @@ const PodcastPage: React.FC<PodcastPageProps> = ({ lang, user }) => {
     <div className="max-w-7xl mx-auto animate-fade-in-up pb-24 px-4">
       <div className="text-center mb-16 px-4">
           <div className="inline-flex items-center justify-center w-24 h-24 bg-white dark:bg-gray-900 rounded-[2.5rem] mb-8 shadow-2xl border border-gray-100 dark:border-gray-800 transform -rotate-3">
-             <Headphones className="w-12 h-12 text-indigo-600 dark:text-indigo-400" />
+             <HeritageMic className="w-12 h-12 text-indigo-600 dark:text-indigo-400" />
           </div>
           <h1 className="text-5xl sm:text-7xl font-serif font-black text-gray-900 dark:text-white mb-6 tracking-tight">
              {isGeg ? 'Podkaste & ' : 'Podcasts & '}<span className="text-indigo-600">Tregime</span>

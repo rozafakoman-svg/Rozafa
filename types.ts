@@ -1,6 +1,9 @@
 
 export type Language = 'geg' | 'eng';
 
+// Added missing VaultStatus type to fix import errors in App.tsx and AdminDashboard.tsx
+export type VaultStatus = 'quantum_secure' | 'locked';
+
 // Central navigation state management
 export type View = 'dictionary' | 'glossary' | 'thesaurus' | 'history' | 'podcast' | 'blog' | 'support' | 'community' | 'shop' | 'interjections' | 'alphabet' | 'forum' | 'admin' | 'map' | 'faq';
 
@@ -50,8 +53,6 @@ export interface UserProfile {
   tier?: string;
   mfaEnabled?: boolean;
 }
-
-export type VaultStatus = 'locked' | 'unlocked' | 'quantum_secure';
 
 export interface QuizQuestion {
   question: string;
@@ -121,6 +122,7 @@ export interface BlogPost {
   readTime: string;
   tags: string[];
   imageUrl?: string;
+  imagePrompt?: string;
 }
 
 export interface Badge {
